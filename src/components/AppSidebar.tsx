@@ -1,4 +1,4 @@
-import { Truck, RotateCcw, Fuel, Package, LogOut } from "lucide-react";
+import { Truck, RotateCcw, Fuel, Package, LogOut, Building2 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import { UserSession, MODULE_ACCESS } from "@/lib/types";
@@ -21,6 +21,7 @@ const allModules = [
   { key: "rodizio", title: "Rodízio de Pneus", url: "/rodizio", icon: RotateCcw },
   { key: "combustivel", title: "Combustível", url: "/combustivel", icon: Fuel },
   { key: "inventario", title: "Inventário", url: "/inventario", icon: Package },
+  { key: "fornecedores", title: "Fornecedores", url: "/fornecedores", icon: Building2 },
 ];
 
 interface Props {
