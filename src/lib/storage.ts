@@ -1,4 +1,4 @@
-import { PatioRecord, RodizioRecord, CombustivelFechamento, CombustivelCarga, PneuInventario } from "./types";
+import { PatioRecord, RodizioRecord, CombustivelFechamento, CombustivelCarga, PneuInventario, Fornecedor } from "./types";
 
 // ── helpers ──
 function getAll<T>(key: string): T[] {
@@ -116,4 +116,34 @@ export function atualizarStatusPneu(id: string, status: PneuInventario["status"]
   const records = getAll<PneuInventario>(INV_KEY);
   const idx = records.findIndex(r => r.id === id);
   if (idx >= 0) { records[idx].status = status; saveAll(INV_KEY, records); }
+}
+
+// ── Fornecedores ──
+const FORN_KEY = "frota_fornecedores";
+
+export function salvarFornecedor(record: Omit<Fornecedor, "id" | "timestamp">) {
+  const records = getAll<Fornecedor>(FORN_KEY);
+  records.push({ ...record, id: crypto.randomUUID(), timestamp: new Date() as any });
+  saveAll(FORN_KEY, records);
+}
+
+export function lerFornecedores(): Fornecedor[] {
+  return getAll<Fornecedor>(FORN_KEY)
+    .map(r => ({ ...r, timestamp: new Date(r.timestamp) }))
+    .reverse();
+}
+
+export function lerFornecedoresPorTipo(tipo: string): Fornecedor[] {
+  return lerFornecedores().filter(f => f.tipo === tipo);
+}
+
+export function atualizarFornecedor(id: string, data: Partial<Fornecedor>) {
+  const records = getAll<Fornecedor>(FORN_KEY);
+  const idx = records.findIndex(r => r.id === id);
+  if (idx >= 0) { Object.assign(records[idx], data); saveAll(FORN_KEY, records); }
+}
+
+export function excluirFornecedor(id: string) {
+  const records = getAll<Fornecedor>(FORN_KEY);
+  saveAll(FORN_KEY, records.filter(r => r.id !== id));
 }

@@ -12,6 +12,7 @@ import PatioPage from "@/pages/PatioPage";
 import RodizioPage from "@/pages/RodizioPage";
 import CombustivelPage from "@/pages/CombustivelPage";
 import InventarioPage from "@/pages/InventarioPage";
+import FornecedoresPage from "@/pages/FornecedoresPage";
 import NotFound from "@/pages/NotFound";
 import { Menu } from "lucide-react";
 
@@ -42,6 +43,7 @@ function AppLayout({ session, onLogout }: { session: UserSession; onLogout: () =
               {allowed.includes("rodizio") && <Route path="/rodizio" element={<RodizioPage />} />}
               {allowed.includes("combustivel") && <Route path="/combustivel" element={<CombustivelPage />} />}
               {allowed.includes("inventario") && <Route path="/inventario" element={<InventarioPage />} />}
+              {allowed.includes("fornecedores") && <Route path="/fornecedores" element={<FornecedoresPage />} />}
               <Route path="*" element={<Navigate to={defaultRoute} replace />} />
             </Routes>
           </main>

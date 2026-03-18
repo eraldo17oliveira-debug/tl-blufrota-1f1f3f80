@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { salvarFechamento, lerFechamentos, salvarCarga, lerCargas, volumeAtual } from "@/lib/storage";
+import { salvarFechamento, lerFechamentos, salvarCarga, lerCargas, volumeAtual, lerFornecedoresPorTipo } from "@/lib/storage";
+import { Fornecedor } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -12,16 +13,18 @@ export default function CombustivelPage() {
   const [leituraInicial, setLeituraInicial] = useState("");
   const [leituraFinal, setLeituraFinal] = useState("");
   const [litros, setLitros] = useState("");
-  const [fornecedor, setFornecedor] = useState("");
+  const [fornecedorId, setFornecedorId] = useState("");
   const [notaFiscal, setNotaFiscal] = useState("");
   const [fechamentos, setFechamentos] = useState<ReturnType<typeof lerFechamentos>>([]);
   const [cargas, setCargas] = useState<ReturnType<typeof lerCargas>>([]);
   const [volume, setVolume] = useState(0);
+  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
 
   const load = () => {
     setFechamentos(lerFechamentos());
     setCargas(lerCargas());
     setVolume(volumeAtual());
+    setFornecedores(lerFornecedoresPorTipo("COMBUSTÍVEL"));
   };
   useEffect(() => { load(); }, []);
 
@@ -39,9 +42,10 @@ export default function CombustivelPage() {
   const handleCarga = () => {
     const l = parseFloat(litros);
     if (isNaN(l) || l <= 0) { toast.error("Informe os litros!"); return; }
-    salvarCarga({ litros: l, fornecedor, notaFiscal });
+    const forn = fornecedores.find(f => f.id === fornecedorId);
+    salvarCarga({ litros: l, fornecedorId, fornecedorNome: forn?.razaoSocial || "", notaFiscal });
     toast.success("Carga registrada!");
-    setLitros(""); setFornecedor(""); setNotaFiscal("");
+    setLitros(""); setFornecedorId(""); setNotaFiscal("");
     load();
   };
 
@@ -87,8 +91,13 @@ export default function CombustivelPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Input placeholder="Litros" value={litros} onChange={e => setLitros(e.target.value)} type="number"
             className="text-center bg-input border-border/50 focus:border-accent h-12 font-orbitron text-sm" />
-          <Input placeholder="Fornecedor" value={fornecedor} onChange={e => setFornecedor(e.target.value)}
-            className="text-center bg-input border-border/50 focus:border-accent h-12" />
+          <select value={fornecedorId} onChange={e => setFornecedorId(e.target.value)}
+            className="bg-input border border-border/50 rounded-xl text-sm p-3 text-foreground font-orbitron h-12 uppercase">
+            <option value="">SELECIONE FORNECEDOR</option>
+            {fornecedores.map(f => (
+              <option key={f.id} value={f.id}>{f.razaoSocial}</option>
+            ))}
+          </select>
           <Input placeholder="Nota Fiscal" value={notaFiscal} onChange={e => setNotaFiscal(e.target.value)}
             className="text-center bg-input border-border/50 focus:border-accent h-12" />
         </div>
@@ -150,7 +159,7 @@ export default function CombustivelPage() {
                   <TableRow key={c.id} className="border-border/20">
                     <TableCell className="text-xs">{new Date(c.timestamp).toLocaleDateString("pt-BR")}</TableCell>
                     <TableCell className="text-sm font-orbitron text-accent">{c.litros} L</TableCell>
-                    <TableCell className="text-sm">{c.fornecedor}</TableCell>
+                    <TableCell className="text-sm">{c.fornecedorNome}</TableCell>
                     <TableCell className="text-sm">{c.notaFiscal}</TableCell>
                   </TableRow>
                 ))}

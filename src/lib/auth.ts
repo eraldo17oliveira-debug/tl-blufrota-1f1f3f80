@@ -8,7 +8,7 @@ export function verificarLogin(usuario: string, senha: string): { sucesso: boole
     return { sucesso: false, msg: "Senha incorreta!" };
   }
   if (u === "EDUARDO") return { sucesso: true, session: { nome: "EDUARDO", perfil: "MANOBRA" } };
-  if (u === "MARCOS") return { sucesso: true, session: { nome: "MARCOS", perfil: "MANUTENÇÃO" } };
+  if (u === "ANTONIO") return { sucesso: true, session: { nome: "ANTONIO", perfil: "MANUTENÇÃO" } };
 
   return { sucesso: false, msg: "Usuário não encontrado!" };
 }

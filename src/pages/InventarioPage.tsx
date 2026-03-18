@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { salvarPneu, lerPneus, atualizarStatusPneu } from "@/lib/storage";
-import { PneuInventario, PneuStatus } from "@/lib/types";
+import { salvarPneu, lerPneus, atualizarStatusPneu, lerFornecedoresPorTipo } from "@/lib/storage";
+import { PneuInventario, PneuStatus, Fornecedor } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -15,16 +15,22 @@ export default function InventarioPage() {
   const [aro, setAro] = useState("");
   const [marca, setMarca] = useState("");
   const [status, setStatus] = useState<PneuStatus>("ESTOQUE");
+  const [fornecedorId, setFornecedorId] = useState("");
   const [pneus, setPneus] = useState<PneuInventario[]>([]);
+  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
 
-  const load = () => setPneus(lerPneus());
+  const load = () => {
+    setPneus(lerPneus());
+    setFornecedores(lerFornecedoresPorTipo("PNEUS / RECAPAGEM"));
+  };
   useEffect(() => { load(); }, []);
 
   const handleSave = () => {
     if (!numFogo) { toast.error("Informe o Nº de fogo!"); return; }
-    salvarPneu({ numFogo, tamanho, largura, aro, marca, status });
+    const forn = fornecedores.find(f => f.id === fornecedorId);
+    salvarPneu({ numFogo, tamanho, largura, aro, marca, status, fornecedorId, fornecedorNome: forn?.razaoSocial || "" });
     toast.success("Pneu cadastrado!");
-    setNumFogo(""); setTamanho(""); setLargura(""); setAro(""); setMarca("");
+    setNumFogo(""); setTamanho(""); setLargura(""); setAro(""); setMarca(""); setFornecedorId("");
     load();
   };
 
@@ -76,6 +82,13 @@ export default function InventarioPage() {
             className="text-center bg-input border-border/50 h-12" />
           <Input placeholder="Marca" value={marca} onChange={e => setMarca(e.target.value)}
             className="text-center bg-input border-border/50 h-12" />
+          <select value={fornecedorId} onChange={e => setFornecedorId(e.target.value)}
+            className="bg-input border border-border/50 rounded-xl text-sm p-3 text-foreground h-12 uppercase">
+            <option value="">FORNECEDOR</option>
+            {fornecedores.map(f => (
+              <option key={f.id} value={f.id}>{f.razaoSocial}</option>
+            ))}
+          </select>
         </div>
         <OptionGroup label="Status" value={status} onChange={v => setStatus(v as PneuStatus)}
           colorClass="bg-accent text-accent-foreground" glowClass="neon-glow-green"
@@ -104,13 +117,14 @@ export default function InventarioPage() {
                 <TableHead className="font-orbitron text-[0.6rem]">Largura</TableHead>
                 <TableHead className="font-orbitron text-[0.6rem]">Aro</TableHead>
                 <TableHead className="font-orbitron text-[0.6rem]">Marca</TableHead>
+                <TableHead className="font-orbitron text-[0.6rem]">Fornecedor</TableHead>
                 <TableHead className="font-orbitron text-[0.6rem]">Status</TableHead>
                 <TableHead className="font-orbitron text-[0.6rem]">Ação</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {pneus.length === 0 ? (
-                <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-10 font-orbitron text-xs">Nenhum pneu cadastrado.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-10 font-orbitron text-xs">Nenhum pneu cadastrado.</TableCell></TableRow>
               ) : pneus.map(p => (
                 <TableRow key={p.id} className="border-border/20">
                   <TableCell className="text-sm font-orbitron">{p.numFogo}</TableCell>
@@ -118,6 +132,7 @@ export default function InventarioPage() {
                   <TableCell className="text-sm">{p.largura}</TableCell>
                   <TableCell className="text-sm">{p.aro}</TableCell>
                   <TableCell className="text-sm">{p.marca}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{p.fornecedorNome || "—"}</TableCell>
                   <TableCell className={`text-xs font-bold ${statusColor(p.status)}`}>{p.status}</TableCell>
                   <TableCell>
                     <select
