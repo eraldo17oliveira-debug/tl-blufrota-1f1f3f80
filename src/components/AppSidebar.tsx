@@ -38,7 +38,7 @@ export default function AppSidebar({ session, onLogout }: Props) {
   return (
     <Sidebar collapsible="icon" className="border-r border-border/30">
       <SidebarContent className="bg-card/80 backdrop-blur-xl">
-        <SidebarGroup defaultOpen>
+        <SidebarGroup>
           <SidebarGroupLabel className="font-orbitron text-primary text-xs neon-text">
             {!collapsed && "TL-BLU FROTA"}
           </SidebarGroupLabel>
