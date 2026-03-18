@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { lerDados, toggleConcluido } from "@/lib/storage";
-import { VehicleRecord, UserSession } from "@/lib/types";
+import { lerPatio, toggleConcluidoPatio, todayStr } from "@/lib/storage";
+import { PatioRecord, UserSession } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -9,44 +9,34 @@ import { cn } from "@/lib/utils";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-function todayStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
 interface Props {
   refreshKey: number;
   session: UserSession;
 }
 
-export default function RecordsTable({ refreshKey, session }: Props) {
+export default function PatioTable({ refreshKey, session }: Props) {
   const [date, setDate] = useState(todayStr());
-  const [records, setRecords] = useState<VehicleRecord[]>([]);
+  const [records, setRecords] = useState<PatioRecord[]>([]);
 
-  const load = useCallback(() => setRecords(lerDados(date)), [date]);
-
+  const load = useCallback(() => setRecords(lerPatio(date)), [date]);
   useEffect(() => { load(); }, [load, refreshKey]);
 
-  const handleToggle = (id: string) => {
-    toggleConcluido(id);
-    load();
-  };
+  const handleToggle = (id: string) => { toggleConcluidoPatio(id); load(); };
 
   const handlePDF = () => {
     const doc = new jsPDF({ orientation: "landscape" });
     doc.setFontSize(14);
-    doc.text(`FROTA TL-BLU — ${date}`, 14, 18);
+    doc.text(`TL-BLU FROTA — Pátio — ${date}`, 14, 18);
     autoTable(doc, {
       startY: 25,
       head: [["Placa", "Frota", "Carga", "Local", "Eixo", "Modelo", "Segurança"]],
       body: records.filter(r => !r.concluido).map(r => [r.placa, r.frota, r.estado, r.local, r.eixo, r.modelo, r.status]),
     });
-    doc.save(`frota_${date}.pdf`);
+    doc.save(`patio_${date}.pdf`);
   };
 
-  const canCheck = (r: VehicleRecord) => {
-    if (session.perfil === "ADMIN") return true;
-    // RESTRITO: only show check when Carga + Pátio
+  const canCheck = (r: PatioRecord) => {
+    if (session.perfil === "SUPERVISOR") return true;
     return r.estado === "Carga" && r.local === "Pátio";
   };
 
@@ -59,7 +49,7 @@ export default function RecordsTable({ refreshKey, session }: Props) {
         </div>
         <div className="flex items-center gap-2">
           <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-auto text-sm bg-input border-border/50 font-orbitron text-xs" />
-          <Button variant="outline" size="sm" onClick={handlePDF} className="gap-1.5 border-border/50 hover:border-primary hover:text-primary font-orbitron text-xs">
+          <Button variant="outline" size="sm" onClick={handlePDF} className="gap-1.5 border-primary/50 text-primary hover:bg-primary/10 hover:border-primary font-orbitron text-xs neon-glow-primary">
             <FileText className="h-3.5 w-3.5" /> PDF 📃
           </Button>
         </div>
@@ -89,20 +79,16 @@ export default function RecordsTable({ refreshKey, session }: Props) {
               <TableRow key={r.id} className={cn("border-border/20 transition-all duration-300", r.concluido && "opacity-20 line-through")}>
                 <TableCell>
                   {canCheck(r) ? (
-                    <button
-                      onClick={() => handleToggle(r.id)}
+                    <button onClick={() => handleToggle(r.id)}
                       className={cn(
                         "h-8 w-8 rounded-full border-2 flex items-center justify-center transition-all duration-300",
                         r.concluido
                           ? "border-accent bg-accent text-accent-foreground neon-glow-green"
                           : "border-accent/50 text-accent/50 hover:border-accent hover:text-accent hover:neon-glow-green"
-                      )}
-                    >
+                      )}>
                       <CheckCircle2 className="h-4 w-4" />
                     </button>
-                  ) : (
-                    <div className="h-8 w-8" />
-                  )}
+                  ) : <div className="h-8 w-8" />}
                 </TableCell>
                 <TableCell className="font-mono-neon text-primary text-sm">{r.placa}</TableCell>
                 <TableCell className="text-sm">{r.frota}</TableCell>

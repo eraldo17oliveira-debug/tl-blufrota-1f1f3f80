@@ -30,8 +30,8 @@ export default function LoginScreen({ onLogin }: Props) {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-2 border-primary/40 neon-glow-primary">
             <Truck className="h-8 w-8 text-primary" />
           </div>
-          <h1 className="font-orbitron text-xl font-bold text-primary neon-text">FROTA TL-BLU</h1>
-          <p className="text-sm text-muted-foreground">Acesso ao Pátio 🚚</p>
+          <h1 className="font-orbitron text-xl font-bold text-primary neon-text">TL-BLU FROTA</h1>
+          <p className="text-sm text-muted-foreground">Acesso ao Sistema 🚚</p>
         </div>
         <div className="space-y-4">
           <Input
@@ -39,7 +39,7 @@ export default function LoginScreen({ onLogin }: Props) {
             value={usuario}
             onChange={e => { setUsuario(e.target.value); setErro(""); }}
             onKeyDown={e => e.key === "Enter" && handleLogin()}
-            className="text-center uppercase bg-input border-border/50 focus:border-primary focus:neon-glow-primary font-orbitron text-sm"
+            className="text-center uppercase bg-input border-border/50 focus:border-primary font-orbitron text-sm"
           />
           <Input
             placeholder="Senha"
@@ -53,6 +53,11 @@ export default function LoginScreen({ onLogin }: Props) {
           <Button onClick={handleLogin} className="w-full gap-2 h-12 font-orbitron font-bold bg-primary text-primary-foreground hover:bg-primary/80 neon-glow-primary transition-all duration-300">
             <KeyRound className="h-4 w-4" /> ENTRAR 🔑
           </Button>
+          <div className="text-[0.6rem] text-muted-foreground text-center space-y-0.5">
+            <p>SUPERVISOR: eraldo / 123</p>
+            <p>MANOBRA: eduardo</p>
+            <p>MANUTENÇÃO: marcos</p>
+          </div>
         </div>
       </div>
     </div>
