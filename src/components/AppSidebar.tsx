@@ -1,46 +1,35 @@
-import { Truck, RotateCcw, Fuel, Package, LogOut, Building2 } from "lucide-react";
+import { Truck, RotateCcw, Fuel, Package, LogOut, Building2, PackageCheck, Users } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
-import { UserSession, MODULE_ACCESS } from "@/lib/types";
+import { UserSession, getModuleAccess } from "@/lib/types";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarFooter,
-  useSidebar,
+  Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
+  SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter, useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 
 const allModules = [
-  { key: "patio", title: "Gestão de Pátio", url: "/patio", icon: Truck },
-  { key: "rodizio", title: "Rodízio de Pneus", url: "/rodizio", icon: RotateCcw },
-  { key: "combustivel", title: "Combustível", url: "/combustivel", icon: Fuel },
-  { key: "inventario", title: "Inventário", url: "/inventario", icon: Package },
-  { key: "fornecedores", title: "Fornecedores", url: "/fornecedores", icon: Building2 },
+  { key: "patio", title: "GESTÃO DE PÁTIO", url: "/patio", icon: Truck },
+  { key: "rodizio", title: "RODÍZIO DE PNEUS", url: "/rodizio", icon: RotateCcw },
+  { key: "combustivel", title: "COMBUSTÍVEL", url: "/combustivel", icon: Fuel },
+  { key: "inventario", title: "INVENTÁRIO", url: "/inventario", icon: Package },
+  { key: "fornecedores", title: "FORNECEDORES", url: "/fornecedores", icon: Building2 },
+  { key: "expedicao", title: "EXPEDIÇÃO", url: "/expedicao", icon: PackageCheck },
 ];
 
-interface Props {
-  session: UserSession;
-  onLogout: () => void;
-}
+interface Props { session: UserSession; onLogout: () => void; }
 
 export default function AppSidebar({ session, onLogout }: Props) {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const location = useLocation();
-  const allowed = MODULE_ACCESS[session.perfil];
+  const allowed = getModuleAccess(session.permissoes);
   const visibleModules = allModules.filter(m => allowed.includes(m.key));
+  const isSupervisor = session.perfil === "SUPERVISOR";
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border/30">
       <SidebarContent className="bg-card/80 backdrop-blur-xl">
         <SidebarGroup>
-          <SidebarGroupLabel className="font-orbitron text-primary text-xs neon-text">
+          <SidebarGroupLabel className="font-orbitron text-primary text-xs neon-text uppercase">
             {!collapsed && "TL-BLU FROTA"}
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -48,31 +37,40 @@ export default function AppSidebar({ session, onLogout }: Props) {
               {visibleModules.map((item) => (
                 <SidebarMenuItem key={item.key}>
                   <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      end
-                      className="hover:bg-primary/10 rounded-lg px-3 py-2.5 transition-all duration-200"
-                      activeClassName="bg-primary/15 text-primary neon-glow-primary"
-                    >
+                    <NavLink to={item.url} end
+                      className="hover:bg-primary/10 rounded-lg px-3 py-2.5 transition-all duration-200 uppercase"
+                      activeClassName="bg-primary/15 text-primary neon-glow-primary">
                       <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span className="text-sm font-medium">{item.title}</span>}
+                      {!collapsed && <span className="text-sm font-medium font-orbitron text-[0.65rem]">{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              {isSupervisor && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/usuarios" end
+                      className="hover:bg-primary/10 rounded-lg px-3 py-2.5 transition-all duration-200 uppercase"
+                      activeClassName="bg-primary/15 text-primary neon-glow-primary">
+                      <Users className="mr-2 h-4 w-4" />
+                      {!collapsed && <span className="text-sm font-medium font-orbitron text-[0.65rem]">USUÁRIOS</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="bg-card/80 backdrop-blur-xl border-t border-border/30 p-3">
         {!collapsed && (
-          <div className="text-[0.6rem] text-muted-foreground font-orbitron mb-2 text-center">
+          <div className="text-[0.6rem] text-muted-foreground font-orbitron mb-2 text-center uppercase">
             {session.nome} • {session.perfil}
           </div>
         )}
-        <Button variant="ghost" size="sm" onClick={onLogout} className="w-full text-muted-foreground hover:text-destructive">
+        <Button variant="ghost" size="sm" onClick={onLogout} className="w-full text-muted-foreground hover:text-destructive uppercase">
           <LogOut className="h-4 w-4" />
-          {!collapsed && <span className="ml-2 text-xs">Sair</span>}
+          {!collapsed && <span className="ml-2 text-xs font-orbitron">SAIR</span>}
         </Button>
       </SidebarFooter>
     </Sidebar>

@@ -5,9 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Truck, KeyRound } from "lucide-react";
 
-interface Props {
-  onLogin: (session: UserSession) => void;
-}
+interface Props { onLogin: (session: UserSession) => void; }
 
 export default function LoginScreen({ onLogin }: Props) {
   const [usuario, setUsuario] = useState("");
@@ -16,11 +14,8 @@ export default function LoginScreen({ onLogin }: Props) {
 
   const handleLogin = () => {
     const result = verificarLogin(usuario, senha);
-    if (result.sucesso && result.session) {
-      onLogin(result.session);
-    } else {
-      setErro(result.msg || "Erro ao fazer login");
-    }
+    if (result.sucesso && result.session) onLogin(result.session);
+    else setErro(result.msg || "ERRO AO FAZER LOGIN");
   };
 
   return (
@@ -30,33 +25,27 @@ export default function LoginScreen({ onLogin }: Props) {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-2 border-primary/40 neon-glow-primary">
             <Truck className="h-8 w-8 text-primary" />
           </div>
-          <h1 className="font-orbitron text-xl font-bold text-primary neon-text">TL-BLU FROTA</h1>
-          <p className="text-sm text-muted-foreground">Acesso ao Sistema 🚚</p>
+          <h1 className="font-orbitron text-xl font-bold text-primary neon-text uppercase">TL-BLU FROTA</h1>
+          <p className="text-sm text-muted-foreground uppercase font-orbitron text-[0.6rem]">ACESSO AO SISTEMA 🚚</p>
         </div>
         <div className="space-y-4">
-          <Input
-            placeholder="Usuário"
-            value={usuario}
+          <Input placeholder="USUÁRIO" value={usuario}
             onChange={e => { setUsuario(e.target.value); setErro(""); }}
             onKeyDown={e => e.key === "Enter" && handleLogin()}
-            className="text-center uppercase bg-input border-border/50 focus:border-primary font-orbitron text-sm"
-          />
-          <Input
-            placeholder="Senha"
-            type="password"
-            value={senha}
+            className="text-center uppercase bg-input border-border/50 focus:border-primary font-orbitron text-sm h-14" />
+          <Input placeholder="SENHA" type="password" value={senha}
             onChange={e => { setSenha(e.target.value); setErro(""); }}
             onKeyDown={e => e.key === "Enter" && handleLogin()}
-            className="text-center bg-input border-border/50 focus:border-primary"
-          />
-          {erro && <p className="text-sm text-destructive text-center">{erro}</p>}
-          <Button onClick={handleLogin} className="w-full gap-2 h-12 font-orbitron font-bold bg-primary text-primary-foreground hover:bg-primary/80 neon-glow-primary transition-all duration-300">
+            className="text-center bg-input border-border/50 focus:border-primary h-14" />
+          {erro && <p className="text-sm text-destructive text-center uppercase font-orbitron text-[0.65rem]">{erro}</p>}
+          <Button onClick={handleLogin} className="w-full gap-2 h-14 font-orbitron font-bold bg-primary text-primary-foreground hover:bg-primary/80 neon-glow-primary transition-all duration-300 uppercase">
             <KeyRound className="h-4 w-4" /> ENTRAR 🔑
           </Button>
-          <div className="text-[0.6rem] text-muted-foreground text-center space-y-0.5">
-            <p>SUPERVISOR: eraldo / 123</p>
-            <p>MANOBRA: eduardo</p>
-            <p>MANUTENÇÃO: marcos</p>
+          <div className="text-[0.55rem] text-muted-foreground text-center space-y-0.5 font-orbitron uppercase">
+            <p>SUPERVISOR: ERALDO / 123</p>
+            <p>MANOBRA: EDUARDO</p>
+            <p>MANUTENÇÃO: ANTONIO</p>
+            <p>EXPEDIÇÃO: CARLOS</p>
           </div>
         </div>
       </div>

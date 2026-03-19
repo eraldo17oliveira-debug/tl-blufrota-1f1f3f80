@@ -1,16 +1,53 @@
-export type UserRole = "SUPERVISOR" | "MANOBRA" | "MANUTENÇÃO";
+export type UserRole = "SUPERVISOR" | "MANOBRA" | "MANUTENÇÃO" | "EXPEDIÇÃO";
+
+export interface UserPermissions {
+  patio: boolean;
+  rodizio: boolean;
+  combustivel: boolean;
+  inventario: boolean;
+  fornecedores: boolean;
+  expedicao: boolean;
+  gerarPdf: boolean;
+  gerarExcel: boolean;
+}
 
 export interface UserSession {
   nome: string;
   perfil: UserRole;
+  permissoes: UserPermissions;
 }
 
-// Module access map
-export const MODULE_ACCESS: Record<UserRole, string[]> = {
-  SUPERVISOR: ["patio", "rodizio", "combustivel", "inventario", "fornecedores"],
-  MANOBRA: ["patio"],
-  "MANUTENÇÃO": ["rodizio", "inventario"],
+// Default permissions per role
+export const DEFAULT_PERMISSIONS: Record<UserRole, UserPermissions> = {
+  SUPERVISOR: {
+    patio: true, rodizio: true, combustivel: true, inventario: true,
+    fornecedores: true, expedicao: true, gerarPdf: true, gerarExcel: true,
+  },
+  MANOBRA: {
+    patio: true, rodizio: false, combustivel: false, inventario: false,
+    fornecedores: false, expedicao: false, gerarPdf: true, gerarExcel: false,
+  },
+  "MANUTENÇÃO": {
+    patio: false, rodizio: true, combustivel: false, inventario: true,
+    fornecedores: false, expedicao: false, gerarPdf: true, gerarExcel: false,
+  },
+  "EXPEDIÇÃO": {
+    patio: false, rodizio: false, combustivel: false, inventario: false,
+    fornecedores: false, expedicao: true, gerarPdf: true, gerarExcel: true,
+  },
 };
+
+// Module access derived from permissions
+export function getModuleAccess(permissoes: UserPermissions): string[] {
+  const modules: string[] = [];
+  if (permissoes.patio) modules.push("patio");
+  if (permissoes.rodizio) modules.push("rodizio");
+  if (permissoes.combustivel) modules.push("combustivel");
+  if (permissoes.inventario) modules.push("inventario");
+  if (permissoes.fornecedores) modules.push("fornecedores");
+  if (permissoes.expedicao) modules.push("expedicao");
+  return modules;
+}
 
 // --- Pátio ---
 export interface PatioRecord {
@@ -31,7 +68,7 @@ export interface RodizioRecord {
   id: string;
   timestamp: Date;
   placa: string;
-  km: string;
+  frota: string;
   posicao: string;
   numFogo: string;
   lacre: string;
@@ -58,7 +95,7 @@ export interface CombustivelCarga {
 }
 
 // --- Inventário ---
-export type PneuStatus = "ESTOQUE" | "RECAPAGEM" | "SUCATA";
+export type PneuStatus = "DISPONÍVEL" | "RECAPAGEM" | "SUCATA";
 
 export interface PneuInventario {
   id: string;
@@ -85,4 +122,14 @@ export interface Fornecedor {
   telefone: string;
   cidadeEstado: string;
   observacoes: string;
+}
+
+// --- Registered Users (for management) ---
+export interface RegisteredUser {
+  id: string;
+  nome: string;
+  senha: string;
+  perfil: UserRole;
+  permissoes: UserPermissions;
+  ativo: boolean;
 }
