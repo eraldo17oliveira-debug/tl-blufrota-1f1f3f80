@@ -147,3 +147,13 @@ export function excluirFornecedor(id: string) {
   const records = getAll<Fornecedor>(FORN_KEY);
   saveAll(FORN_KEY, records.filter(r => r.id !== id));
 }
+
+// ── CSV Export utility ──
+export function exportCSV(filename: string, headers: string[], rows: string[][]) {
+  const csvContent = [headers.join(";"), ...rows.map(r => r.join(";"))].join("\n");
+  const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+}
