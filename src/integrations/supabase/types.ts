@@ -14,7 +14,261 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      combustivel_carga: {
+        Row: {
+          created_at: string
+          fornecedor_id: string
+          fornecedor_nome: string
+          id: string
+          litros: number
+          nota_fiscal: string
+        }
+        Insert: {
+          created_at?: string
+          fornecedor_id?: string
+          fornecedor_nome?: string
+          id?: string
+          litros?: number
+          nota_fiscal?: string
+        }
+        Update: {
+          created_at?: string
+          fornecedor_id?: string
+          fornecedor_nome?: string
+          id?: string
+          litros?: number
+          nota_fiscal?: string
+        }
+        Relationships: []
+      }
+      combustivel_fechamento: {
+        Row: {
+          consumo: number
+          created_at: string
+          data: string
+          id: string
+          leitura_final: number
+          leitura_inicial: number
+        }
+        Insert: {
+          consumo?: number
+          created_at?: string
+          data: string
+          id?: string
+          leitura_final?: number
+          leitura_inicial?: number
+        }
+        Update: {
+          consumo?: number
+          created_at?: string
+          data?: string
+          id?: string
+          leitura_final?: number
+          leitura_inicial?: number
+        }
+        Relationships: []
+      }
+      fornecedores: {
+        Row: {
+          cidade_estado: string
+          cnpj_cpf: string
+          created_at: string
+          id: string
+          observacoes: string
+          razao_social: string
+          telefone: string
+          tipo: string
+        }
+        Insert: {
+          cidade_estado?: string
+          cnpj_cpf?: string
+          created_at?: string
+          id?: string
+          observacoes?: string
+          razao_social: string
+          telefone?: string
+          tipo?: string
+        }
+        Update: {
+          cidade_estado?: string
+          cnpj_cpf?: string
+          created_at?: string
+          id?: string
+          observacoes?: string
+          razao_social?: string
+          telefone?: string
+          tipo?: string
+        }
+        Relationships: []
+      }
+      patio: {
+        Row: {
+          concluido: boolean
+          created_at: string
+          eixo: string
+          estado: string
+          frota: string
+          id: string
+          local: string
+          modelo: string
+          placa: string
+          status: string
+        }
+        Insert: {
+          concluido?: boolean
+          created_at?: string
+          eixo?: string
+          estado?: string
+          frota?: string
+          id?: string
+          local?: string
+          modelo?: string
+          placa: string
+          status?: string
+        }
+        Update: {
+          concluido?: boolean
+          created_at?: string
+          eixo?: string
+          estado?: string
+          frota?: string
+          id?: string
+          local?: string
+          modelo?: string
+          placa?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      pneu_inventario: {
+        Row: {
+          aro: string
+          created_at: string
+          fornecedor_id: string
+          fornecedor_nome: string
+          id: string
+          largura: string
+          marca: string
+          num_fogo: string
+          status: string
+          tamanho: string
+        }
+        Insert: {
+          aro?: string
+          created_at?: string
+          fornecedor_id?: string
+          fornecedor_nome?: string
+          id?: string
+          largura?: string
+          marca?: string
+          num_fogo?: string
+          status?: string
+          tamanho?: string
+        }
+        Update: {
+          aro?: string
+          created_at?: string
+          fornecedor_id?: string
+          fornecedor_nome?: string
+          id?: string
+          largura?: string
+          marca?: string
+          num_fogo?: string
+          status?: string
+          tamanho?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          id: string
+          login: string
+          nivel: string
+          nome: string
+          pode_combustivel: boolean
+          pode_excel: boolean
+          pode_expedicao: boolean
+          pode_fornecedores: boolean
+          pode_inventario: boolean
+          pode_patio: boolean
+          pode_pdf: boolean
+          pode_rodizio: boolean
+          senha: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          login: string
+          nivel?: string
+          nome: string
+          pode_combustivel?: boolean
+          pode_excel?: boolean
+          pode_expedicao?: boolean
+          pode_fornecedores?: boolean
+          pode_inventario?: boolean
+          pode_patio?: boolean
+          pode_pdf?: boolean
+          pode_rodizio?: boolean
+          senha?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          login?: string
+          nivel?: string
+          nome?: string
+          pode_combustivel?: boolean
+          pode_excel?: boolean
+          pode_expedicao?: boolean
+          pode_fornecedores?: boolean
+          pode_inventario?: boolean
+          pode_patio?: boolean
+          pode_pdf?: boolean
+          pode_rodizio?: boolean
+          senha?: string
+        }
+        Relationships: []
+      }
+      rodizio: {
+        Row: {
+          created_at: string
+          frota: string
+          id: string
+          lacre: string
+          num_fogo: string
+          placa: string
+          posicao: string
+          sulco: string
+          tipo: string
+        }
+        Insert: {
+          created_at?: string
+          frota?: string
+          id?: string
+          lacre?: string
+          num_fogo?: string
+          placa: string
+          posicao?: string
+          sulco?: string
+          tipo?: string
+        }
+        Update: {
+          created_at?: string
+          frota?: string
+          id?: string
+          lacre?: string
+          num_fogo?: string
+          placa?: string
+          posicao?: string
+          sulco?: string
+          tipo?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
