@@ -1,151 +1,123 @@
-import { PatioRecord, RodizioRecord, CombustivelFechamento, CombustivelCarga, PneuInventario, Fornecedor } from "./types";
+import { supabase } from "@/integrations/supabase/client";
 
 // ── helpers ──
-function getAll<T>(key: string): T[] {
-  const raw = localStorage.getItem(key);
-  if (!raw) return [];
-  return JSON.parse(raw);
-}
-function saveAll<T>(key: string, data: T[]) {
-  localStorage.setItem(key, JSON.stringify(data));
-}
-function filterByDate<T extends { timestamp: string | Date }>(items: T[], dataFiltro: string) {
-  return items.filter(r => {
-    const d = new Date(r.timestamp);
-    const f = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-    return f === dataFiltro;
-  });
-}
 export function todayStr() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 // ── Pátio ──
-const PATIO_KEY = "frota_patio";
-
-export function salvarPatio(record: Omit<PatioRecord, "id" | "timestamp" | "concluido">) {
-  const records = getAll<PatioRecord>(PATIO_KEY);
-  records.push({ ...record, id: crypto.randomUUID(), timestamp: new Date() as any, concluido: false });
-  saveAll(PATIO_KEY, records);
+export async function salvarPatio(record: { placa: string; frota: string; modelo: string; eixo: string; estado: string; local: string; status: string }) {
+  const { error } = await supabase.from("patio").insert(record);
+  if (error) console.error(error);
 }
 
-export function lerPatio(dataFiltro: string): PatioRecord[] {
-  return filterByDate(getAll<PatioRecord>(PATIO_KEY), dataFiltro)
-    .map(r => ({ ...r, timestamp: new Date(r.timestamp) }))
-    .reverse();
+export async function lerPatio(dataFiltro: string) {
+  const startOfDay = `${dataFiltro}T00:00:00`;
+  const endOfDay = `${dataFiltro}T23:59:59`;
+  const { data, error } = await supabase.from("patio").select("*")
+    .gte("created_at", startOfDay).lte("created_at", endOfDay)
+    .order("created_at", { ascending: false });
+  if (error) { console.error(error); return []; }
+  return data || [];
 }
 
-export function toggleConcluidoPatio(id: string) {
-  const records = getAll<PatioRecord>(PATIO_KEY);
-  const idx = records.findIndex(r => r.id === id);
-  if (idx >= 0) { records[idx].concluido = !records[idx].concluido; saveAll(PATIO_KEY, records); }
+export async function toggleConcluidoPatio(id: string) {
+  const { data } = await supabase.from("patio").select("concluido").eq("id", id).single();
+  if (data) {
+    await supabase.from("patio").update({ concluido: !data.concluido }).eq("id", id);
+  }
 }
 
 // ── Rodízio ──
-const RODIZIO_KEY = "frota_rodizio";
-
-export function salvarRodizio(record: Omit<RodizioRecord, "id" | "timestamp">) {
-  const records = getAll<RodizioRecord>(RODIZIO_KEY);
-  records.push({ ...record, id: crypto.randomUUID(), timestamp: new Date() as any });
-  saveAll(RODIZIO_KEY, records);
+export async function salvarRodizio(record: { placa: string; frota: string; posicao: string; num_fogo: string; lacre: string; sulco: string; tipo: string }) {
+  const { error } = await supabase.from("rodizio").insert(record);
+  if (error) console.error(error);
 }
 
-export function lerRodizio(de: string, ate: string): RodizioRecord[] {
-  return getAll<RodizioRecord>(RODIZIO_KEY)
-    .filter(r => {
-      const d = new Date(r.timestamp);
-      const f = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      return f >= de && f <= ate;
-    })
-    .map(r => ({ ...r, timestamp: new Date(r.timestamp) }))
-    .reverse();
+export async function lerRodizio(de: string, ate: string) {
+  const { data, error } = await supabase.from("rodizio").select("*")
+    .gte("created_at", `${de}T00:00:00`).lte("created_at", `${ate}T23:59:59`)
+    .order("created_at", { ascending: false });
+  if (error) { console.error(error); return []; }
+  return data || [];
 }
 
 // ── Combustível ──
-const COMB_FECH_KEY = "frota_comb_fechamento";
-const COMB_CARGA_KEY = "frota_comb_carga";
-
-export function salvarFechamento(record: Omit<CombustivelFechamento, "id" | "consumo">) {
-  const records = getAll<CombustivelFechamento>(COMB_FECH_KEY);
-  const consumo = record.leituraFinal - record.leituraInicial;
-  records.push({ ...record, id: crypto.randomUUID(), consumo });
-  saveAll(COMB_FECH_KEY, records);
+export async function salvarFechamento(record: { data: string; leitura_inicial: number; leitura_final: number }) {
+  const consumo = record.leitura_final - record.leitura_inicial;
+  const { error } = await supabase.from("combustivel_fechamento").insert({ ...record, consumo });
+  if (error) console.error(error);
 }
 
-export function lerFechamentos(): CombustivelFechamento[] {
-  return getAll<CombustivelFechamento>(COMB_FECH_KEY).reverse();
+export async function lerFechamentos() {
+  const { data, error } = await supabase.from("combustivel_fechamento").select("*").order("created_at", { ascending: false });
+  if (error) { console.error(error); return []; }
+  return data || [];
 }
 
-export function salvarCarga(record: Omit<CombustivelCarga, "id" | "timestamp">) {
-  const records = getAll<CombustivelCarga>(COMB_CARGA_KEY);
-  records.push({ ...record, id: crypto.randomUUID(), timestamp: new Date() as any });
-  saveAll(COMB_CARGA_KEY, records);
+export async function salvarCarga(record: { litros: number; fornecedor_id: string; fornecedor_nome: string; nota_fiscal: string }) {
+  const { error } = await supabase.from("combustivel_carga").insert(record);
+  if (error) console.error(error);
 }
 
-export function lerCargas(): CombustivelCarga[] {
-  return getAll<CombustivelCarga>(COMB_CARGA_KEY)
-    .map(r => ({ ...r, timestamp: new Date(r.timestamp) }))
-    .reverse();
+export async function lerCargas() {
+  const { data, error } = await supabase.from("combustivel_carga").select("*").order("created_at", { ascending: false });
+  if (error) { console.error(error); return []; }
+  return data || [];
 }
 
-export function volumeAtual(): number {
-  const cargas = getAll<CombustivelCarga>(COMB_CARGA_KEY);
-  const fechamentos = getAll<CombustivelFechamento>(COMB_FECH_KEY);
-  const totalEntrada = cargas.reduce((s, c) => s + c.litros, 0);
-  const totalConsumo = fechamentos.reduce((s, f) => s + f.consumo, 0);
+export async function volumeAtual(): Promise<number> {
+  const { data: cargas } = await supabase.from("combustivel_carga").select("litros");
+  const { data: fechamentos } = await supabase.from("combustivel_fechamento").select("consumo");
+  const totalEntrada = (cargas || []).reduce((s, c) => s + Number(c.litros), 0);
+  const totalConsumo = (fechamentos || []).reduce((s, f) => s + Number(f.consumo), 0);
   return totalEntrada - totalConsumo;
 }
 
 // ── Inventário ──
-const INV_KEY = "frota_inventario";
-
-export function salvarPneu(record: Omit<PneuInventario, "id" | "timestamp">) {
-  const records = getAll<PneuInventario>(INV_KEY);
-  records.push({ ...record, id: crypto.randomUUID(), timestamp: new Date() as any });
-  saveAll(INV_KEY, records);
+export async function salvarPneu(record: { num_fogo: string; tamanho: string; largura: string; aro: string; marca: string; status: string; fornecedor_id: string; fornecedor_nome: string }) {
+  const { error } = await supabase.from("pneu_inventario").insert(record);
+  if (error) console.error(error);
 }
 
-export function lerPneus(): PneuInventario[] {
-  return getAll<PneuInventario>(INV_KEY)
-    .map(r => ({ ...r, timestamp: new Date(r.timestamp) }))
-    .reverse();
+export async function lerPneus() {
+  const { data, error } = await supabase.from("pneu_inventario").select("*").order("created_at", { ascending: false });
+  if (error) { console.error(error); return []; }
+  return data || [];
 }
 
-export function atualizarStatusPneu(id: string, status: PneuInventario["status"]) {
-  const records = getAll<PneuInventario>(INV_KEY);
-  const idx = records.findIndex(r => r.id === id);
-  if (idx >= 0) { records[idx].status = status; saveAll(INV_KEY, records); }
+export async function atualizarStatusPneu(id: string, status: string) {
+  const { error } = await supabase.from("pneu_inventario").update({ status }).eq("id", id);
+  if (error) console.error(error);
 }
 
 // ── Fornecedores ──
-const FORN_KEY = "frota_fornecedores";
-
-export function salvarFornecedor(record: Omit<Fornecedor, "id" | "timestamp">) {
-  const records = getAll<Fornecedor>(FORN_KEY);
-  records.push({ ...record, id: crypto.randomUUID(), timestamp: new Date() as any });
-  saveAll(FORN_KEY, records);
+export async function salvarFornecedor(record: { razao_social: string; cnpj_cpf: string; tipo: string; telefone: string; cidade_estado: string; observacoes: string }) {
+  const { error } = await supabase.from("fornecedores").insert(record);
+  if (error) console.error(error);
 }
 
-export function lerFornecedores(): Fornecedor[] {
-  return getAll<Fornecedor>(FORN_KEY)
-    .map(r => ({ ...r, timestamp: new Date(r.timestamp) }))
-    .reverse();
+export async function lerFornecedores() {
+  const { data, error } = await supabase.from("fornecedores").select("*").order("created_at", { ascending: false });
+  if (error) { console.error(error); return []; }
+  return data || [];
 }
 
-export function lerFornecedoresPorTipo(tipo: string): Fornecedor[] {
-  return lerFornecedores().filter(f => f.tipo === tipo);
+export async function lerFornecedoresPorTipo(tipo: string) {
+  const { data, error } = await supabase.from("fornecedores").select("*").eq("tipo", tipo).order("created_at", { ascending: false });
+  if (error) { console.error(error); return []; }
+  return data || [];
 }
 
-export function atualizarFornecedor(id: string, data: Partial<Fornecedor>) {
-  const records = getAll<Fornecedor>(FORN_KEY);
-  const idx = records.findIndex(r => r.id === id);
-  if (idx >= 0) { Object.assign(records[idx], data); saveAll(FORN_KEY, records); }
+export async function atualizarFornecedor(id: string, dados: { razao_social?: string; cnpj_cpf?: string; tipo?: string; telefone?: string; cidade_estado?: string; observacoes?: string }) {
+  const { error } = await supabase.from("fornecedores").update(dados).eq("id", id);
+  if (error) console.error(error);
 }
 
-export function excluirFornecedor(id: string) {
-  const records = getAll<Fornecedor>(FORN_KEY);
-  saveAll(FORN_KEY, records.filter(r => r.id !== id));
+export async function excluirFornecedor(id: string) {
+  const { error } = await supabase.from("fornecedores").delete().eq("id", id);
+  if (error) console.error(error);
 }
 
 // ── CSV Export utility ──
