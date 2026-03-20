@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { salvarFornecedor, lerFornecedores, excluirFornecedor, atualizarFornecedor, exportCSV } from "@/lib/storage";
-import { Fornecedor, TipoFornecedor, UserSession } from "@/lib/types";
+import { UserSession } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,8 @@ import OptionGroup from "@/components/OptionGroup";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+
+type TipoFornecedor = "COMBUSTÍVEL" | "PNEUS / RECAPAGEM" | "PEÇAS / MANUTENÇÃO";
 
 const TIPOS: { label: string; value: TipoFornecedor }[] = [
   { label: "COMBUSTÍVEL", value: "COMBUSTÍVEL" },
@@ -25,7 +27,7 @@ function formatWhatsApp(telefone: string): string {
 }
 
 export default function FornecedoresPage({ session }: { session: UserSession }) {
-  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
+  const [fornecedores, setFornecedores] = useState<any[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [razaoSocial, setRazaoSocial] = useState("");
@@ -35,31 +37,31 @@ export default function FornecedoresPage({ session }: { session: UserSession }) 
   const [cidadeEstado, setCidadeEstado] = useState("");
   const [observacoes, setObservacoes] = useState("");
 
-  const load = () => setFornecedores(lerFornecedores());
+  const load = async () => { const data = await lerFornecedores(); setFornecedores(data); };
   useEffect(() => { load(); }, []);
 
   const resetForm = () => { setRazaoSocial(""); setCnpjCpf(""); setTipo("COMBUSTÍVEL"); setTelefone(""); setCidadeEstado(""); setObservacoes(""); setEditingId(null); };
   const openNew = () => { resetForm(); setModalOpen(true); };
-  const openEdit = (f: Fornecedor) => { setEditingId(f.id); setRazaoSocial(f.razaoSocial); setCnpjCpf(f.cnpjCpf); setTipo(f.tipo); setTelefone(f.telefone); setCidadeEstado(f.cidadeEstado); setObservacoes(f.observacoes); setModalOpen(true); };
+  const openEdit = (f: any) => { setEditingId(f.id); setRazaoSocial(f.razao_social); setCnpjCpf(f.cnpj_cpf); setTipo(f.tipo); setTelefone(f.telefone); setCidadeEstado(f.cidade_estado); setObservacoes(f.observacoes); setModalOpen(true); };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!razaoSocial) { toast.error("INFORME A RAZÃO SOCIAL!"); return; }
-    if (editingId) { atualizarFornecedor(editingId, { razaoSocial, cnpjCpf, tipo, telefone, cidadeEstado, observacoes }); toast.success("FORNECEDOR ATUALIZADO!"); }
-    else { salvarFornecedor({ razaoSocial, cnpjCpf, tipo, telefone, cidadeEstado, observacoes }); toast.success("FORNECEDOR CADASTRADO!"); }
+    if (editingId) { await atualizarFornecedor(editingId, { razao_social: razaoSocial, cnpj_cpf: cnpjCpf, tipo, telefone, cidade_estado: cidadeEstado, observacoes }); toast.success("FORNECEDOR ATUALIZADO!"); }
+    else { await salvarFornecedor({ razao_social: razaoSocial, cnpj_cpf: cnpjCpf, tipo, telefone, cidade_estado: cidadeEstado, observacoes }); toast.success("FORNECEDOR CADASTRADO!"); }
     setModalOpen(false); resetForm(); load();
   };
 
-  const handleDelete = (id: string) => { excluirFornecedor(id); toast.success("FORNECEDOR EXCLUÍDO!"); load(); };
+  const handleDelete = async (id: string) => { await excluirFornecedor(id); toast.success("FORNECEDOR EXCLUÍDO!"); load(); };
 
   const handlePDF = () => {
     const doc = new jsPDF({ orientation: "landscape" });
     doc.setFontSize(14); doc.text("TL-BLU FROTA — FORNECEDORES", 14, 18);
-    autoTable(doc, { startY: 25, head: [["RAZÃO SOCIAL", "CNPJ/CPF", "TIPO", "TELEFONE", "CIDADE/UF", "OBS"]], body: fornecedores.map(f => [f.razaoSocial, f.cnpjCpf, f.tipo, f.telefone, f.cidadeEstado, f.observacoes]) });
+    autoTable(doc, { startY: 25, head: [["RAZÃO SOCIAL", "CNPJ/CPF", "TIPO", "TELEFONE", "CIDADE/UF", "OBS"]], body: fornecedores.map(f => [f.razao_social, f.cnpj_cpf, f.tipo, f.telefone, f.cidade_estado, f.observacoes]) });
     doc.save("fornecedores_tlblu.pdf");
   };
 
   const handleExcel = () => {
-    exportCSV("fornecedores_tlblu.csv", ["RAZÃO SOCIAL", "CNPJ/CPF", "TIPO", "TELEFONE", "CIDADE/UF", "OBS"], fornecedores.map(f => [f.razaoSocial, f.cnpjCpf, f.tipo, f.telefone, f.cidadeEstado, f.observacoes]));
+    exportCSV("fornecedores_tlblu.csv", ["RAZÃO SOCIAL", "CNPJ/CPF", "TIPO", "TELEFONE", "CIDADE/UF", "OBS"], fornecedores.map(f => [f.razao_social, f.cnpj_cpf, f.tipo, f.telefone, f.cidade_estado, f.observacoes]));
   };
 
   return (
@@ -123,11 +125,11 @@ export default function FornecedoresPage({ session }: { session: UserSession }) 
                 <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-10 font-orbitron text-xs uppercase">NENHUM FORNECEDOR CADASTRADO.</TableCell></TableRow>
               ) : fornecedores.map(f => (
                 <TableRow key={f.id} className="border-border/20">
-                  <TableCell className="text-sm font-bold uppercase">{f.razaoSocial}</TableCell>
-                  <TableCell className="text-sm font-orbitron">{f.cnpjCpf}</TableCell>
+                  <TableCell className="text-sm font-bold uppercase">{f.razao_social}</TableCell>
+                  <TableCell className="text-sm font-orbitron">{f.cnpj_cpf}</TableCell>
                   <TableCell className="text-[0.65rem] font-orbitron text-neon-purple uppercase">{f.tipo}</TableCell>
                   <TableCell className="text-sm">{f.telefone}</TableCell>
-                  <TableCell className="text-sm uppercase">{f.cidadeEstado}</TableCell>
+                  <TableCell className="text-sm uppercase">{f.cidade_estado}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
                       {f.telefone && (

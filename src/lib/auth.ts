@@ -1,45 +1,135 @@
-import { UserSession, RegisteredUser, DEFAULT_PERMISSIONS } from "./types";
+import { supabase } from "@/integrations/supabase/client";
+import { UserSession, UserPermissions } from "./types";
 
-const USERS_KEY = "frota_usuarios";
-
-function getRegisteredUsers(): RegisteredUser[] {
-  const raw = localStorage.getItem(USERS_KEY);
-  if (!raw) {
-    // Seed default users
-    const defaults: RegisteredUser[] = [
-      { id: "1", nome: "ERALDO", senha: "123", perfil: "SUPERVISOR", permissoes: DEFAULT_PERMISSIONS["SUPERVISOR"], ativo: true },
-      { id: "2", nome: "EDUARDO", senha: "", perfil: "MANOBRA", permissoes: DEFAULT_PERMISSIONS["MANOBRA"], ativo: true },
-      { id: "3", nome: "ANTONIO", senha: "", perfil: "MANUTENÇÃO", permissoes: DEFAULT_PERMISSIONS["MANUTENÇÃO"], ativo: true },
-      { id: "4", nome: "CARLOS", senha: "", perfil: "EXPEDIÇÃO", permissoes: DEFAULT_PERMISSIONS["EXPEDIÇÃO"], ativo: true },
-    ];
-    localStorage.setItem(USERS_KEY, JSON.stringify(defaults));
-    return defaults;
-  }
-  return JSON.parse(raw);
+export interface RegisteredUser {
+  id: string;
+  nome: string;
+  login: string;
+  senha: string;
+  nivel: string;
+  pode_patio: boolean;
+  pode_rodizio: boolean;
+  pode_combustivel: boolean;
+  pode_inventario: boolean;
+  pode_fornecedores: boolean;
+  pode_expedicao: boolean;
+  pode_pdf: boolean;
+  pode_excel: boolean;
+  ativo: boolean;
 }
 
-export function lerUsuarios(): RegisteredUser[] {
-  return getRegisteredUsers();
+function toPermissoes(u: RegisteredUser): UserPermissions {
+  return {
+    patio: u.pode_patio,
+    rodizio: u.pode_rodizio,
+    combustivel: u.pode_combustivel,
+    inventario: u.pode_inventario,
+    fornecedores: u.pode_fornecedores,
+    expedicao: u.pode_expedicao,
+    gerarPdf: u.pode_pdf,
+    gerarExcel: u.pode_excel,
+  };
 }
 
-export function salvarUsuarios(users: RegisteredUser[]) {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+function nivelToPerfil(nivel: string) {
+  const map: Record<string, string> = {
+    SUPERVISOR: "SUPERVISOR",
+    MANOBRA: "MANOBRA",
+    MANUTENCAO: "MANUTENÇÃO",
+    EXPEDICAO: "EXPEDIÇÃO",
+  };
+  return map[nivel] || nivel;
 }
 
-export function verificarLogin(usuario: string, senha: string): { sucesso: boolean; session?: UserSession; msg?: string } {
-  const users = getRegisteredUsers();
+export function perfilToNivel(perfil: string) {
+  const map: Record<string, string> = {
+    SUPERVISOR: "SUPERVISOR",
+    MANOBRA: "MANOBRA",
+    "MANUTENÇÃO": "MANUTENCAO",
+    "EXPEDIÇÃO": "EXPEDICAO",
+  };
+  return map[perfil] || perfil;
+}
+
+export async function lerUsuarios(): Promise<RegisteredUser[]> {
+  const { data, error } = await supabase.from("profiles").select("*").order("created_at");
+  if (error) { console.error(error); return []; }
+  return (data || []).map(d => ({
+    id: d.id,
+    nome: d.nome,
+    login: d.login,
+    senha: d.senha,
+    nivel: d.nivel,
+    pode_patio: d.pode_patio,
+    pode_rodizio: d.pode_rodizio,
+    pode_combustivel: d.pode_combustivel,
+    pode_inventario: d.pode_inventario,
+    pode_fornecedores: d.pode_fornecedores,
+    pode_expedicao: d.pode_expedicao,
+    pode_pdf: d.pode_pdf,
+    pode_excel: d.pode_excel,
+    ativo: d.ativo,
+  }));
+}
+
+export async function salvarUsuario(user: Omit<RegisteredUser, "id">) {
+  const { error } = await supabase.from("profiles").insert({
+    nome: user.nome,
+    login: user.login,
+    senha: user.senha,
+    nivel: user.nivel,
+    pode_patio: user.pode_patio,
+    pode_rodizio: user.pode_rodizio,
+    pode_combustivel: user.pode_combustivel,
+    pode_inventario: user.pode_inventario,
+    pode_fornecedores: user.pode_fornecedores,
+    pode_expedicao: user.pode_expedicao,
+    pode_pdf: user.pode_pdf,
+    pode_excel: user.pode_excel,
+    ativo: user.ativo,
+  });
+  if (error) console.error(error);
+}
+
+export async function atualizarUsuario(id: string, user: Partial<RegisteredUser>) {
+  const { error } = await supabase.from("profiles").update({
+    nome: user.nome,
+    login: user.login,
+    senha: user.senha,
+    nivel: user.nivel,
+    pode_patio: user.pode_patio,
+    pode_rodizio: user.pode_rodizio,
+    pode_combustivel: user.pode_combustivel,
+    pode_inventario: user.pode_inventario,
+    pode_fornecedores: user.pode_fornecedores,
+    pode_expedicao: user.pode_expedicao,
+    pode_pdf: user.pode_pdf,
+    pode_excel: user.pode_excel,
+    ativo: user.ativo,
+  }).eq("id", id);
+  if (error) console.error(error);
+}
+
+export async function excluirUsuario(id: string) {
+  const { error } = await supabase.from("profiles").delete().eq("id", id);
+  if (error) console.error(error);
+}
+
+export async function verificarLogin(usuario: string, senha: string): Promise<{ sucesso: boolean; session?: UserSession; msg?: string }> {
   const u = usuario.toUpperCase().trim();
-  const found = users.find(usr => usr.nome === u && usr.ativo);
+  const { data, error } = await supabase.from("profiles").select("*").eq("login", u).eq("ativo", true).maybeSingle();
 
-  if (!found) return { sucesso: false, msg: "USUÁRIO NÃO ENCONTRADO!" };
-  if (found.senha && found.senha !== senha) return { sucesso: false, msg: "SENHA INCORRETA!" };
+  if (error) return { sucesso: false, msg: "ERRO AO CONECTAR!" };
+  if (!data) return { sucesso: false, msg: "USUÁRIO NÃO ENCONTRADO!" };
+  if (data.senha && data.senha !== senha) return { sucesso: false, msg: "SENHA INCORRETA!" };
 
+  const perfil = nivelToPerfil(data.nivel) as any;
   return {
     sucesso: true,
     session: {
-      nome: found.nome,
-      perfil: found.perfil,
-      permissoes: found.permissoes,
+      nome: data.nome,
+      perfil,
+      permissoes: toPermissoes(data as any),
     },
   };
 }

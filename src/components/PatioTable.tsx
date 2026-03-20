@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { lerPatio, toggleConcluidoPatio, todayStr, exportCSV } from "@/lib/storage";
-import { PatioRecord, UserSession } from "@/lib/types";
+import { UserSession } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -13,12 +13,15 @@ interface Props { refreshKey: number; session: UserSession; }
 
 export default function PatioTable({ refreshKey, session }: Props) {
   const [date, setDate] = useState(todayStr());
-  const [records, setRecords] = useState<PatioRecord[]>([]);
+  const [records, setRecords] = useState<any[]>([]);
 
-  const load = useCallback(() => setRecords(lerPatio(date)), [date]);
+  const load = useCallback(async () => {
+    const data = await lerPatio(date);
+    setRecords(data);
+  }, [date]);
   useEffect(() => { load(); }, [load, refreshKey]);
 
-  const handleToggle = (id: string) => { toggleConcluidoPatio(id); load(); };
+  const handleToggle = async (id: string) => { await toggleConcluidoPatio(id); load(); };
 
   const handlePDF = () => {
     const doc = new jsPDF({ orientation: "landscape" }); doc.setFontSize(14);
@@ -33,7 +36,7 @@ export default function PatioTable({ refreshKey, session }: Props) {
       records.filter(r => !r.concluido).map(r => [r.placa, r.frota, r.estado, r.local, r.eixo, r.modelo, r.status]));
   };
 
-  const canCheck = (r: PatioRecord) => {
+  const canCheck = (r: any) => {
     if (session.perfil === "SUPERVISOR") return true;
     return r.estado === "Carga" && r.local === "Pátio";
   };

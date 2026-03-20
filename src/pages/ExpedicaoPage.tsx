@@ -1,19 +1,21 @@
 import { useState, useEffect, useCallback } from "react";
 import { lerPatio, todayStr, exportCSV } from "@/lib/storage";
-import { PatioRecord, UserSession } from "@/lib/types";
+import { UserSession } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FileText, FileSpreadsheet, Truck } from "lucide-react";
-import { cn } from "@/lib/utils";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
 export default function ExpedicaoPage({ session }: { session: UserSession }) {
   const [date, setDate] = useState(todayStr());
-  const [records, setRecords] = useState<PatioRecord[]>([]);
+  const [records, setRecords] = useState<any[]>([]);
 
-  const load = useCallback(() => setRecords(lerPatio(date)), [date]);
+  const load = useCallback(async () => {
+    const data = await lerPatio(date);
+    setRecords(data);
+  }, [date]);
   useEffect(() => { load(); }, [load]);
 
   const prontas = records.filter(r => r.estado === "Carga" && !r.concluido);

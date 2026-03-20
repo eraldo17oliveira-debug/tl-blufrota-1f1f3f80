@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { salvarRodizio, lerRodizio, todayStr, exportCSV } from "@/lib/storage";
-import { RodizioRecord, UserSession } from "@/lib/types";
+import { UserSession } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -28,7 +28,7 @@ export default function RodizioPage({ session }: { session: UserSession }) {
   const [frota, setFrota] = useState("");
   const [de, setDe] = useState(todayStr());
   const [ate, setAte] = useState(todayStr());
-  const [records, setRecords] = useState<RodizioRecord[]>([]);
+  const [records, setRecords] = useState<any[]>([]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPos, setSelectedPos] = useState("");
@@ -38,7 +38,10 @@ export default function RodizioPage({ session }: { session: UserSession }) {
   const [tipo, setTipo] = useState<"ENTRADA" | "SAÍDA">("ENTRADA");
   const [recentPositions, setRecentPositions] = useState<Set<string>>(new Set());
 
-  const load = () => setRecords(lerRodizio(de, ate));
+  const load = async () => {
+    const data = await lerRodizio(de, ate);
+    setRecords(data);
+  };
   useEffect(() => { load(); }, [de, ate]);
 
   const openModal = (posId: string) => {
@@ -46,9 +49,9 @@ export default function RodizioPage({ session }: { session: UserSession }) {
     setSelectedPos(posId); setNumFogo(""); setLacre(""); setSulco(""); setTipo("ENTRADA"); setModalOpen(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!numFogo) { toast.error("INFORME O NÚMERO DE FOGO!"); return; }
-    salvarRodizio({ placa: placa.toUpperCase(), frota: frota.toUpperCase(), posicao: selectedPos, numFogo, lacre, sulco, tipo });
+    await salvarRodizio({ placa: placa.toUpperCase(), frota: frota.toUpperCase(), posicao: selectedPos, num_fogo: numFogo, lacre, sulco, tipo });
     setRecentPositions(prev => new Set(prev).add(selectedPos));
     toast.success(`POSIÇÃO ${selectedPos} REGISTRADA!`);
     setModalOpen(false); load();
@@ -61,7 +64,7 @@ export default function RodizioPage({ session }: { session: UserSession }) {
     autoTable(doc, {
       startY: 25,
       head: [["TIPO", "PLACA", "FROTA", "POSIÇÃO", "Nº FOGO", "LACRE", "SULCO (MM)", "DATA"]],
-      body: records.map(r => [r.tipo, r.placa, r.frota, r.posicao, r.numFogo, r.lacre, r.sulco, new Date(r.timestamp).toLocaleDateString("pt-BR")]),
+      body: records.map(r => [r.tipo, r.placa, r.frota, r.posicao, r.num_fogo, r.lacre, r.sulco, new Date(r.created_at).toLocaleDateString("pt-BR")]),
     });
     doc.save(`rodizio_${de}_${ate}.pdf`);
   };
@@ -69,7 +72,7 @@ export default function RodizioPage({ session }: { session: UserSession }) {
   const handleExcel = () => {
     exportCSV(`rodizio_${de}_${ate}.csv`,
       ["TIPO", "PLACA", "FROTA", "POSIÇÃO", "Nº FOGO", "LACRE", "SULCO (MM)", "DATA"],
-      records.map(r => [r.tipo, r.placa, r.frota, r.posicao, r.numFogo, r.lacre, r.sulco, new Date(r.timestamp).toLocaleDateString("pt-BR")])
+      records.map(r => [r.tipo, r.placa, r.frota, r.posicao, r.num_fogo, r.lacre, r.sulco, new Date(r.created_at).toLocaleDateString("pt-BR")])
     );
   };
 
@@ -184,10 +187,10 @@ export default function RodizioPage({ session }: { session: UserSession }) {
                   <TableCell className="font-mono-neon text-primary text-sm uppercase">{r.placa}</TableCell>
                   <TableCell className="text-sm font-orbitron">{r.frota}</TableCell>
                   <TableCell className="text-[0.65rem] font-orbitron text-neon-purple">{r.posicao}</TableCell>
-                  <TableCell className="text-sm font-orbitron">{r.numFogo}</TableCell>
+                  <TableCell className="text-sm font-orbitron">{r.num_fogo}</TableCell>
                   <TableCell className="text-sm">{r.lacre}</TableCell>
                   <TableCell className="text-sm font-orbitron">{r.sulco}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{new Date(r.timestamp).toLocaleDateString("pt-BR")}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString("pt-BR")}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

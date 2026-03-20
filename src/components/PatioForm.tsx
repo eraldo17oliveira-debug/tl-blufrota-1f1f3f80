@@ -15,9 +15,9 @@ export default function PatioForm({ onSaved }: { onSaved: () => void }) {
   const [local, setLocal] = useState("");
   const [status, setStatus] = useState("");
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!placa) { toast.error("Informe a placa!"); return; }
-    salvarPatio({ placa: placa.toUpperCase(), frota: frota.toUpperCase(), modelo, eixo, estado, local, status });
+    await salvarPatio({ placa: placa.toUpperCase(), frota: frota.toUpperCase(), modelo, eixo, estado, local, status });
     toast.success("Movimentação registrada!");
     setPlaca(""); setFrota(""); setModelo(""); setEixo(""); setEstado(""); setLocal(""); setStatus("");
     onSaved();
