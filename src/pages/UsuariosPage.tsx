@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { lerUsuarios, salvarUsuarios } from "@/lib/auth";
-import { RegisteredUser, UserRole, DEFAULT_PERMISSIONS, UserPermissions } from "@/lib/types";
+import { lerUsuarios, salvarUsuario, atualizarUsuario, excluirUsuario, RegisteredUser, perfilToNivel } from "@/lib/auth";
+import { UserRole, DEFAULT_PERMISSIONS, UserPermissions } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -12,16 +12,21 @@ import { toast } from "sonner";
 
 const ROLES: UserRole[] = ["SUPERVISOR", "MANOBRA", "MANUTENÇÃO", "EXPEDIÇÃO"];
 
-const PERM_LABELS: { key: keyof UserPermissions; label: string }[] = [
-  { key: "patio", label: "ACESSAR PÁTIO" },
-  { key: "rodizio", label: "ACESSAR PNEUS" },
-  { key: "combustivel", label: "ACESSAR DIESEL" },
-  { key: "inventario", label: "ACESSAR ESTOQUE" },
-  { key: "fornecedores", label: "ACESSAR FORNECEDORES" },
-  { key: "expedicao", label: "CONSULTAR EXPEDIÇÃO" },
-  { key: "gerarPdf", label: "GERAR PDF" },
-  { key: "gerarExcel", label: "GERAR EXCEL" },
+const PERM_LABELS: { key: keyof UserPermissions; dbKey: string; label: string }[] = [
+  { key: "patio", dbKey: "pode_patio", label: "ACESSAR PÁTIO" },
+  { key: "rodizio", dbKey: "pode_rodizio", label: "ACESSAR PNEUS" },
+  { key: "combustivel", dbKey: "pode_combustivel", label: "ACESSAR DIESEL" },
+  { key: "inventario", dbKey: "pode_inventario", label: "ACESSAR ESTOQUE" },
+  { key: "fornecedores", dbKey: "pode_fornecedores", label: "ACESSAR FORNECEDORES" },
+  { key: "expedicao", dbKey: "pode_expedicao", label: "CONSULTAR EXPEDIÇÃO" },
+  { key: "gerarPdf", dbKey: "pode_pdf", label: "GERAR PDF" },
+  { key: "gerarExcel", dbKey: "pode_excel", label: "GERAR EXCEL" },
 ];
+
+function nivelToPerfil(nivel: string): string {
+  const map: Record<string, string> = { SUPERVISOR: "SUPERVISOR", MANOBRA: "MANOBRA", MANUTENCAO: "MANUTENÇÃO", EXPEDICAO: "EXPEDIÇÃO" };
+  return map[nivel] || nivel;
+}
 
 export default function UsuariosPage() {
   const [usuarios, setUsuarios] = useState<RegisteredUser[]>([]);
@@ -33,7 +38,7 @@ export default function UsuariosPage() {
   const [perfil, setPerfil] = useState<UserRole>("MANOBRA");
   const [permissoes, setPermissoes] = useState<UserPermissions>(DEFAULT_PERMISSIONS["MANOBRA"]);
 
-  const load = () => setUsuarios(lerUsuarios());
+  const load = async () => { const data = await lerUsuarios(); setUsuarios(data); };
   useEffect(() => { load(); }, []);
 
   const resetForm = () => {
@@ -45,7 +50,13 @@ export default function UsuariosPage() {
 
   const openEdit = (u: RegisteredUser) => {
     setEditingId(u.id); setNome(u.nome); setSenha(u.senha);
-    setPerfil(u.perfil); setPermissoes(u.permissoes); setModalOpen(true);
+    setPerfil(nivelToPerfil(u.nivel) as UserRole);
+    setPermissoes({
+      patio: u.pode_patio, rodizio: u.pode_rodizio, combustivel: u.pode_combustivel,
+      inventario: u.pode_inventario, fornecedores: u.pode_fornecedores, expedicao: u.pode_expedicao,
+      gerarPdf: u.pode_pdf, gerarExcel: u.pode_excel,
+    });
+    setModalOpen(true);
   };
 
   const handlePerfilChange = (v: string) => {
@@ -58,29 +69,36 @@ export default function UsuariosPage() {
     setPermissoes(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!nome) { toast.error("INFORME O NOME!"); return; }
-    const all = lerUsuarios();
+    const nivel = perfilToNivel(perfil);
+    const userData = {
+      nome: nome.toUpperCase(),
+      login: nome.toUpperCase(),
+      senha,
+      nivel,
+      pode_patio: permissoes.patio,
+      pode_rodizio: permissoes.rodizio,
+      pode_combustivel: permissoes.combustivel,
+      pode_inventario: permissoes.inventario,
+      pode_fornecedores: permissoes.fornecedores,
+      pode_expedicao: permissoes.expedicao,
+      pode_pdf: permissoes.gerarPdf,
+      pode_excel: permissoes.gerarExcel,
+      ativo: true,
+    };
     if (editingId) {
-      const idx = all.findIndex(u => u.id === editingId);
-      if (idx >= 0) {
-        all[idx] = { ...all[idx], nome: nome.toUpperCase(), senha, perfil, permissoes };
-      }
+      await atualizarUsuario(editingId, userData);
       toast.success("USUÁRIO ATUALIZADO!");
     } else {
-      all.push({
-        id: crypto.randomUUID(), nome: nome.toUpperCase(), senha,
-        perfil, permissoes, ativo: true,
-      });
+      await salvarUsuario(userData);
       toast.success("USUÁRIO CADASTRADO!");
     }
-    salvarUsuarios(all);
     setModalOpen(false); resetForm(); load();
   };
 
-  const handleDelete = (id: string) => {
-    const all = lerUsuarios().filter(u => u.id !== id);
-    salvarUsuarios(all);
+  const handleDelete = async (id: string) => {
+    await excluirUsuario(id);
     toast.success("USUÁRIO REMOVIDO!");
     load();
   };
@@ -154,9 +172,9 @@ export default function UsuariosPage() {
               {usuarios.map(u => (
                 <TableRow key={u.id} className="border-border/20">
                   <TableCell className="text-sm font-bold font-orbitron uppercase">{u.nome}</TableCell>
-                  <TableCell className="text-xs font-orbitron text-primary">{u.perfil}</TableCell>
+                  <TableCell className="text-xs font-orbitron text-primary">{nivelToPerfil(u.nivel)}</TableCell>
                   <TableCell className="text-[0.55rem] text-muted-foreground uppercase">
-                    {PERM_LABELS.filter(p => u.permissoes[p.key]).map(p => p.label.replace("ACESSAR ", "").replace("CONSULTAR ", "")).join(", ")}
+                    {PERM_LABELS.filter(p => (u as any)[p.dbKey]).map(p => p.label.replace("ACESSAR ", "").replace("CONSULTAR ", "")).join(", ")}
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { salvarPneu, lerPneus, atualizarStatusPneu, lerFornecedoresPorTipo, exportCSV } from "@/lib/storage";
-import { PneuInventario, PneuStatus, Fornecedor, UserSession } from "@/lib/types";
+import { UserSession } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,6 +10,8 @@ import { toast } from "sonner";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+type PneuStatus = "DISPONÍVEL" | "RECAPAGEM" | "SUCATA";
+
 export default function InventarioPage({ session }: { session: UserSession }) {
   const [numFogo, setNumFogo] = useState("");
   const [tamanho, setTamanho] = useState("");
@@ -18,22 +20,25 @@ export default function InventarioPage({ session }: { session: UserSession }) {
   const [marca, setMarca] = useState("");
   const [status, setStatus] = useState<PneuStatus>("DISPONÍVEL");
   const [fornecedorId, setFornecedorId] = useState("");
-  const [pneus, setPneus] = useState<PneuInventario[]>([]);
-  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
+  const [pneus, setPneus] = useState<any[]>([]);
+  const [fornecedores, setFornecedores] = useState<any[]>([]);
 
-  const load = () => { setPneus(lerPneus()); setFornecedores(lerFornecedoresPorTipo("PNEUS / RECAPAGEM")); };
+  const load = async () => {
+    const [p, f] = await Promise.all([lerPneus(), lerFornecedoresPorTipo("PNEUS / RECAPAGEM")]);
+    setPneus(p); setFornecedores(f);
+  };
   useEffect(() => { load(); }, []);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!numFogo) { toast.error("INFORME O Nº DE FOGO!"); return; }
-    const forn = fornecedores.find(f => f.id === fornecedorId);
-    salvarPneu({ numFogo, tamanho, largura, aro, marca, status, fornecedorId, fornecedorNome: forn?.razaoSocial || "" });
+    const forn = fornecedores.find((f: any) => f.id === fornecedorId);
+    await salvarPneu({ num_fogo: numFogo, tamanho, largura, aro, marca, status, fornecedor_id: fornecedorId, fornecedor_nome: forn?.razao_social || "" });
     toast.success("PNEU CADASTRADO!"); setNumFogo(""); setTamanho(""); setLargura(""); setAro(""); setMarca(""); setFornecedorId(""); load();
   };
 
-  const handleStatusChange = (id: string, newStatus: PneuStatus) => { atualizarStatusPneu(id, newStatus); load(); };
+  const handleStatusChange = async (id: string, newStatus: PneuStatus) => { await atualizarStatusPneu(id, newStatus); load(); };
 
-  const statusColor = (s: PneuStatus) => {
+  const statusColor = (s: string) => {
     if (s === "DISPONÍVEL") return "text-accent";
     if (s === "RECAPAGEM") return "text-[hsl(var(--neon-orange))]";
     return "text-destructive";
@@ -52,7 +57,7 @@ export default function InventarioPage({ session }: { session: UserSession }) {
     autoTable(doc, {
       startY: 25,
       head: [["Nº FOGO", "TAMANHO", "LARGURA", "ARO", "MARCA", "FORNECEDOR", "STATUS"]],
-      body: pneus.map(p => [p.numFogo, p.tamanho, p.largura, p.aro, p.marca, p.fornecedorNome, p.status]),
+      body: pneus.map(p => [p.num_fogo, p.tamanho, p.largura, p.aro, p.marca, p.fornecedor_nome, p.status]),
     });
     doc.save("inventario_pneus.pdf");
   };
@@ -60,7 +65,7 @@ export default function InventarioPage({ session }: { session: UserSession }) {
   const handleExcel = () => {
     exportCSV("inventario_pneus.csv",
       ["Nº FOGO", "TAMANHO", "LARGURA", "ARO", "MARCA", "FORNECEDOR", "STATUS"],
-      pneus.map(p => [p.numFogo, p.tamanho, p.largura, p.aro, p.marca, p.fornecedorNome, p.status])
+      pneus.map(p => [p.num_fogo, p.tamanho, p.largura, p.aro, p.marca, p.fornecedor_nome, p.status])
     );
   };
 
@@ -90,7 +95,7 @@ export default function InventarioPage({ session }: { session: UserSession }) {
           <Input placeholder="MARCA" value={marca} onChange={e => setMarca(e.target.value)} className="text-center bg-input border-border/50 h-12 uppercase" />
           <select value={fornecedorId} onChange={e => setFornecedorId(e.target.value)} className="bg-input border border-border/50 rounded-xl text-sm p-3 text-foreground h-12 uppercase">
             <option value="">FORNECEDOR</option>
-            {fornecedores.map(f => <option key={f.id} value={f.id}>{f.razaoSocial}</option>)}
+            {fornecedores.map((f: any) => <option key={f.id} value={f.id}>{f.razao_social}</option>)}
           </select>
         </div>
         <OptionGroup label="STATUS" value={status} onChange={v => setStatus(v as PneuStatus)} colorClass="bg-accent text-accent-foreground" glowClass="neon-glow-green"
@@ -138,12 +143,12 @@ export default function InventarioPage({ session }: { session: UserSession }) {
                 <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-10 font-orbitron text-xs uppercase">NENHUM PNEU CADASTRADO.</TableCell></TableRow>
               ) : pneus.map(p => (
                 <TableRow key={p.id} className="border-border/20">
-                  <TableCell className="text-sm font-orbitron">{p.numFogo}</TableCell>
+                  <TableCell className="text-sm font-orbitron">{p.num_fogo}</TableCell>
                   <TableCell className="text-sm uppercase">{p.tamanho}</TableCell>
                   <TableCell className="text-sm uppercase">{p.largura}</TableCell>
                   <TableCell className="text-sm uppercase">{p.aro}</TableCell>
                   <TableCell className="text-sm uppercase">{p.marca}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground uppercase">{p.fornecedorNome || "—"}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground uppercase">{p.fornecedor_nome || "—"}</TableCell>
                   <TableCell className={`text-xs font-bold uppercase ${statusColor(p.status)}`}>{p.status}</TableCell>
                   <TableCell>
                     <select value={p.status} onChange={e => handleStatusChange(p.id, e.target.value as PneuStatus)}

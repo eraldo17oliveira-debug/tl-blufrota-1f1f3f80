@@ -3,7 +3,7 @@ import { verificarLogin } from "@/lib/auth";
 import { UserSession } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Truck, KeyRound } from "lucide-react";
+import { Truck, KeyRound, Loader2 } from "lucide-react";
 
 interface Props { onLogin: (session: UserSession) => void; }
 
@@ -11,9 +11,12 @@ export default function LoginScreen({ onLogin }: Props) {
   const [usuario, setUsuario] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    const result = verificarLogin(usuario, senha);
+  const handleLogin = async () => {
+    setLoading(true);
+    const result = await verificarLogin(usuario, senha);
+    setLoading(false);
     if (result.sucesso && result.session) onLogin(result.session);
     else setErro(result.msg || "ERRO AO FAZER LOGIN");
   };
@@ -38,8 +41,8 @@ export default function LoginScreen({ onLogin }: Props) {
             onKeyDown={e => e.key === "Enter" && handleLogin()}
             className="text-center bg-input border-border/50 focus:border-primary h-14" />
           {erro && <p className="text-sm text-destructive text-center uppercase font-orbitron text-[0.65rem]">{erro}</p>}
-          <Button onClick={handleLogin} className="w-full gap-2 h-14 font-orbitron font-bold bg-primary text-primary-foreground hover:bg-primary/80 neon-glow-primary transition-all duration-300 uppercase">
-            <KeyRound className="h-4 w-4" /> ENTRAR 🔑
+          <Button onClick={handleLogin} disabled={loading} className="w-full gap-2 h-14 font-orbitron font-bold bg-primary text-primary-foreground hover:bg-primary/80 neon-glow-primary transition-all duration-300 uppercase">
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />} ENTRAR 🔑
           </Button>
           <div className="text-[0.55rem] text-muted-foreground text-center space-y-0.5 font-orbitron uppercase">
             <p>SUPERVISOR: ERALDO / 123</p>

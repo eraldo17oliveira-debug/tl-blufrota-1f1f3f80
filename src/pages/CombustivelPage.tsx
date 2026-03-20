@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { salvarFechamento, lerFechamentos, salvarCarga, lerCargas, volumeAtual, lerFornecedoresPorTipo, exportCSV, todayStr } from "@/lib/storage";
-import { Fornecedor, UserSession } from "@/lib/types";
+import { UserSession } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -16,41 +16,46 @@ export default function CombustivelPage({ session }: { session: UserSession }) {
   const [litros, setLitros] = useState("");
   const [fornecedorId, setFornecedorId] = useState("");
   const [notaFiscal, setNotaFiscal] = useState("");
-  const [fechamentos, setFechamentos] = useState<ReturnType<typeof lerFechamentos>>([]);
-  const [cargas, setCargas] = useState<ReturnType<typeof lerCargas>>([]);
+  const [fechamentos, setFechamentos] = useState<any[]>([]);
+  const [cargas, setCargas] = useState<any[]>([]);
   const [volume, setVolume] = useState(0);
-  const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
+  const [fornecedores, setFornecedores] = useState<any[]>([]);
 
-  const load = () => { setFechamentos(lerFechamentos()); setCargas(lerCargas()); setVolume(volumeAtual()); setFornecedores(lerFornecedoresPorTipo("COMBUSTÍVEL")); };
+  const load = async () => {
+    const [f, c, v, forn] = await Promise.all([
+      lerFechamentos(), lerCargas(), volumeAtual(), lerFornecedoresPorTipo("COMBUSTÍVEL")
+    ]);
+    setFechamentos(f); setCargas(c); setVolume(v); setFornecedores(forn);
+  };
   useEffect(() => { load(); }, []);
 
-  const handleFechamento = () => {
+  const handleFechamento = async () => {
     const li = parseFloat(leituraInicial); const lf = parseFloat(leituraFinal);
     if (isNaN(li) || isNaN(lf)) { toast.error("INFORME AS LEITURAS!"); return; }
     if (lf < li) { toast.error("LEITURA FINAL MENOR QUE INICIAL!"); return; }
-    salvarFechamento({ data, leituraInicial: li, leituraFinal: lf }); toast.success("FECHAMENTO REGISTRADO!"); setLeituraInicial(""); setLeituraFinal(""); load();
+    await salvarFechamento({ data, leitura_inicial: li, leitura_final: lf }); toast.success("FECHAMENTO REGISTRADO!"); setLeituraInicial(""); setLeituraFinal(""); load();
   };
 
-  const handleCarga = () => {
+  const handleCarga = async () => {
     const l = parseFloat(litros);
     if (isNaN(l) || l <= 0) { toast.error("INFORME OS LITROS!"); return; }
-    const forn = fornecedores.find(f => f.id === fornecedorId);
-    salvarCarga({ litros: l, fornecedorId, fornecedorNome: forn?.razaoSocial || "", notaFiscal }); toast.success("CARGA REGISTRADA!"); setLitros(""); setFornecedorId(""); setNotaFiscal(""); load();
+    const forn = fornecedores.find((f: any) => f.id === fornecedorId);
+    await salvarCarga({ litros: l, fornecedor_id: fornecedorId, fornecedor_nome: forn?.razao_social || "", nota_fiscal: notaFiscal }); toast.success("CARGA REGISTRADA!"); setLitros(""); setFornecedorId(""); setNotaFiscal(""); load();
   };
 
   const handlePDF = () => {
     const doc = new jsPDF({ orientation: "landscape" }); doc.setFontSize(14); doc.text("TL-BLU FROTA — COMBUSTÍVEL", 14, 18);
-    autoTable(doc, { startY: 25, head: [["DATA", "LEITURA INICIAL", "LEITURA FINAL", "CONSUMO"]], body: fechamentos.map(f => [f.data, f.leituraInicial, f.leituraFinal, `${f.consumo} L`]) });
+    autoTable(doc, { startY: 25, head: [["DATA", "LEITURA INICIAL", "LEITURA FINAL", "CONSUMO"]], body: fechamentos.map(f => [f.data, f.leitura_inicial, f.leitura_final, `${f.consumo} L`]) });
     let y = (doc as any).lastAutoTable.finalY + 10;
     doc.text("CARGAS RECEBIDAS", 14, y); y += 7;
-    autoTable(doc, { startY: y, head: [["DATA", "LITROS", "FORNECEDOR", "NF"]], body: cargas.map(c => [new Date(c.timestamp).toLocaleDateString("pt-BR"), `${c.litros} L`, c.fornecedorNome, c.notaFiscal]) });
+    autoTable(doc, { startY: y, head: [["DATA", "LITROS", "FORNECEDOR", "NF"]], body: cargas.map(c => [new Date(c.created_at).toLocaleDateString("pt-BR"), `${c.litros} L`, c.fornecedor_nome, c.nota_fiscal]) });
     doc.save("combustivel_tlblu.pdf");
   };
 
   const handleExcel = () => {
     exportCSV("combustivel_tlblu.csv", ["TIPO", "DATA", "VALOR1", "VALOR2", "VALOR3"],
-      [...fechamentos.map(f => ["FECHAMENTO", f.data, String(f.leituraInicial), String(f.leituraFinal), `${f.consumo}`]),
-       ...cargas.map(c => ["CARGA", new Date(c.timestamp).toLocaleDateString("pt-BR"), `${c.litros}`, c.fornecedorNome, c.notaFiscal])]);
+      [...fechamentos.map(f => ["FECHAMENTO", f.data, String(f.leitura_inicial), String(f.leitura_final), `${f.consumo}`]),
+       ...cargas.map(c => ["CARGA", new Date(c.created_at).toLocaleDateString("pt-BR"), `${c.litros}`, c.fornecedor_nome, c.nota_fiscal])]);
   };
 
   return (
@@ -105,7 +110,7 @@ export default function CombustivelPage({ session }: { session: UserSession }) {
           <Input placeholder="LITROS" value={litros} onChange={e => setLitros(e.target.value)} type="number" className="text-center bg-input border-border/50 focus:border-accent h-12 font-orbitron text-sm" />
           <select value={fornecedorId} onChange={e => setFornecedorId(e.target.value)} className="bg-input border border-border/50 rounded-xl text-sm p-3 text-foreground font-orbitron h-12 uppercase">
             <option value="">SELECIONE FORNECEDOR</option>
-            {fornecedores.map(f => <option key={f.id} value={f.id}>{f.razaoSocial}</option>)}
+            {fornecedores.map((f: any) => <option key={f.id} value={f.id}>{f.razao_social}</option>)}
           </select>
           <Input placeholder="NOTA FISCAL" value={notaFiscal} onChange={e => setNotaFiscal(e.target.value)} className="text-center bg-input border-border/50 focus:border-accent h-12 uppercase" />
         </div>
@@ -131,8 +136,8 @@ export default function CombustivelPage({ session }: { session: UserSession }) {
                 ) : fechamentos.map(f => (
                   <TableRow key={f.id} className="border-border/20">
                     <TableCell className="text-xs">{f.data}</TableCell>
-                    <TableCell className="text-sm font-orbitron">{f.leituraInicial}</TableCell>
-                    <TableCell className="text-sm font-orbitron">{f.leituraFinal}</TableCell>
+                    <TableCell className="text-sm font-orbitron">{f.leitura_inicial}</TableCell>
+                    <TableCell className="text-sm font-orbitron">{f.leitura_final}</TableCell>
                     <TableCell className="text-sm font-orbitron text-[hsl(var(--neon-orange))]">{f.consumo} L</TableCell>
                   </TableRow>
                 ))}
@@ -156,10 +161,10 @@ export default function CombustivelPage({ session }: { session: UserSession }) {
                   <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-6 text-xs uppercase font-orbitron">NENHUMA CARGA.</TableCell></TableRow>
                 ) : cargas.map(c => (
                   <TableRow key={c.id} className="border-border/20">
-                    <TableCell className="text-xs">{new Date(c.timestamp).toLocaleDateString("pt-BR")}</TableCell>
+                    <TableCell className="text-xs">{new Date(c.created_at).toLocaleDateString("pt-BR")}</TableCell>
                     <TableCell className="text-sm font-orbitron text-accent">{c.litros} L</TableCell>
-                    <TableCell className="text-sm uppercase">{c.fornecedorNome}</TableCell>
-                    <TableCell className="text-sm uppercase">{c.notaFiscal}</TableCell>
+                    <TableCell className="text-sm uppercase">{c.fornecedor_nome}</TableCell>
+                    <TableCell className="text-sm uppercase">{c.nota_fiscal}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
