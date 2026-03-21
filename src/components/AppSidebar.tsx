@@ -1,4 +1,4 @@
-import { Truck, RotateCcw, Fuel, Package, LogOut, Building2, PackageCheck, Users } from "lucide-react";
+import { Truck, RotateCcw, Fuel, Package, LogOut, Building2, PackageCheck, Users, Wrench } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { UserSession, getModuleAccess } from "@/lib/types";
 import {
@@ -14,6 +14,7 @@ const allModules = [
   { key: "inventario", title: "INVENTÁRIO", url: "/inventario", icon: Package },
   { key: "fornecedores", title: "FORNECEDORES", url: "/fornecedores", icon: Building2 },
   { key: "expedicao", title: "EXPEDIÇÃO", url: "/expedicao", icon: PackageCheck },
+  { key: "os", title: "ORDEM DE SERVIÇO", url: "/os", icon: Wrench },
 ];
 
 interface Props { session: UserSession; onLogout: () => void; }
@@ -27,7 +28,7 @@ export default function AppSidebar({ session, onLogout }: Props) {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border/30">
-      <SidebarContent className="bg-card/80 backdrop-blur-xl">
+      <SidebarContent className="bg-card">
         <SidebarGroup>
           <SidebarGroupLabel className="font-orbitron text-primary text-xs neon-text uppercase">
             {!collapsed && "TL-BLU FROTA"}
@@ -62,7 +63,7 @@ export default function AppSidebar({ session, onLogout }: Props) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="bg-card/80 backdrop-blur-xl border-t border-border/30 p-3">
+      <SidebarFooter className="bg-card border-t border-border/30 p-3">
         {!collapsed && (
           <div className="text-[0.6rem] text-muted-foreground font-orbitron mb-2 text-center uppercase">
             {session.nome} • {session.perfil}

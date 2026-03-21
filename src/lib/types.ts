@@ -7,6 +7,7 @@ export interface UserPermissions {
   inventario: boolean;
   fornecedores: boolean;
   expedicao: boolean;
+  os: boolean;
   gerarPdf: boolean;
   gerarExcel: boolean;
 }
@@ -21,19 +22,19 @@ export interface UserSession {
 export const DEFAULT_PERMISSIONS: Record<UserRole, UserPermissions> = {
   SUPERVISOR: {
     patio: true, rodizio: true, combustivel: true, inventario: true,
-    fornecedores: true, expedicao: true, gerarPdf: true, gerarExcel: true,
+    fornecedores: true, expedicao: true, os: true, gerarPdf: true, gerarExcel: true,
   },
   MANOBRA: {
     patio: true, rodizio: false, combustivel: false, inventario: false,
-    fornecedores: false, expedicao: false, gerarPdf: true, gerarExcel: false,
+    fornecedores: false, expedicao: false, os: false, gerarPdf: true, gerarExcel: false,
   },
   "MANUTENÇÃO": {
     patio: false, rodizio: true, combustivel: false, inventario: true,
-    fornecedores: false, expedicao: false, gerarPdf: true, gerarExcel: false,
+    fornecedores: false, expedicao: false, os: true, gerarPdf: true, gerarExcel: false,
   },
   "EXPEDIÇÃO": {
     patio: false, rodizio: false, combustivel: false, inventario: false,
-    fornecedores: false, expedicao: true, gerarPdf: true, gerarExcel: true,
+    fornecedores: false, expedicao: true, os: false, gerarPdf: true, gerarExcel: true,
   },
 };
 
@@ -46,6 +47,7 @@ export function getModuleAccess(permissoes: UserPermissions): string[] {
   if (permissoes.inventario) modules.push("inventario");
   if (permissoes.fornecedores) modules.push("fornecedores");
   if (permissoes.expedicao) modules.push("expedicao");
+  if (permissoes.os) modules.push("os");
   return modules;
 }
 
