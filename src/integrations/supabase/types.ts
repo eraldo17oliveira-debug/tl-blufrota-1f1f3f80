@@ -269,6 +269,42 @@ export type Database = {
         }
         Relationships: []
       }
+      servicos_internos: {
+        Row: {
+          created_at: string
+          descricao: string
+          frota: string
+          id: string
+          item_peca: string
+          mecanico: string
+          placa: string
+          quantidade: number
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          descricao?: string
+          frota?: string
+          id?: string
+          item_peca?: string
+          mecanico?: string
+          placa?: string
+          quantidade?: number
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          frota?: string
+          id?: string
+          item_peca?: string
+          mecanico?: string
+          placa?: string
+          quantidade?: number
+          status?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
