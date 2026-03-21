@@ -19,6 +19,7 @@ const PERM_LABELS: { key: keyof UserPermissions; dbKey: string; label: string }[
   { key: "inventario", dbKey: "pode_inventario", label: "ACESSAR ESTOQUE" },
   { key: "fornecedores", dbKey: "pode_fornecedores", label: "ACESSAR FORNECEDORES" },
   { key: "expedicao", dbKey: "pode_expedicao", label: "CONSULTAR EXPEDIÇÃO" },
+  { key: "os", dbKey: "pode_patio", label: "ORDEM DE SERVIÇO" },
   { key: "gerarPdf", dbKey: "pode_pdf", label: "GERAR PDF" },
   { key: "gerarExcel", dbKey: "pode_excel", label: "GERAR EXCEL" },
 ];
@@ -54,6 +55,7 @@ export default function UsuariosPage() {
     setPermissoes({
       patio: u.pode_patio, rodizio: u.pode_rodizio, combustivel: u.pode_combustivel,
       inventario: u.pode_inventario, fornecedores: u.pode_fornecedores, expedicao: u.pode_expedicao,
+      os: u.pode_patio || u.pode_rodizio,
       gerarPdf: u.pode_pdf, gerarExcel: u.pode_excel,
     });
     setModalOpen(true);
@@ -174,7 +176,7 @@ export default function UsuariosPage() {
                   <TableCell className="text-sm font-bold font-orbitron uppercase">{u.nome}</TableCell>
                   <TableCell className="text-xs font-orbitron text-primary">{nivelToPerfil(u.nivel)}</TableCell>
                   <TableCell className="text-[0.55rem] text-muted-foreground uppercase">
-                    {PERM_LABELS.filter(p => (u as any)[p.dbKey]).map(p => p.label.replace("ACESSAR ", "").replace("CONSULTAR ", "")).join(", ")}
+                    {PERM_LABELS.filter(p => p.dbKey && (u as any)[p.dbKey]).map(p => p.label.replace("ACESSAR ", "").replace("CONSULTAR ", "")).join(", ")}
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">

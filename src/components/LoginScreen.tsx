@@ -44,12 +44,6 @@ export default function LoginScreen({ onLogin }: Props) {
           <Button onClick={handleLogin} disabled={loading} className="w-full gap-2 h-14 font-orbitron font-bold bg-primary text-primary-foreground hover:bg-primary/80 neon-glow-primary transition-all duration-300 uppercase">
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />} ENTRAR 🔑
           </Button>
-          <div className="text-[0.55rem] text-muted-foreground text-center space-y-0.5 font-orbitron uppercase">
-            <p>SUPERVISOR: ERALDO / 123</p>
-            <p>MANOBRA: EDUARDO</p>
-            <p>MANUTENÇÃO: ANTONIO</p>
-            <p>EXPEDIÇÃO: CARLOS</p>
-          </div>
         </div>
       </div>
     </div>

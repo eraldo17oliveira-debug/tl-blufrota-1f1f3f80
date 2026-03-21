@@ -23,17 +23,29 @@ export default function PatioTable({ refreshKey, session }: Props) {
 
   const handleToggle = async (id: string) => { await toggleConcluidoPatio(id); load(); };
 
+  const ativos = records.filter(r => !r.concluido);
+  const totalPatio = ativos.length;
+  const totalCarregadas = ativos.filter(r => r.estado === "Carga").length;
+  const totalVazias = ativos.filter(r => r.estado === "Vazia").length;
+  const emManutencao = ativos.filter(r => r.status === "Bloqueio").length;
+
   const handlePDF = () => {
     const doc = new jsPDF({ orientation: "landscape" }); doc.setFontSize(14);
     doc.text(`TL-BLU FROTA — PÁTIO — ${date}`, 14, 18);
-    autoTable(doc, { startY: 25, head: [["PLACA", "FROTA", "CARGA", "LOCAL", "EIXO", "MODELO", "SEGURANÇA"]],
-      body: records.filter(r => !r.concluido).map(r => [r.placa, r.frota, r.estado, r.local, r.eixo, r.modelo, r.status]) });
+    doc.setFontSize(10);
+    doc.text(`TOTAL NO PÁTIO: ${totalPatio} | CARREGADAS: ${totalCarregadas} | VAZIAS: ${totalVazias} | EM MANUTENÇÃO: ${emManutencao}`, 14, 26);
+    autoTable(doc, { startY: 32, head: [["FROTA", "PLACA", "STATUS", "LOCALIZAÇÃO", "DATA"]],
+      body: ativos.map(r => [r.frota, r.placa, r.estado, r.local, new Date(r.created_at).toLocaleDateString("pt-BR")]) });
+    const finalY = (doc as any).lastAutoTable.finalY + 10;
+    doc.setFontSize(8);
+    doc.text("GASPAR - SC | SISTEMA OPERACIONAL TL-BLU", 14, finalY);
     doc.save(`patio_${date}.pdf`);
   };
 
   const handleExcel = () => {
-    exportCSV(`patio_${date}.csv`, ["PLACA", "FROTA", "CARGA", "LOCAL", "EIXO", "MODELO", "SEGURANÇA"],
-      records.filter(r => !r.concluido).map(r => [r.placa, r.frota, r.estado, r.local, r.eixo, r.modelo, r.status]));
+    const summaryRow = [`TOTAL: ${totalPatio}`, `CARREGADAS: ${totalCarregadas}`, `VAZIAS: ${totalVazias}`, `MANUTENÇÃO: ${emManutencao}`, ""];
+    exportCSV(`patio_${date}.csv`, ["FROTA", "PLACA", "STATUS", "LOCALIZAÇÃO", "DATA"],
+      [summaryRow, ...ativos.map(r => [r.frota, r.placa, r.estado, r.local, new Date(r.created_at).toLocaleDateString("pt-BR")])]);
   };
 
   const canCheck = (r: any) => {
@@ -62,6 +74,22 @@ export default function PatioTable({ refreshKey, session }: Props) {
           )}
         </div>
       </div>
+
+      {/* Resumo totalizador */}
+      <div className="grid grid-cols-4 gap-2 p-4">
+        {[
+          { label: "TOTAL PÁTIO", val: totalPatio, cls: "text-primary" },
+          { label: "CARREGADAS", val: totalCarregadas, cls: "text-accent" },
+          { label: "VAZIAS", val: totalVazias, cls: "text-[hsl(var(--neon-orange))]" },
+          { label: "MANUTENÇÃO", val: emManutencao, cls: "text-destructive" },
+        ].map(c => (
+          <div key={c.label} className="text-center">
+            <p className={`text-xl font-bold font-orbitron ${c.cls}`}>{c.val}</p>
+            <p className="text-[0.5rem] font-orbitron uppercase text-muted-foreground">{c.label}</p>
+          </div>
+        ))}
+      </div>
+
       <div className="overflow-x-auto p-2">
         <Table>
           <TableHeader>

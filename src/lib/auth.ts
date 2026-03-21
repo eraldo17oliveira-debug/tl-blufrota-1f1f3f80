@@ -26,6 +26,7 @@ function toPermissoes(u: RegisteredUser): UserPermissions {
     inventario: u.pode_inventario,
     fornecedores: u.pode_fornecedores,
     expedicao: u.pode_expedicao,
+    os: u.pode_patio || u.pode_rodizio, // OS access for patio or rodizio users
     gerarPdf: u.pode_pdf,
     gerarExcel: u.pode_excel,
   };

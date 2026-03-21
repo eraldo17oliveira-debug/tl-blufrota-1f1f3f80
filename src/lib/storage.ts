@@ -120,6 +120,23 @@ export async function excluirFornecedor(id: string) {
   if (error) console.error(error);
 }
 
+// ── Serviços Internos (OS) ──
+export async function salvarOS(record: { frota: string; placa: string; item_peca: string; quantidade: number; mecanico: string; descricao: string; status: string }) {
+  const { error } = await supabase.from("servicos_internos" as any).insert(record as any);
+  if (error) console.error(error);
+}
+
+export async function lerOS() {
+  const { data, error } = await supabase.from("servicos_internos" as any).select("*").order("created_at", { ascending: false });
+  if (error) { console.error(error); return []; }
+  return (data as any[]) || [];
+}
+
+export async function atualizarStatusOS(id: string, status: string) {
+  const { error } = await supabase.from("servicos_internos" as any).update({ status } as any).eq("id", id);
+  if (error) console.error(error);
+}
+
 // ── CSV Export utility ──
 export function exportCSV(filename: string, headers: string[], rows: string[][]) {
   const csvContent = [headers.join(";"), ...rows.map(r => r.join(";"))].join("\n");

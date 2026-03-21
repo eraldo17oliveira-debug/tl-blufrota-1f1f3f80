@@ -15,6 +15,7 @@ import InventarioPage from "@/pages/InventarioPage";
 import FornecedoresPage from "@/pages/FornecedoresPage";
 import ExpedicaoPage from "@/pages/ExpedicaoPage";
 import UsuariosPage from "@/pages/UsuariosPage";
+import OrdemServicoPage from "@/pages/OrdemServicoPage";
 import NotFound from "@/pages/NotFound";
 import { Menu } from "lucide-react";
 
@@ -33,7 +34,7 @@ function AppLayout({ session, onLogout }: { session: UserSession; onLogout: () =
             <SidebarTrigger className="text-muted-foreground hover:text-primary">
               <Menu className="h-5 w-5" />
             </SidebarTrigger>
-            <span className="font-orbitron text-xs text-primary neon-text uppercase">TL-BLU FROTA</span>
+            <span className="font-orbitron text-xs text-primary neon-text uppercase">TL-BLU FROTA V6</span>
             <span className="ml-auto text-[0.6rem] text-muted-foreground font-orbitron uppercase">
               {session.nome} <span className="text-primary">• {session.perfil}</span>
             </span>
@@ -47,6 +48,7 @@ function AppLayout({ session, onLogout }: { session: UserSession; onLogout: () =
               {allowed.includes("inventario") && <Route path="/inventario" element={<InventarioPage session={session} />} />}
               {allowed.includes("fornecedores") && <Route path="/fornecedores" element={<FornecedoresPage session={session} />} />}
               {allowed.includes("expedicao") && <Route path="/expedicao" element={<ExpedicaoPage session={session} />} />}
+              {allowed.includes("os") && <Route path="/os" element={<OrdemServicoPage session={session} />} />}
               {session.perfil === "SUPERVISOR" && <Route path="/usuarios" element={<UsuariosPage />} />}
               <Route path="*" element={<Navigate to={defaultRoute} replace />} />
             </Routes>

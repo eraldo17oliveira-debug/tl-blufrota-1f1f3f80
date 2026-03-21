@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { RotateCcw, FileText, FileSpreadsheet } from "lucide-react";
 import OptionGroup from "@/components/OptionGroup";
+import PlacaInput from "@/components/PlacaInput";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -66,6 +67,9 @@ export default function RodizioPage({ session }: { session: UserSession }) {
       head: [["TIPO", "PLACA", "FROTA", "POSIÇÃO", "Nº FOGO", "LACRE", "SULCO (MM)", "DATA"]],
       body: records.map(r => [r.tipo, r.placa, r.frota, r.posicao, r.num_fogo, r.lacre, r.sulco, new Date(r.created_at).toLocaleDateString("pt-BR")]),
     });
+    const finalY = (doc as any).lastAutoTable.finalY + 10;
+    doc.setFontSize(8);
+    doc.text("GASPAR - SC | SISTEMA OPERACIONAL TL-BLU", 14, finalY);
     doc.save(`rodizio_${de}_${ate}.pdf`);
   };
 
@@ -75,6 +79,9 @@ export default function RodizioPage({ session }: { session: UserSession }) {
       records.map(r => [r.tipo, r.placa, r.frota, r.posicao, r.num_fogo, r.lacre, r.sulco, new Date(r.created_at).toLocaleDateString("pt-BR")])
     );
   };
+
+  const sulcoValue = (s: string) => parseFloat(s);
+  const isSulcoCritico = (s: string) => { const v = sulcoValue(s); return !isNaN(v) && v < 3.0; };
 
   const getPosColor = (posId: string) => {
     if (recentPositions.has(posId)) return "bg-[hsl(var(--neon-orange))] text-primary-foreground border-transparent shadow-[0_0_12px_hsl(var(--neon-orange)/0.6)]";
@@ -109,8 +116,7 @@ export default function RodizioPage({ session }: { session: UserSession }) {
       <div className="glass-card rounded-2xl p-5 space-y-4">
         <p className="font-orbitron text-[0.65rem] text-muted-foreground uppercase tracking-widest">IDENTIFICAÇÃO DO VEÍCULO</p>
         <div className="grid grid-cols-2 gap-3">
-          <Input placeholder="PLACA" value={placa} onChange={e => { setPlaca(e.target.value); setRecentPositions(new Set()); }}
-            className="uppercase text-center font-mono-neon text-primary bg-input border-border/50 focus:border-primary h-14 text-lg" />
+          <PlacaInput value={placa} onChange={(v) => { setPlaca(v); setRecentPositions(new Set()); }} className="h-14 text-lg" />
           <Input placeholder="NÚMERO DA FROTA" value={frota} onChange={e => setFrota(e.target.value)}
             className="uppercase text-center bg-input border-border/50 focus:border-primary h-14 font-orbitron text-sm" />
         </div>
@@ -186,10 +192,10 @@ export default function RodizioPage({ session }: { session: UserSession }) {
                   <TableCell className={`text-xs font-bold uppercase ${r.tipo === "ENTRADA" ? "text-accent" : "text-destructive"}`}>{r.tipo}</TableCell>
                   <TableCell className="font-mono-neon text-primary text-sm uppercase">{r.placa}</TableCell>
                   <TableCell className="text-sm font-orbitron">{r.frota}</TableCell>
-                  <TableCell className="text-[0.65rem] font-orbitron text-neon-purple">{r.posicao}</TableCell>
+                  <TableCell className="text-[0.65rem] font-orbitron text-[hsl(var(--neon-purple))]">{r.posicao}</TableCell>
                   <TableCell className="text-sm font-orbitron">{r.num_fogo}</TableCell>
                   <TableCell className="text-sm">{r.lacre}</TableCell>
-                  <TableCell className="text-sm font-orbitron">{r.sulco}</TableCell>
+                  <TableCell className={`text-sm font-orbitron ${isSulcoCritico(r.sulco) ? "sulco-alerta" : ""}`}>{r.sulco}</TableCell>
                   <TableCell className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString("pt-BR")}</TableCell>
                 </TableRow>
               ))}
