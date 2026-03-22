@@ -310,7 +310,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      list_users_safe: { Args: never; Returns: Json[] }
+      verify_login: {
+        Args: { p_login: string; p_senha: string }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
