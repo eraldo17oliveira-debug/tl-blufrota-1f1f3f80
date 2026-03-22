@@ -5,7 +5,6 @@ export interface RegisteredUser {
   id: string;
   nome: string;
   login: string;
-  senha: string;
   nivel: string;
   pode_patio: boolean;
   pode_rodizio: boolean;
@@ -18,7 +17,22 @@ export interface RegisteredUser {
   ativo: boolean;
 }
 
-function toPermissoes(u: RegisteredUser): UserPermissions {
+const SESSION_KEY = "tlblu_session";
+
+export function getPersistedSession(): UserSession | null {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as UserSession;
+  } catch { return null; }
+}
+
+export function persistSession(session: UserSession | null) {
+  if (session) localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  else localStorage.removeItem(SESSION_KEY);
+}
+
+function toPermissoes(u: any): UserPermissions {
   return {
     patio: u.pode_patio,
     rodizio: u.pode_rodizio,
@@ -26,7 +40,7 @@ function toPermissoes(u: RegisteredUser): UserPermissions {
     inventario: u.pode_inventario,
     fornecedores: u.pode_fornecedores,
     expedicao: u.pode_expedicao,
-    os: u.pode_patio || u.pode_rodizio, // OS access for patio or rodizio users
+    os: u.pode_patio || u.pode_rodizio,
     gerarPdf: u.pode_pdf,
     gerarExcel: u.pode_excel,
   };
@@ -52,14 +66,14 @@ export function perfilToNivel(perfil: string) {
   return map[perfil] || perfil;
 }
 
+// Uses secure RPC — never exposes passwords
 export async function lerUsuarios(): Promise<RegisteredUser[]> {
-  const { data, error } = await supabase.from("profiles").select("*").order("created_at");
-  if (error) { console.error(error); return []; }
-  return (data || []).map(d => ({
+  const { data, error } = await supabase.rpc("list_users_safe");
+  if (error) { console.error("Erro ao listar usuários"); return []; }
+  return (data || []).map((d: any) => ({
     id: d.id,
     nome: d.nome,
     login: d.login,
-    senha: d.senha,
     nivel: d.nivel,
     pode_patio: d.pode_patio,
     pode_rodizio: d.pode_rodizio,
@@ -73,64 +87,49 @@ export async function lerUsuarios(): Promise<RegisteredUser[]> {
   }));
 }
 
-export async function salvarUsuario(user: Omit<RegisteredUser, "id">) {
+export async function salvarUsuario(user: Omit<RegisteredUser, "id"> & { senha?: string }) {
   const { error } = await supabase.from("profiles").insert({
-    nome: user.nome,
-    login: user.login,
-    senha: user.senha,
-    nivel: user.nivel,
-    pode_patio: user.pode_patio,
-    pode_rodizio: user.pode_rodizio,
-    pode_combustivel: user.pode_combustivel,
-    pode_inventario: user.pode_inventario,
-    pode_fornecedores: user.pode_fornecedores,
-    pode_expedicao: user.pode_expedicao,
-    pode_pdf: user.pode_pdf,
-    pode_excel: user.pode_excel,
-    ativo: user.ativo,
+    nome: user.nome, login: user.login, senha: user.senha || "",
+    nivel: user.nivel, pode_patio: user.pode_patio, pode_rodizio: user.pode_rodizio,
+    pode_combustivel: user.pode_combustivel, pode_inventario: user.pode_inventario,
+    pode_fornecedores: user.pode_fornecedores, pode_expedicao: user.pode_expedicao,
+    pode_pdf: user.pode_pdf, pode_excel: user.pode_excel, ativo: user.ativo,
   });
-  if (error) console.error(error);
+  if (error) console.error("Erro ao salvar usuário");
 }
 
-export async function atualizarUsuario(id: string, user: Partial<RegisteredUser>) {
-  const { error } = await supabase.from("profiles").update({
-    nome: user.nome,
-    login: user.login,
-    senha: user.senha,
-    nivel: user.nivel,
-    pode_patio: user.pode_patio,
-    pode_rodizio: user.pode_rodizio,
-    pode_combustivel: user.pode_combustivel,
-    pode_inventario: user.pode_inventario,
-    pode_fornecedores: user.pode_fornecedores,
-    pode_expedicao: user.pode_expedicao,
-    pode_pdf: user.pode_pdf,
-    pode_excel: user.pode_excel,
-    ativo: user.ativo,
-  }).eq("id", id);
-  if (error) console.error(error);
+export async function atualizarUsuario(id: string, user: Partial<RegisteredUser> & { senha?: string }) {
+  const updateData: any = { ...user };
+  delete updateData.id;
+  if (!updateData.senha) delete updateData.senha;
+  const { error } = await supabase.from("profiles").update(updateData).eq("id", id);
+  if (error) console.error("Erro ao atualizar usuário");
 }
 
 export async function excluirUsuario(id: string) {
   const { error } = await supabase.from("profiles").delete().eq("id", id);
-  if (error) console.error(error);
+  if (error) console.error("Erro ao excluir usuário");
 }
 
+// Secure login via RPC — passwords checked server-side only
 export async function verificarLogin(usuario: string, senha: string): Promise<{ sucesso: boolean; session?: UserSession; msg?: string }> {
-  const u = usuario.toUpperCase().trim();
-  const { data, error } = await supabase.from("profiles").select("*").eq("login", u).eq("ativo", true).maybeSingle();
+  const { data, error } = await supabase.rpc("verify_login", {
+    p_login: usuario.toUpperCase().trim(),
+    p_senha: senha,
+  });
 
   if (error) return { sucesso: false, msg: "ERRO AO CONECTAR!" };
-  if (!data) return { sucesso: false, msg: "USUÁRIO NÃO ENCONTRADO!" };
-  if (data.senha && data.senha !== senha) return { sucesso: false, msg: "SENHA INCORRETA!" };
+  
+  const result = data as any;
+  if (!result || !result.sucesso) return { sucesso: false, msg: result?.msg || "ERRO AO FAZER LOGIN" };
 
-  const perfil = nivelToPerfil(data.nivel) as any;
-  return {
-    sucesso: true,
-    session: {
-      nome: data.nome,
-      perfil,
-      permissoes: toPermissoes(data as any),
-    },
+  const perfil = nivelToPerfil(result.nivel) as any;
+  const session: UserSession = {
+    nome: result.nome,
+    perfil,
+    permissoes: toPermissoes(result),
   };
+  
+  persistSession(session);
+  return { sucesso: true, session };
 }
