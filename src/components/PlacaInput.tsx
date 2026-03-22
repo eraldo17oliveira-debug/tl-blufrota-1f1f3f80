@@ -18,7 +18,7 @@ export default function PlacaInput({ value, onChange, className }: Props) {
       value={value}
       onChange={handleChange}
       maxLength={8}
-      className={`uppercase text-center font-mono-neon text-primary bg-input border-border/50 focus:border-primary h-12 text-base ${className || ""}`}
+      className={`uppercase text-center font-mono-neon text-primary bg-input border-border focus:border-primary h-12 text-base tracking-widest ${className || ""}`}
     />
   );
 }

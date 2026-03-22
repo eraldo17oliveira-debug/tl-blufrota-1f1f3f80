@@ -48,6 +48,7 @@ export default function PatioTable({ refreshKey, session }: Props) {
       [summaryRow, ...ativos.map(r => [r.frota, r.placa, r.estado, r.local, new Date(r.created_at).toLocaleDateString("pt-BR")])]);
   };
 
+  // Check button: only SUPERVISOR or (OPERADOR with Carga + Pátio)
   const canCheck = (r: any) => {
     if (session.perfil === "SUPERVISOR") return true;
     return r.estado === "Carga" && r.local === "Pátio";
@@ -61,7 +62,7 @@ export default function PatioTable({ refreshKey, session }: Props) {
           <h2 className="font-orbitron text-sm font-bold text-primary neon-text uppercase">MONITORAMENTO</h2>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-auto text-sm bg-input border-border/50 font-orbitron text-xs" />
+          <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-auto text-sm bg-input border-border font-orbitron text-xs" />
           {session.permissoes.gerarPdf && (
             <Button variant="outline" size="sm" onClick={handlePDF} className="gap-1.5 border-primary/50 text-primary hover:bg-primary/10 hover:border-primary font-orbitron text-xs neon-glow-primary uppercase">
               <FileText className="h-3.5 w-3.5" /> PDF
@@ -75,7 +76,6 @@ export default function PatioTable({ refreshKey, session }: Props) {
         </div>
       </div>
 
-      {/* Resumo totalizador */}
       <div className="grid grid-cols-4 gap-2 p-4">
         {[
           { label: "TOTAL PÁTIO", val: totalPatio, cls: "text-primary" },
@@ -83,7 +83,7 @@ export default function PatioTable({ refreshKey, session }: Props) {
           { label: "VAZIAS", val: totalVazias, cls: "text-[hsl(var(--neon-orange))]" },
           { label: "MANUTENÇÃO", val: emManutencao, cls: "text-destructive" },
         ].map(c => (
-          <div key={c.label} className="text-center">
+          <div key={c.label} className="text-center glass-card rounded-xl p-3">
             <p className={`text-xl font-bold font-orbitron ${c.cls}`}>{c.val}</p>
             <p className="text-[0.5rem] font-orbitron uppercase text-muted-foreground">{c.label}</p>
           </div>
@@ -108,7 +108,7 @@ export default function PatioTable({ refreshKey, session }: Props) {
             {records.length === 0 ? (
               <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-10 font-orbitron text-xs uppercase">NENHUM REGISTRO PARA ESTA DATA.</TableCell></TableRow>
             ) : records.map(r => (
-              <TableRow key={r.id} className={cn("border-border/20 transition-all duration-300", r.concluido && "opacity-20 line-through")}>
+              <TableRow key={r.id} className={cn("border-border/20 transition-all duration-300 table-row-glow", r.concluido && "opacity-20 line-through")}>
                 <TableCell>
                   {canCheck(r) ? (
                     <button onClick={() => handleToggle(r.id)}

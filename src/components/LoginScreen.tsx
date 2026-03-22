@@ -22,26 +22,26 @@ export default function LoginScreen({ onLogin }: Props) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: "radial-gradient(ellipse at 50% 30%, hsl(220 30% 10%), hsl(220 20% 2%))" }}>
       <div className="glass-card-glow w-full max-w-sm rounded-2xl p-8 space-y-6">
         <div className="text-center space-y-3">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-2 border-primary/40 neon-glow-primary">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-primary/40 neon-glow-primary neon-pulse">
             <Truck className="h-8 w-8 text-primary" />
           </div>
-          <h1 className="font-orbitron text-xl font-bold text-primary neon-text uppercase">TL-BLU FROTA</h1>
-          <p className="text-sm text-muted-foreground uppercase font-orbitron text-[0.6rem]">ACESSO AO SISTEMA 🚚</p>
+          <h1 className="font-orbitron text-xl font-bold text-primary neon-text uppercase tracking-widest">TL-BLU FROTA</h1>
+          <p className="text-sm text-muted-foreground uppercase font-orbitron text-[0.6rem] tracking-wider">ACESSO AO SISTEMA 🚚</p>
         </div>
         <div className="space-y-4">
           <Input placeholder="USUÁRIO" value={usuario}
             onChange={e => { setUsuario(e.target.value); setErro(""); }}
             onKeyDown={e => e.key === "Enter" && handleLogin()}
-            className="text-center uppercase bg-input border-border/50 focus:border-primary font-orbitron text-sm h-14" />
+            className="text-center uppercase bg-input border-border focus:border-primary font-orbitron text-sm h-14" />
           <Input placeholder="SENHA" type="password" value={senha}
             onChange={e => { setSenha(e.target.value); setErro(""); }}
             onKeyDown={e => e.key === "Enter" && handleLogin()}
-            className="text-center bg-input border-border/50 focus:border-primary h-14" />
+            className="text-center bg-input border-border focus:border-primary h-14" />
           {erro && <p className="text-sm text-destructive text-center uppercase font-orbitron text-[0.65rem]">{erro}</p>}
-          <Button onClick={handleLogin} disabled={loading} className="w-full gap-2 h-14 font-orbitron font-bold bg-primary text-primary-foreground hover:bg-primary/80 neon-glow-primary transition-all duration-300 uppercase">
+          <Button onClick={handleLogin} disabled={loading} className="w-full gap-2 h-14 font-orbitron font-bold bg-primary text-primary-foreground hover:bg-primary/80 neon-glow-primary neon-pulse transition-all duration-300 uppercase">
             {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />} ENTRAR 🔑
           </Button>
         </div>

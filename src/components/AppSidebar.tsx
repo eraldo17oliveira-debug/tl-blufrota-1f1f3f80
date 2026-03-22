@@ -28,9 +28,9 @@ export default function AppSidebar({ session, onLogout }: Props) {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border/30">
-      <SidebarContent className="bg-card">
+      <SidebarContent className="bg-sidebar-background">
         <SidebarGroup>
-          <SidebarGroupLabel className="font-orbitron text-primary text-xs neon-text uppercase">
+          <SidebarGroupLabel className="font-orbitron text-primary text-xs neon-text uppercase tracking-wider">
             {!collapsed && "TL-BLU FROTA"}
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -54,7 +54,7 @@ export default function AppSidebar({ session, onLogout }: Props) {
                       className="hover:bg-primary/10 rounded-lg px-3 py-2.5 transition-all duration-200 uppercase"
                       activeClassName="bg-primary/15 text-primary neon-glow-primary">
                       <Users className="mr-2 h-4 w-4" />
-                      {!collapsed && <span className="text-sm font-medium font-orbitron text-[0.65rem]">USUÁRIOS</span>}
+                      {!collapsed && <span className="text-sm font-medium font-orbitron text-[0.65rem]">GESTÃO MASTER</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -63,10 +63,10 @@ export default function AppSidebar({ session, onLogout }: Props) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="bg-card border-t border-border/30 p-3">
+      <SidebarFooter className="bg-sidebar-background border-t border-border/30 p-3">
         {!collapsed && (
           <div className="text-[0.6rem] text-muted-foreground font-orbitron mb-2 text-center uppercase">
-            {session.nome} • {session.perfil}
+            {session.nome} • <span className="text-primary">{session.perfil}</span>
           </div>
         )}
         <Button variant="ghost" size="sm" onClick={onLogout} className="w-full text-muted-foreground hover:text-destructive uppercase">
