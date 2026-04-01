@@ -10,7 +10,6 @@ import PlacaInput from "@/components/PlacaInput";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const CAVALO_EIXOS = [
   { nome: "1º EIXO — DIREÇÃO", posicoes: [{ id: "CAV-1E-ESQ", label: "ESQUERDO" }, { id: "CAV-1E-DIR", label: "DIREITO" }] },
@@ -24,6 +23,13 @@ const CARRETA_EIXOS = [
   { nome: "3º EIXO CARRETA (DUPLO)", posicoes: [{ id: "CAR-3E-EE", label: "ESQ EXTERNO" }, { id: "CAR-3E-EI", label: "ESQ INTERNO" }, { id: "CAR-3E-DI", label: "DIR INTERNO" }, { id: "CAR-3E-DE", label: "DIR EXTERNO" }] },
 ];
 
+interface PosicaoData {
+  numFogo: string;
+  lacre: string;
+  sulco: string;
+  tipo: "ENTRADA" | "SAÍDA";
+}
+
 export default function RodizioPage({ session }: { session: UserSession }) {
   const [placa, setPlaca] = useState("");
   const [frota, setFrota] = useState("");
@@ -31,13 +37,9 @@ export default function RodizioPage({ session }: { session: UserSession }) {
   const [ate, setAte] = useState(todayStr());
   const [records, setRecords] = useState<any[]>([]);
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedPos, setSelectedPos] = useState("");
-  const [numFogo, setNumFogo] = useState("");
-  const [lacre, setLacre] = useState("");
-  const [sulco, setSulco] = useState("");
-  const [tipo, setTipo] = useState<"ENTRADA" | "SAÍDA">("ENTRADA");
-  const [recentPositions, setRecentPositions] = useState<Set<string>>(new Set());
+  // Inline data per position
+  const [posData, setPosData] = useState<Record<string, PosicaoData>>({});
+  const [expandedPos, setExpandedPos] = useState<string | null>(null);
 
   const load = async () => {
     const data = await lerRodizio(de, ate);
@@ -45,17 +47,29 @@ export default function RodizioPage({ session }: { session: UserSession }) {
   };
   useEffect(() => { load(); }, [de, ate]);
 
-  const openModal = (posId: string) => {
-    if (!placa) { toast.error("INFORME A PLACA PRIMEIRO!"); return; }
-    setSelectedPos(posId); setNumFogo(""); setLacre(""); setSulco(""); setTipo("ENTRADA"); setModalOpen(true);
+  const updatePosField = (posId: string, field: keyof PosicaoData, value: string) => {
+    setPosData(prev => ({
+      ...prev,
+      [posId]: { ...({ numFogo: "", lacre: "", sulco: "", tipo: "ENTRADA" as const, ...prev[posId] }), [field]: value }
+    }));
   };
 
-  const handleSave = async () => {
-    if (!numFogo) { toast.error("INFORME O NÚMERO DE FOGO!"); return; }
-    await salvarRodizio({ placa: placa.toUpperCase(), frota: frota.toUpperCase(), posicao: selectedPos, num_fogo: numFogo, lacre, sulco, tipo });
-    setRecentPositions(prev => new Set(prev).add(selectedPos));
-    toast.success(`POSIÇÃO ${selectedPos} REGISTRADA!`);
-    setModalOpen(false); load();
+  const toggleExpand = (posId: string) => {
+    if (!placa) { toast.error("INFORME A PLACA PRIMEIRO!"); return; }
+    setExpandedPos(prev => prev === posId ? null : posId);
+    if (!posData[posId]) {
+      setPosData(prev => ({ ...prev, [posId]: { numFogo: "", lacre: "", sulco: "", tipo: "ENTRADA" } }));
+    }
+  };
+
+  const handleSavePos = async (posId: string) => {
+    const d = posData[posId];
+    if (!d?.numFogo) { toast.error("INFORME O NÚMERO DE FOGO!"); return; }
+    await salvarRodizio({ placa: placa.toUpperCase(), frota: frota.toUpperCase(), posicao: posId, num_fogo: d.numFogo.toUpperCase(), lacre: d.lacre.toUpperCase(), sulco: d.sulco, tipo: d.tipo });
+    toast.success(`POSIÇÃO ${posId} REGISTRADA!`);
+    setExpandedPos(null);
+    setPosData(prev => { const copy = { ...prev }; delete copy[posId]; return copy; });
+    load();
   };
 
   const handlePDF = () => {
@@ -80,14 +94,53 @@ export default function RodizioPage({ session }: { session: UserSession }) {
     );
   };
 
-  const sulcoValue = (s: string) => parseFloat(s);
-  const isSulcoCritico = (s: string) => { const v = sulcoValue(s); return !isNaN(v) && v < 3.0; };
+  const isSulcoCritico = (s: string) => { const v = parseFloat(s); return !isNaN(v) && v < 3.0; };
+
+  const hasRecord = (posId: string) => records.some(r => r.posicao === posId && r.placa === placa.toUpperCase());
 
   const getPosColor = (posId: string) => {
-    if (recentPositions.has(posId)) return "bg-[hsl(var(--neon-orange))] text-primary-foreground border-transparent shadow-[0_0_12px_hsl(var(--neon-orange)/0.6)]";
-    const hasRecord = records.some(r => r.posicao === posId && r.placa === placa.toUpperCase());
-    if (hasRecord) return "bg-accent text-accent-foreground border-transparent neon-glow-green";
+    if (expandedPos === posId) return "border-primary bg-primary/10 text-primary shadow-[0_0_12px_hsl(var(--neon-cyan)/0.4)]";
+    if (hasRecord(posId)) return "bg-accent text-accent-foreground border-transparent neon-glow-green";
     return "border-border/50 bg-secondary/50 text-muted-foreground hover:border-primary/50 hover:text-foreground";
+  };
+
+  const renderPosition = (pos: { id: string; label: string }) => {
+    const isExpanded = expandedPos === pos.id;
+    const d = posData[pos.id] || { numFogo: "", lacre: "", sulco: "", tipo: "ENTRADA" as const };
+
+    return (
+      <div key={pos.id} className="space-y-2">
+        <button onClick={() => toggleExpand(pos.id)}
+          className={`w-full rounded-xl border px-2 py-4 text-[0.6rem] sm:text-[0.7rem] font-bold font-orbitron transition-all duration-300 uppercase active:scale-95 ${getPosColor(pos.id)}`}>
+          {pos.label}
+          {hasRecord(pos.id) && " ✅"}
+        </button>
+        {isExpanded && (
+          <div className="glass-card rounded-xl p-3 space-y-2 border border-primary/30 animate-in slide-in-from-top-2">
+            <div className="flex gap-2">
+              <button onClick={() => updatePosField(pos.id, "tipo", "ENTRADA")}
+                className={`flex-1 rounded-lg py-2 text-[0.6rem] font-bold font-orbitron uppercase transition-all ${d.tipo === "ENTRADA" ? "bg-accent text-accent-foreground neon-glow-green" : "bg-secondary/50 text-muted-foreground"}`}>
+                ENTRADA
+              </button>
+              <button onClick={() => updatePosField(pos.id, "tipo", "SAÍDA")}
+                className={`flex-1 rounded-lg py-2 text-[0.6rem] font-bold font-orbitron uppercase transition-all ${d.tipo === "SAÍDA" ? "bg-destructive text-destructive-foreground" : "bg-secondary/50 text-muted-foreground"}`}>
+                SAÍDA
+              </button>
+            </div>
+            <Input placeholder="Nº FOGO" value={d.numFogo} onChange={e => updatePosField(pos.id, "numFogo", e.target.value)}
+              className="text-center font-orbitron text-xs bg-input border-border/50 focus:border-primary h-10 uppercase" />
+            <Input placeholder="Nº LACRE" value={d.lacre} onChange={e => updatePosField(pos.id, "lacre", e.target.value)}
+              className="text-center text-xs bg-input border-border/50 focus:border-primary h-10 uppercase" />
+            <Input placeholder="SULCO (MM)" value={d.sulco} onChange={e => updatePosField(pos.id, "sulco", e.target.value)} type="number"
+              className="text-center font-orbitron text-xs bg-input border-border/50 focus:border-primary h-10" />
+            <Button onClick={() => handleSavePos(pos.id)}
+              className="w-full gap-1 bg-accent hover:bg-accent/80 text-accent-foreground font-orbitron font-bold text-xs h-10 rounded-lg neon-glow-green uppercase">
+              REGISTRAR ✅
+            </Button>
+          </div>
+        )}
+      </div>
+    );
   };
 
   const renderAxleGroup = (title: string, eixos: typeof CAVALO_EIXOS, icon: string) => (
@@ -97,12 +150,7 @@ export default function RodizioPage({ session }: { session: UserSession }) {
         <div key={eixo.nome} className="space-y-2">
           <p className="font-orbitron text-[0.6rem] text-muted-foreground uppercase tracking-widest">{eixo.nome}</p>
           <div className={`grid gap-2 ${eixo.posicoes.length === 2 ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4"}`}>
-            {eixo.posicoes.map(pos => (
-              <button key={pos.id} onClick={() => openModal(pos.id)}
-                className={`rounded-xl border px-2 py-4 text-[0.6rem] sm:text-[0.7rem] font-bold font-orbitron transition-all duration-300 uppercase active:scale-95 ${getPosColor(pos.id)}`}>
-                {pos.label}
-              </button>
-            ))}
+            {eixo.posicoes.map(pos => renderPosition(pos))}
           </div>
         </div>
       ))}
@@ -116,7 +164,7 @@ export default function RodizioPage({ session }: { session: UserSession }) {
       <div className="glass-card rounded-2xl p-5 space-y-4">
         <p className="font-orbitron text-[0.65rem] text-muted-foreground uppercase tracking-widest">IDENTIFICAÇÃO DO VEÍCULO</p>
         <div className="grid grid-cols-2 gap-3">
-          <PlacaInput value={placa} onChange={(v) => { setPlaca(v); setRecentPositions(new Set()); }} className="h-14 text-lg" />
+          <PlacaInput value={placa} onChange={(v) => { setPlaca(v); setExpandedPos(null); setPosData({}); }} className="h-14 text-lg" />
           <Input placeholder="NÚMERO DA FROTA" value={frota} onChange={e => setFrota(e.target.value)}
             className="uppercase text-center bg-input border-border/50 focus:border-primary h-14 font-orbitron text-sm" />
         </div>
@@ -124,29 +172,6 @@ export default function RodizioPage({ session }: { session: UserSession }) {
 
       {renderAxleGroup("MAPA DO CAVALÃO (3 EIXOS)", CAVALO_EIXOS, "🚛")}
       {renderAxleGroup("MAPA DA CARRETA (3 EIXOS)", CARRETA_EIXOS, "🚚")}
-
-      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="glass-card border-primary/30 max-w-md">
-          <DialogHeader>
-            <DialogTitle className="font-orbitron text-primary neon-text text-sm uppercase">POSIÇÃO: {selectedPos}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 pt-2">
-            <OptionGroup label="TIPO DE MOVIMENTAÇÃO" value={tipo} onChange={v => setTipo(v as "ENTRADA" | "SAÍDA")}
-              colorClass="bg-primary text-primary-foreground" glowClass="neon-glow-primary"
-              options={[{ label: "ENTRADA", value: "ENTRADA" }, { label: "SAÍDA", value: "SAÍDA" }]} />
-            <Input placeholder="NÚMERO DE FOGO" value={numFogo} onChange={e => setNumFogo(e.target.value)}
-              className="text-center font-orbitron text-sm bg-input border-border/50 focus:border-primary h-14 uppercase" />
-            <Input placeholder="NÚMERO DO LACRE" value={lacre} onChange={e => setLacre(e.target.value)}
-              className="text-center bg-input border-border/50 focus:border-primary h-14 uppercase" />
-            <Input placeholder="MEDIDA DO SULCO (MM)" value={sulco} onChange={e => setSulco(e.target.value)} type="number"
-              className="text-center bg-input border-border/50 focus:border-primary h-14 font-orbitron text-sm" />
-            <Button onClick={handleSave}
-              className="w-full gap-2 bg-accent hover:bg-accent/80 text-accent-foreground font-orbitron font-bold text-sm h-14 rounded-xl neon-glow-green transition-all duration-300 uppercase">
-              REGISTRAR ✅
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       <div className="glass-card rounded-2xl overflow-hidden">
         <div className="flex items-center justify-between gap-4 flex-wrap p-5 border-b border-border/30">
@@ -188,7 +213,7 @@ export default function RodizioPage({ session }: { session: UserSession }) {
               {records.length === 0 ? (
                 <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-10 font-orbitron text-xs uppercase">NENHUM REGISTRO.</TableCell></TableRow>
               ) : records.map(r => (
-                <TableRow key={r.id} className="border-border/20">
+                <TableRow key={r.id} className="border-border/20 table-row-glow">
                   <TableCell className={`text-xs font-bold uppercase ${r.tipo === "ENTRADA" ? "text-accent" : "text-destructive"}`}>{r.tipo}</TableCell>
                   <TableCell className="font-mono-neon text-primary text-sm uppercase">{r.placa}</TableCell>
                   <TableCell className="text-sm font-orbitron">{r.frota}</TableCell>

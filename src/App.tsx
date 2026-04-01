@@ -11,8 +11,6 @@ import LoginScreen from "@/components/LoginScreen";
 import AppSidebar from "@/components/AppSidebar";
 import PatioPage from "@/pages/PatioPage";
 import RodizioPage from "@/pages/RodizioPage";
-import CombustivelPage from "@/pages/CombustivelPage";
-import InventarioPage from "@/pages/InventarioPage";
 import FornecedoresPage from "@/pages/FornecedoresPage";
 import ExpedicaoPage from "@/pages/ExpedicaoPage";
 import UsuariosPage from "@/pages/UsuariosPage";
@@ -45,8 +43,6 @@ function AppLayout({ session, onLogout }: { session: UserSession; onLogout: () =
               <Route path="/" element={<Navigate to={defaultRoute} replace />} />
               {allowed.includes("patio") && <Route path="/patio" element={<PatioPage session={session} />} />}
               {allowed.includes("rodizio") && <Route path="/rodizio" element={<RodizioPage session={session} />} />}
-              {allowed.includes("combustivel") && <Route path="/combustivel" element={<CombustivelPage session={session} />} />}
-              {allowed.includes("inventario") && <Route path="/inventario" element={<InventarioPage session={session} />} />}
               {allowed.includes("fornecedores") && <Route path="/fornecedores" element={<FornecedoresPage session={session} />} />}
               {allowed.includes("expedicao") && <Route path="/expedicao" element={<ExpedicaoPage session={session} />} />}
               {allowed.includes("os") && <Route path="/os" element={<OrdemServicoPage session={session} />} />}

@@ -279,10 +279,13 @@ export type Database = {
           frota: string
           id: string
           item_peca: string
+          local_servico: string
           mecanico: string
+          numero_os: number
           placa: string
           quantidade: number
           status: string
+          tipo_servico: string
         }
         Insert: {
           created_at?: string
@@ -290,10 +293,13 @@ export type Database = {
           frota?: string
           id?: string
           item_peca?: string
+          local_servico?: string
           mecanico?: string
+          numero_os?: number
           placa?: string
           quantidade?: number
           status?: string
+          tipo_servico?: string
         }
         Update: {
           created_at?: string
@@ -301,10 +307,13 @@ export type Database = {
           frota?: string
           id?: string
           item_peca?: string
+          local_servico?: string
           mecanico?: string
+          numero_os?: number
           placa?: string
           quantidade?: number
           status?: string
+          tipo_servico?: string
         }
         Relationships: []
       }

@@ -1,4 +1,4 @@
-import { Truck, RotateCcw, Fuel, Package, LogOut, Building2, PackageCheck, Users, Wrench } from "lucide-react";
+import { Truck, RotateCcw, LogOut, Building2, PackageCheck, Users, Wrench, Sun, Moon } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { UserSession, getModuleAccess } from "@/lib/types";
 import {
@@ -6,12 +6,11 @@ import {
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter, useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { useTheme } from "@/hooks/useTheme";
 
 const allModules = [
   { key: "patio", title: "GESTÃO DE PÁTIO", url: "/patio", icon: Truck },
   { key: "rodizio", title: "RODÍZIO DE PNEUS", url: "/rodizio", icon: RotateCcw },
-  { key: "combustivel", title: "COMBUSTÍVEL", url: "/combustivel", icon: Fuel },
-  { key: "inventario", title: "INVENTÁRIO", url: "/inventario", icon: Package },
   { key: "fornecedores", title: "FORNECEDORES", url: "/fornecedores", icon: Building2 },
   { key: "expedicao", title: "EXPEDIÇÃO", url: "/expedicao", icon: PackageCheck },
   { key: "os", title: "ORDEM DE SERVIÇO", url: "/os", icon: Wrench },
@@ -25,6 +24,7 @@ export default function AppSidebar({ session, onLogout }: Props) {
   const allowed = getModuleAccess(session.permissoes);
   const visibleModules = allModules.filter(m => allowed.includes(m.key));
   const isSupervisor = session.perfil === "SUPERVISOR";
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border/30">
@@ -63,9 +63,13 @@ export default function AppSidebar({ session, onLogout }: Props) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="bg-sidebar-background border-t border-border/30 p-3">
+      <SidebarFooter className="bg-sidebar-background border-t border-border/30 p-3 space-y-2">
+        <Button variant="ghost" size="sm" onClick={toggleTheme} className="w-full text-muted-foreground hover:text-primary uppercase">
+          {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          {!collapsed && <span className="ml-2 text-xs font-orbitron">{theme === "dark" ? "MODO CLARO" : "MODO ESCURO"}</span>}
+        </Button>
         {!collapsed && (
-          <div className="text-[0.6rem] text-muted-foreground font-orbitron mb-2 text-center uppercase">
+          <div className="text-[0.6rem] text-muted-foreground font-orbitron text-center uppercase">
             {session.nome} • <span className="text-primary">{session.perfil}</span>
           </div>
         )}
