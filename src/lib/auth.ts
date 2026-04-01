@@ -36,8 +36,6 @@ function toPermissoes(u: any): UserPermissions {
   return {
     patio: u.pode_patio,
     rodizio: u.pode_rodizio,
-    combustivel: u.pode_combustivel,
-    inventario: u.pode_inventario,
     fornecedores: u.pode_fornecedores,
     expedicao: u.pode_expedicao,
     os: u.pode_patio || u.pode_rodizio,

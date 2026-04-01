@@ -15,8 +15,6 @@ const ROLES: UserRole[] = ["SUPERVISOR", "MANOBRA", "MANUTENÇÃO", "EXPEDIÇÃO
 const PERM_LABELS: { key: keyof UserPermissions; dbKey: string; label: string }[] = [
   { key: "patio", dbKey: "pode_patio", label: "ACESSAR PÁTIO" },
   { key: "rodizio", dbKey: "pode_rodizio", label: "ACESSAR PNEUS" },
-  { key: "combustivel", dbKey: "pode_combustivel", label: "ACESSAR DIESEL" },
-  { key: "inventario", dbKey: "pode_inventario", label: "ACESSAR ESTOQUE" },
   { key: "fornecedores", dbKey: "pode_fornecedores", label: "ACESSAR FORNECEDORES" },
   { key: "expedicao", dbKey: "pode_expedicao", label: "CONSULTAR EXPEDIÇÃO" },
   { key: "os", dbKey: "pode_patio", label: "ORDEM DE SERVIÇO" },
@@ -48,8 +46,8 @@ export default function UsuariosPage() {
     setEditingId(u.id); setNome(u.nome); setSenha("");
     setPerfil(nivelToPerfil(u.nivel) as UserRole);
     setPermissoes({
-      patio: u.pode_patio, rodizio: u.pode_rodizio, combustivel: u.pode_combustivel,
-      inventario: u.pode_inventario, fornecedores: u.pode_fornecedores, expedicao: u.pode_expedicao,
+      patio: u.pode_patio, rodizio: u.pode_rodizio,
+      fornecedores: u.pode_fornecedores, expedicao: u.pode_expedicao,
       os: u.pode_patio || u.pode_rodizio, gerarPdf: u.pode_pdf, gerarExcel: u.pode_excel,
     });
     setModalOpen(true);
@@ -64,7 +62,6 @@ export default function UsuariosPage() {
     const userData: any = {
       nome: nome.toUpperCase(), login: nome.toUpperCase(), nivel,
       pode_patio: permissoes.patio, pode_rodizio: permissoes.rodizio,
-      pode_combustivel: permissoes.combustivel, pode_inventario: permissoes.inventario,
       pode_fornecedores: permissoes.fornecedores, pode_expedicao: permissoes.expedicao,
       pode_pdf: permissoes.gerarPdf, pode_excel: permissoes.gerarExcel, ativo: true,
     };
