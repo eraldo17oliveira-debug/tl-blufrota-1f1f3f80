@@ -3,8 +3,6 @@ export type UserRole = "SUPERVISOR" | "MANOBRA" | "MANUTENÇÃO" | "EXPEDIÇÃO"
 export interface UserPermissions {
   patio: boolean;
   rodizio: boolean;
-  combustivel: boolean;
-  inventario: boolean;
   fornecedores: boolean;
   expedicao: boolean;
   os: boolean;
@@ -18,40 +16,31 @@ export interface UserSession {
   permissoes: UserPermissions;
 }
 
-// Default permissions per role
 export const DEFAULT_PERMISSIONS: Record<UserRole, UserPermissions> = {
   SUPERVISOR: {
-    patio: true, rodizio: true, combustivel: true, inventario: true,
-    fornecedores: true, expedicao: true, os: true, gerarPdf: true, gerarExcel: true,
+    patio: true, rodizio: true, fornecedores: true, expedicao: true, os: true, gerarPdf: true, gerarExcel: true,
   },
   MANOBRA: {
-    patio: true, rodizio: false, combustivel: false, inventario: false,
-    fornecedores: false, expedicao: false, os: false, gerarPdf: true, gerarExcel: false,
+    patio: true, rodizio: false, fornecedores: false, expedicao: false, os: false, gerarPdf: true, gerarExcel: false,
   },
   "MANUTENÇÃO": {
-    patio: false, rodizio: true, combustivel: false, inventario: true,
-    fornecedores: false, expedicao: false, os: true, gerarPdf: true, gerarExcel: false,
+    patio: false, rodizio: true, fornecedores: false, expedicao: false, os: true, gerarPdf: true, gerarExcel: false,
   },
   "EXPEDIÇÃO": {
-    patio: false, rodizio: false, combustivel: false, inventario: false,
-    fornecedores: false, expedicao: true, os: false, gerarPdf: true, gerarExcel: true,
+    patio: false, rodizio: false, fornecedores: false, expedicao: true, os: false, gerarPdf: true, gerarExcel: true,
   },
 };
 
-// Module access derived from permissions
 export function getModuleAccess(permissoes: UserPermissions): string[] {
   const modules: string[] = [];
   if (permissoes.patio) modules.push("patio");
   if (permissoes.rodizio) modules.push("rodizio");
-  if (permissoes.combustivel) modules.push("combustivel");
-  if (permissoes.inventario) modules.push("inventario");
   if (permissoes.fornecedores) modules.push("fornecedores");
   if (permissoes.expedicao) modules.push("expedicao");
   if (permissoes.os) modules.push("os");
   return modules;
 }
 
-// --- Pátio ---
 export interface PatioRecord {
   id: string;
   timestamp: Date;
@@ -65,7 +54,6 @@ export interface PatioRecord {
   concluido: boolean;
 }
 
-// --- Rodízio de Pneus ---
 export interface RodizioRecord {
   id: string;
   timestamp: Date;
@@ -78,41 +66,6 @@ export interface RodizioRecord {
   tipo: "ENTRADA" | "SAÍDA";
 }
 
-// --- Combustível ---
-export interface CombustivelFechamento {
-  id: string;
-  data: string;
-  leituraInicial: number;
-  leituraFinal: number;
-  consumo: number;
-}
-
-export interface CombustivelCarga {
-  id: string;
-  timestamp: Date;
-  litros: number;
-  fornecedorId: string;
-  fornecedorNome: string;
-  notaFiscal: string;
-}
-
-// --- Inventário ---
-export type PneuStatus = "DISPONÍVEL" | "RECAPAGEM" | "SUCATA";
-
-export interface PneuInventario {
-  id: string;
-  timestamp: Date;
-  numFogo: string;
-  tamanho: string;
-  largura: string;
-  aro: string;
-  marca: string;
-  fornecedorId: string;
-  fornecedorNome: string;
-  status: PneuStatus;
-}
-
-// --- Fornecedores ---
 export type TipoFornecedor = "COMBUSTÍVEL" | "PNEUS / RECAPAGEM" | "PEÇAS / MANUTENÇÃO";
 
 export interface Fornecedor {
@@ -126,7 +79,6 @@ export interface Fornecedor {
   observacoes: string;
 }
 
-// --- Registered Users (for management) ---
 export interface RegisteredUser {
   id: string;
   nome: string;

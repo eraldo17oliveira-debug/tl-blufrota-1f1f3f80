@@ -48,55 +48,6 @@ export async function lerRodizio(de: string, ate: string) {
   return data || [];
 }
 
-// ── Combustível ──
-export async function salvarFechamento(record: { data: string; leitura_inicial: number; leitura_final: number }) {
-  const consumo = record.leitura_final - record.leitura_inicial;
-  const { error } = await supabase.from("combustivel_fechamento").insert({ ...record, consumo });
-  if (error) console.error(error);
-}
-
-export async function lerFechamentos() {
-  const { data, error } = await supabase.from("combustivel_fechamento").select("*").order("created_at", { ascending: false });
-  if (error) { console.error(error); return []; }
-  return data || [];
-}
-
-export async function salvarCarga(record: { litros: number; fornecedor_id: string; fornecedor_nome: string; nota_fiscal: string }) {
-  const { error } = await supabase.from("combustivel_carga").insert(record);
-  if (error) console.error(error);
-}
-
-export async function lerCargas() {
-  const { data, error } = await supabase.from("combustivel_carga").select("*").order("created_at", { ascending: false });
-  if (error) { console.error(error); return []; }
-  return data || [];
-}
-
-export async function volumeAtual(): Promise<number> {
-  const { data: cargas } = await supabase.from("combustivel_carga").select("litros");
-  const { data: fechamentos } = await supabase.from("combustivel_fechamento").select("consumo");
-  const totalEntrada = (cargas || []).reduce((s, c) => s + Number(c.litros), 0);
-  const totalConsumo = (fechamentos || []).reduce((s, f) => s + Number(f.consumo), 0);
-  return totalEntrada - totalConsumo;
-}
-
-// ── Inventário ──
-export async function salvarPneu(record: { num_fogo: string; tamanho: string; largura: string; aro: string; marca: string; status: string; fornecedor_id: string; fornecedor_nome: string }) {
-  const { error } = await supabase.from("pneu_inventario").insert(record);
-  if (error) console.error(error);
-}
-
-export async function lerPneus() {
-  const { data, error } = await supabase.from("pneu_inventario").select("*").order("created_at", { ascending: false });
-  if (error) { console.error(error); return []; }
-  return data || [];
-}
-
-export async function atualizarStatusPneu(id: string, status: string) {
-  const { error } = await supabase.from("pneu_inventario").update({ status }).eq("id", id);
-  if (error) console.error(error);
-}
-
 // ── Fornecedores ──
 export async function salvarFornecedor(record: { razao_social: string; cnpj_cpf: string; tipo: string; telefone: string; cidade_estado: string; observacoes: string }) {
   const { error } = await supabase.from("fornecedores").insert(record);
@@ -126,7 +77,7 @@ export async function excluirFornecedor(id: string) {
 }
 
 // ── Serviços Internos (OS) ──
-export async function salvarOS(record: { frota: string; placa: string; item_peca: string; quantidade: number; mecanico: string; descricao: string; status: string }) {
+export async function salvarOS(record: { frota: string; placa: string; item_peca: string; quantidade: number; mecanico: string; descricao: string; status: string; tipo_servico: string; local_servico: string }) {
   const { error } = await supabase.from("servicos_internos" as any).insert(record as any);
   if (error) console.error(error);
 }
