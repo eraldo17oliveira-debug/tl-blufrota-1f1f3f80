@@ -1,0 +1,1 @@
+ALTER TABLE public.patio ADD COLUMN motivo_bloqueio TEXT NOT NULL DEFAULT '';

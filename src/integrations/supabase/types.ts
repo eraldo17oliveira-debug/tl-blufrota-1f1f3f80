@@ -111,6 +111,7 @@ export type Database = {
           id: string
           local: string
           modelo: string
+          motivo_bloqueio: string
           placa: string
           status: string
         }
@@ -123,6 +124,7 @@ export type Database = {
           id?: string
           local?: string
           modelo?: string
+          motivo_bloqueio?: string
           placa: string
           status?: string
         }
@@ -135,6 +137,7 @@ export type Database = {
           id?: string
           local?: string
           modelo?: string
+          motivo_bloqueio?: string
           placa?: string
           status?: string
         }
