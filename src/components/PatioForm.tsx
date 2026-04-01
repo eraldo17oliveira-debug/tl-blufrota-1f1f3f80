@@ -2,12 +2,13 @@ import { useState } from "react";
 import { salvarPatio } from "@/lib/storage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CheckCircle2, Truck, Container, MapPin, Lock, Axis3D } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { CheckCircle2, Truck, Container, MapPin, Lock, Axis3D, XCircle } from "lucide-react";
 import OptionGroup from "./OptionGroup";
 import PlacaInput from "./PlacaInput";
 import { toast } from "sonner";
 
-export default function PatioForm({ onSaved }: { onSaved: () => void }) {
+export default function PatioForm({ onSaved, onFechar }: { onSaved: () => void; onFechar: () => void }) {
   const [placa, setPlaca] = useState("");
   const [frota, setFrota] = useState("");
   const [modelo, setModelo] = useState("");
@@ -15,12 +16,17 @@ export default function PatioForm({ onSaved }: { onSaved: () => void }) {
   const [estado, setEstado] = useState("");
   const [local, setLocal] = useState("");
   const [status, setStatus] = useState("");
+  const [motivoBloqueio, setMotivoBloqueio] = useState("");
 
   const handleSave = async () => {
     if (!placa) { toast.error("INFORME A PLACA!"); return; }
-    await salvarPatio({ placa: placa.toUpperCase(), frota: frota.toUpperCase(), modelo, eixo, estado, local, status });
+    if (status === "Bloqueio" && !motivoBloqueio.trim()) { toast.error("INFORME O MOTIVO DO BLOQUEIO!"); return; }
+    await salvarPatio({
+      placa: placa.toUpperCase(), frota: frota.toUpperCase(), modelo, eixo, estado, local, status,
+      motivo_bloqueio: status === "Bloqueio" ? motivoBloqueio.toUpperCase() : "",
+    });
     toast.success("MOVIMENTAÇÃO REGISTRADA!");
-    setPlaca(""); setFrota(""); setModelo(""); setEixo(""); setEstado(""); setLocal(""); setStatus("");
+    setPlaca(""); setFrota(""); setModelo(""); setEixo(""); setEstado(""); setLocal(""); setStatus(""); setMotivoBloqueio("");
     onSaved();
   };
 
@@ -53,16 +59,31 @@ export default function PatioForm({ onSaved }: { onSaved: () => void }) {
             { label: "PÁTIO", value: "Pátio", icon: <MapPin className="h-4 w-4" /> },
             { label: "DOCA", value: "Doca", icon: <MapPin className="h-4 w-4" /> },
           ]} />
-        <OptionGroup label="SEGURANÇA" value={status} onChange={setStatus}
+        <OptionGroup label="SEGURANÇA" value={status} onChange={(v) => { setStatus(v); if (v !== "Bloqueio") setMotivoBloqueio(""); }}
           colorClass="bg-destructive text-destructive-foreground" glowClass="shadow-[0_0_12px_hsl(var(--destructive)/0.5)]"
           options={[
             { label: "LIVRE", value: "Livre" },
             { label: "BLOQUEIO", value: "Bloqueio", icon: <Lock className="h-4 w-4" /> },
           ]} />
       </div>
-      <Button onClick={handleSave} className="w-full gap-2 bg-accent hover:bg-accent/80 text-accent-foreground font-orbitron font-bold text-sm h-14 rounded-xl neon-glow-green transition-all duration-300">
-        <CheckCircle2 className="h-5 w-5" /> REGISTRAR MOVIMENTAÇÃO ✅
-      </Button>
+
+      {status === "Bloqueio" && (
+        <Textarea
+          placeholder="MOTIVO DO BLOQUEIO..."
+          value={motivoBloqueio}
+          onChange={e => setMotivoBloqueio(e.target.value)}
+          className="uppercase font-orbitron text-xs bg-input border-destructive/50 focus:border-destructive min-h-[60px]"
+        />
+      )}
+
+      <div className="flex gap-3">
+        <Button onClick={handleSave} className="flex-1 gap-2 bg-accent hover:bg-accent/80 text-accent-foreground font-orbitron font-bold text-sm h-14 rounded-xl neon-glow-green transition-all duration-300">
+          <CheckCircle2 className="h-5 w-5" /> REGISTRAR ✅
+        </Button>
+        <Button onClick={onFechar} variant="outline" className="gap-2 font-orbitron font-bold text-sm h-14 rounded-xl border-primary/50 text-primary hover:bg-primary/10 px-6">
+          <XCircle className="h-5 w-5" /> FECHAR CADASTRO
+        </Button>
+      </div>
     </div>
   );
 }
