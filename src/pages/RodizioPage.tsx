@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { salvarRodizio, lerRodizio, todayStr, exportCSV } from "@/lib/storage";
+import { salvarRodizio, lerRodizio, todayStr, exportCSV, atualizarRodizio, excluirRodizio } from "@/lib/storage";
 import { UserSession } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { RotateCcw, FileText, FileSpreadsheet, Plus, Trash2 } from "lucide-react";
+import { RotateCcw, FileText, FileSpreadsheet, Plus, Trash2, Pencil, Check, X, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
 import PlacaInput from "@/components/PlacaInput";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
@@ -26,6 +26,7 @@ interface PneuEntry {
   posicao: string;
   numFogo: string;
   lacre: string;
+  tipo: string;
 }
 
 export default function RodizioPage({ session }: { session: UserSession }) {
@@ -34,10 +35,10 @@ export default function RodizioPage({ session }: { session: UserSession }) {
   const [de, setDe] = useState(todayStr());
   const [ate, setAte] = useState(todayStr());
   const [records, setRecords] = useState<any[]>([]);
-
-  // List of tires to register at once
   const [pneus, setPneus] = useState<PneuEntry[]>([]);
   const [selectedPos, setSelectedPos] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editData, setEditData] = useState<any>({});
 
   const load = async () => {
     const data = await lerRodizio(de, ate);
@@ -48,13 +49,12 @@ export default function RodizioPage({ session }: { session: UserSession }) {
   const selectPosition = (posId: string) => {
     if (!placa) { toast.error("INFORME A PLACA PRIMEIRO!"); return; }
     setSelectedPos(posId);
-    // Add entry if not already in list
     if (!pneus.find(p => p.posicao === posId)) {
-      setPneus(prev => [...prev, { posicao: posId, numFogo: "", lacre: "" }]);
+      setPneus(prev => [...prev, { posicao: posId, numFogo: "", lacre: "", tipo: "ENTRADA" }]);
     }
   };
 
-  const updatePneu = (posId: string, field: "numFogo" | "lacre", value: string) => {
+  const updatePneu = (posId: string, field: "numFogo" | "lacre" | "tipo", value: string) => {
     setPneus(prev => prev.map(p => p.posicao === posId ? { ...p, [field]: value } : p));
   };
 
@@ -77,12 +77,35 @@ export default function RodizioPage({ session }: { session: UserSession }) {
         num_fogo: p.numFogo.toUpperCase(),
         lacre: p.lacre.toUpperCase(),
         sulco: "",
-        tipo: "ENTRADA",
+        tipo: p.tipo,
       });
     }
     toast.success(`${pneus.length} PNEU(S) REGISTRADO(S)!`);
     setPneus([]);
     setSelectedPos(null);
+    load();
+  };
+
+  // Edit record
+  const startEdit = (r: any) => {
+    setEditingId(r.id);
+    setEditData({ placa: r.placa, frota: r.frota, posicao: r.posicao, num_fogo: r.num_fogo, lacre: r.lacre, tipo: r.tipo });
+  };
+  const cancelEdit = () => { setEditingId(null); setEditData({}); };
+  const saveEdit = async () => {
+    if (!editingId) return;
+    await atualizarRodizio(editingId, editData);
+    toast.success("REGISTRO ATUALIZADO!");
+    setEditingId(null);
+    setEditData({});
+    load();
+  };
+
+  // Delete record
+  const handleDelete = async (id: string) => {
+    if (!confirm("DESEJA EXCLUIR ESTE REGISTRO?")) return;
+    await excluirRodizio(id);
+    toast.success("REGISTRO EXCLUÍDO!");
     load();
   };
 
@@ -92,8 +115,8 @@ export default function RodizioPage({ session }: { session: UserSession }) {
     doc.text(`TL-BLU FROTA — RODÍZIO DE PNEUS — ${de} A ${ate}`, 14, 18);
     autoTable(doc, {
       startY: 25,
-      head: [["PLACA", "FROTA", "POSIÇÃO", "Nº FOGO", "LACRE", "DATA"]],
-      body: records.map(r => [r.placa, r.frota, r.posicao, r.num_fogo, r.lacre, new Date(r.created_at).toLocaleDateString("pt-BR")]),
+      head: [["PLACA", "FROTA", "POSIÇÃO", "Nº FOGO", "LACRE", "TIPO", "DATA"]],
+      body: records.map(r => [r.placa, r.frota, r.posicao, r.num_fogo, r.lacre, r.tipo, new Date(r.created_at).toLocaleDateString("pt-BR")]),
     });
     const finalY = (doc as any).lastAutoTable.finalY + 10;
     doc.setFontSize(8);
@@ -103,8 +126,8 @@ export default function RodizioPage({ session }: { session: UserSession }) {
 
   const handleExcel = () => {
     exportCSV(`rodizio_${de}_${ate}.csv`,
-      ["PLACA", "FROTA", "POSIÇÃO", "Nº FOGO", "LACRE", "DATA"],
-      records.map(r => [r.placa, r.frota, r.posicao, r.num_fogo, r.lacre, new Date(r.created_at).toLocaleDateString("pt-BR")])
+      ["PLACA", "FROTA", "POSIÇÃO", "Nº FOGO", "LACRE", "TIPO", "DATA"],
+      records.map(r => [r.placa, r.frota, r.posicao, r.num_fogo, r.lacre, r.tipo, new Date(r.created_at).toLocaleDateString("pt-BR")])
     );
   };
 
@@ -153,7 +176,6 @@ export default function RodizioPage({ session }: { session: UserSession }) {
       {renderAxleGroup("MAPA DO CAVALÃO (3 EIXOS)", CAVALO_EIXOS, "🚛")}
       {renderAxleGroup("MAPA DA CARRETA (3 EIXOS)", CARRETA_EIXOS, "🚚")}
 
-      {/* List of selected tires with num_fogo and lacre fields */}
       {pneus.length > 0 && (
         <div className="glass-card rounded-2xl p-4 sm:p-5 space-y-4">
           <div className="flex items-center gap-2">
@@ -169,11 +191,21 @@ export default function RodizioPage({ session }: { session: UserSession }) {
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   <Input placeholder="Nº FOGO *" value={p.numFogo} onChange={e => updatePneu(p.posicao, "numFogo", e.target.value)}
                     className="text-center font-orbitron text-xs bg-input border-border/50 focus:border-accent h-11 uppercase" />
                   <Input placeholder="Nº LACRE" value={p.lacre} onChange={e => updatePneu(p.posicao, "lacre", e.target.value)}
                     className="text-center text-xs bg-input border-border/50 focus:border-accent h-11 uppercase" />
+                  <div className="flex gap-1">
+                    <button onClick={() => updatePneu(p.posicao, "tipo", "ENTRADA")}
+                      className={`flex-1 rounded-lg border text-[0.6rem] font-orbitron font-bold flex items-center justify-center gap-1 transition-all ${p.tipo === "ENTRADA" ? "border-accent bg-accent/20 text-accent" : "border-border/50 bg-secondary/50 text-muted-foreground"}`}>
+                      <ArrowDownCircle className="h-3 w-3" /> ENT
+                    </button>
+                    <button onClick={() => updatePneu(p.posicao, "tipo", "SAÍDA")}
+                      className={`flex-1 rounded-lg border text-[0.6rem] font-orbitron font-bold flex items-center justify-center gap-1 transition-all ${p.tipo === "SAÍDA" ? "border-destructive bg-destructive/20 text-destructive" : "border-border/50 bg-secondary/50 text-muted-foreground"}`}>
+                      <ArrowUpCircle className="h-3 w-3" /> SAI
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -217,20 +249,59 @@ export default function RodizioPage({ session }: { session: UserSession }) {
                 <TableHead className="font-orbitron text-[0.65rem] uppercase font-bold">POSIÇÃO</TableHead>
                 <TableHead className="font-orbitron text-[0.65rem] uppercase font-bold">Nº FOGO</TableHead>
                 <TableHead className="font-orbitron text-[0.65rem] uppercase font-bold">LACRE</TableHead>
+                <TableHead className="font-orbitron text-[0.65rem] uppercase font-bold">TIPO</TableHead>
                 <TableHead className="font-orbitron text-[0.65rem] uppercase font-bold">DATA</TableHead>
+                <TableHead className="font-orbitron text-[0.65rem] uppercase font-bold">AÇÕES</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {records.length === 0 ? (
-                <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-10 font-orbitron text-xs uppercase">NENHUM REGISTRO.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-10 font-orbitron text-xs uppercase">NENHUM REGISTRO.</TableCell></TableRow>
               ) : records.map(r => (
                 <TableRow key={r.id} className="border-border/20 table-row-glow">
-                  <TableCell className="font-mono-neon text-primary text-sm uppercase">{r.placa}</TableCell>
-                  <TableCell className="text-sm font-orbitron">{r.frota}</TableCell>
-                  <TableCell className="text-[0.65rem] font-orbitron text-[hsl(var(--neon-purple))]">{r.posicao}</TableCell>
-                  <TableCell className="text-sm font-orbitron font-bold">{r.num_fogo}</TableCell>
-                  <TableCell className="text-sm">{r.lacre}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString("pt-BR")}</TableCell>
+                  {editingId === r.id ? (
+                    <>
+                      <TableCell><Input value={editData.placa} onChange={e => setEditData({ ...editData, placa: e.target.value.toUpperCase() })} className="h-8 text-xs bg-input border-border/50 uppercase w-24" /></TableCell>
+                      <TableCell><Input value={editData.frota} onChange={e => setEditData({ ...editData, frota: e.target.value.toUpperCase() })} className="h-8 text-xs bg-input border-border/50 uppercase w-20" /></TableCell>
+                      <TableCell><Input value={editData.posicao} onChange={e => setEditData({ ...editData, posicao: e.target.value.toUpperCase() })} className="h-8 text-xs bg-input border-border/50 uppercase w-24" /></TableCell>
+                      <TableCell><Input value={editData.num_fogo} onChange={e => setEditData({ ...editData, num_fogo: e.target.value.toUpperCase() })} className="h-8 text-xs bg-input border-border/50 uppercase w-20" /></TableCell>
+                      <TableCell><Input value={editData.lacre} onChange={e => setEditData({ ...editData, lacre: e.target.value.toUpperCase() })} className="h-8 text-xs bg-input border-border/50 uppercase w-20" /></TableCell>
+                      <TableCell>
+                        <select value={editData.tipo} onChange={e => setEditData({ ...editData, tipo: e.target.value })}
+                          className="h-8 text-xs bg-input border border-border/50 rounded px-1 font-orbitron uppercase">
+                          <option value="ENTRADA">ENTRADA</option>
+                          <option value="SAÍDA">SAÍDA</option>
+                        </select>
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString("pt-BR")}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <button onClick={saveEdit} className="h-7 w-7 rounded-full bg-accent/20 text-accent hover:bg-accent/40 flex items-center justify-center"><Check className="h-3.5 w-3.5" /></button>
+                          <button onClick={cancelEdit} className="h-7 w-7 rounded-full bg-muted text-muted-foreground hover:bg-muted/80 flex items-center justify-center"><X className="h-3.5 w-3.5" /></button>
+                        </div>
+                      </TableCell>
+                    </>
+                  ) : (
+                    <>
+                      <TableCell className="font-mono-neon text-primary text-sm uppercase">{r.placa}</TableCell>
+                      <TableCell className="text-sm font-orbitron">{r.frota}</TableCell>
+                      <TableCell className="text-[0.65rem] font-orbitron text-[hsl(var(--neon-purple))]">{r.posicao}</TableCell>
+                      <TableCell className="text-sm font-orbitron font-bold">{r.num_fogo}</TableCell>
+                      <TableCell className="text-sm">{r.lacre}</TableCell>
+                      <TableCell>
+                        <span className={`text-[0.65rem] font-orbitron font-bold px-2 py-1 rounded-full ${r.tipo === "ENTRADA" ? "bg-accent/20 text-accent" : "bg-destructive/20 text-destructive"}`}>
+                          {r.tipo === "ENTRADA" ? "↓ ENT" : "↑ SAI"}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString("pt-BR")}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <button onClick={() => startEdit(r)} className="h-7 w-7 rounded-full bg-primary/20 text-primary hover:bg-primary/40 flex items-center justify-center"><Pencil className="h-3.5 w-3.5" /></button>
+                          <button onClick={() => handleDelete(r.id)} className="h-7 w-7 rounded-full bg-destructive/20 text-destructive hover:bg-destructive/40 flex items-center justify-center"><Trash2 className="h-3.5 w-3.5" /></button>
+                        </div>
+                      </TableCell>
+                    </>
+                  )}
                 </TableRow>
               ))}
             </TableBody>

@@ -48,6 +48,16 @@ export async function lerRodizio(de: string, ate: string) {
   return data || [];
 }
 
+export async function atualizarRodizio(id: string, dados: { placa?: string; frota?: string; posicao?: string; num_fogo?: string; lacre?: string; tipo?: string }) {
+  const { error } = await supabase.from("rodizio").update(dados).eq("id", id);
+  if (error) console.error(error);
+}
+
+export async function excluirRodizio(id: string) {
+  const { error } = await supabase.from("rodizio").delete().eq("id", id);
+  if (error) console.error(error);
+}
+
 // ── Fornecedores ──
 export async function salvarFornecedor(record: { razao_social: string; cnpj_cpf: string; tipo: string; telefone: string; cidade_estado: string; observacoes: string }) {
   const { error } = await supabase.from("fornecedores").insert(record);
