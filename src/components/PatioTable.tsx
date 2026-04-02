@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { lerPatio, atualizarPatio, todayStr, exportCSV } from "@/lib/storage";
+import { supabase } from "@/integrations/supabase/client";
 import { UserSession } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FileText, FileSpreadsheet, Monitor, Pencil, Save, X, AlertTriangle } from "lucide-react";
+import { FileText, FileSpreadsheet, Monitor, Pencil, Save, X, AlertTriangle, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
@@ -27,14 +28,16 @@ export default function PatioTable({ refreshKey, session }: Props) {
 
   const ativos = records.filter(r => !r.concluido);
   const totalPatio = ativos.length;
-  // Vazia + Bloqueio NÃO conta como vazia
   const totalCarregadas = ativos.filter(r => r.estado === "Carga").length;
   const totalVazias = ativos.filter(r => r.estado === "Vazia" && r.status !== "Bloqueio").length;
   const emManutencao = ativos.filter(r => r.status === "Bloqueio").length;
 
   const startEdit = (r: any) => {
     setEditingId(r.id);
-    setEditData({ estado: r.estado, local: r.local, status: r.status, motivo_bloqueio: r.motivo_bloqueio || "" });
+    setEditData({
+      placa: r.placa, frota: r.frota, modelo: r.modelo, eixo: r.eixo,
+      estado: r.estado, local: r.local, status: r.status, motivo_bloqueio: r.motivo_bloqueio || ""
+    });
   };
 
   const cancelEdit = () => { setEditingId(null); setEditData({}); };
@@ -45,14 +48,25 @@ export default function PatioTable({ refreshKey, session }: Props) {
       return;
     }
     await atualizarPatio(id, {
+      placa: editData.placa,
+      frota: editData.frota,
+      modelo: editData.modelo,
+      eixo: editData.eixo,
       estado: editData.estado,
       local: editData.local,
       status: editData.status,
       motivo_bloqueio: editData.status === "Bloqueio" ? editData.motivo_bloqueio : "",
     });
     toast.success("REGISTRO ATUALIZADO!");
-    setEditingId(null);
-    setEditData({});
+    cancelEdit();
+    load();
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("DESEJA EXCLUIR ESTE REGISTRO?")) return;
+    const { error } = await supabase.from("patio").delete().eq("id", id);
+    if (error) { toast.error("ERRO AO EXCLUIR!"); return; }
+    toast.success("REGISTRO EXCLUÍDO!");
     load();
   };
 
@@ -75,6 +89,18 @@ export default function PatioTable({ refreshKey, session }: Props) {
       [summaryRow, ...ativos.map(r => [r.frota, r.placa, r.estado, r.local, r.status, r.motivo_bloqueio || "", r.eixo, r.modelo, new Date(r.created_at).toLocaleDateString("pt-BR")])]);
   };
 
+  const editInput = (field: string, value: string, placeholder: string) => (
+    <Input value={value} onChange={e => setEditData({ ...editData, [field]: e.target.value })}
+      placeholder={placeholder} className="bg-input border-border/50 text-xs font-orbitron uppercase h-9 min-w-[80px]" />
+  );
+
+  const editSelect = (field: string, value: string, options: string[]) => (
+    <select value={value} onChange={e => setEditData({ ...editData, [field]: e.target.value })}
+      className="bg-input border border-border rounded px-2 py-1.5 text-xs font-orbitron uppercase w-full">
+      {options.map(o => <option key={o} value={o}>{o}</option>)}
+    </select>
+  );
+
   return (
     <div className="glass-card rounded-2xl overflow-hidden">
       <div className="flex flex-row items-center justify-between gap-4 flex-wrap p-5 border-b border-border/30">
@@ -85,12 +111,12 @@ export default function PatioTable({ refreshKey, session }: Props) {
         <div className="flex items-center gap-2 flex-wrap">
           <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-auto text-sm bg-input border-border font-orbitron text-xs" />
           {session.permissoes.gerarPdf && (
-            <Button variant="outline" size="sm" onClick={handlePDF} className="gap-1.5 border-primary/50 text-primary hover:bg-primary/10 hover:border-primary font-orbitron text-xs neon-glow-primary uppercase">
+            <Button variant="outline" size="sm" onClick={handlePDF} className="gap-1.5 border-primary/50 text-primary hover:bg-primary/10 hover:border-primary font-orbitron text-xs neon-glow-primary uppercase font-bold">
               <FileText className="h-3.5 w-3.5" /> PDF
             </Button>
           )}
           {session.permissoes.gerarExcel && (
-            <Button variant="outline" size="sm" onClick={handleExcel} className="gap-1.5 border-accent/50 text-accent hover:bg-accent/10 font-orbitron text-xs neon-glow-green uppercase">
+            <Button variant="outline" size="sm" onClick={handleExcel} className="gap-1.5 border-accent/50 text-accent hover:bg-accent/10 font-orbitron text-xs neon-glow-green uppercase font-bold">
               <FileSpreadsheet className="h-3.5 w-3.5" /> EXCEL
             </Button>
           )}
@@ -115,14 +141,14 @@ export default function PatioTable({ refreshKey, session }: Props) {
         <Table>
           <TableHeader>
             <TableRow className="border-border/30 hover:bg-transparent">
-              <TableHead className="font-orbitron text-[0.65rem] text-primary uppercase">PLACA</TableHead>
-              <TableHead className="font-orbitron text-[0.65rem] uppercase">FROTA</TableHead>
-              <TableHead className="font-orbitron text-[0.65rem] uppercase">CARGA</TableHead>
-              <TableHead className="font-orbitron text-[0.65rem] uppercase">LOCAL</TableHead>
-              <TableHead className="font-orbitron text-[0.65rem] uppercase">SEGURANÇA</TableHead>
-              <TableHead className="font-orbitron text-[0.65rem] uppercase">EIXO</TableHead>
-              <TableHead className="font-orbitron text-[0.65rem] uppercase">MODELO</TableHead>
-              <TableHead className="font-orbitron text-[0.65rem] uppercase w-16">AÇÕES</TableHead>
+              <TableHead className="font-orbitron text-[0.65rem] text-primary uppercase font-bold">PLACA</TableHead>
+              <TableHead className="font-orbitron text-[0.65rem] uppercase font-bold">FROTA</TableHead>
+              <TableHead className="font-orbitron text-[0.65rem] uppercase font-bold">CARGA</TableHead>
+              <TableHead className="font-orbitron text-[0.65rem] uppercase font-bold">LOCAL</TableHead>
+              <TableHead className="font-orbitron text-[0.65rem] uppercase font-bold">SEGURANÇA</TableHead>
+              <TableHead className="font-orbitron text-[0.65rem] uppercase font-bold">EIXO</TableHead>
+              <TableHead className="font-orbitron text-[0.65rem] uppercase font-bold">MODELO</TableHead>
+              <TableHead className="font-orbitron text-[0.65rem] uppercase font-bold w-20">AÇÕES</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -130,41 +156,38 @@ export default function PatioTable({ refreshKey, session }: Props) {
               <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-10 font-orbitron text-xs uppercase">NENHUM REGISTRO PARA ESTA DATA.</TableCell></TableRow>
             ) : records.map(r => (
               <TableRow key={r.id} className={cn("border-border/20 transition-all duration-300 table-row-glow", r.status === "Bloqueio" && "bg-destructive/10")}>
-                <TableCell className="font-mono-neon text-primary text-sm">{r.placa}</TableCell>
-                <TableCell className="text-sm font-orbitron">{r.frota}</TableCell>
-
                 {editingId === r.id ? (
                   <>
-                    <TableCell>
-                      <select value={editData.estado} onChange={e => setEditData({ ...editData, estado: e.target.value })}
-                        className="bg-input border border-border rounded px-2 py-1 text-xs font-orbitron uppercase">
-                        <option value="Vazia">VAZIA</option>
-                        <option value="Carga">CARGA</option>
-                      </select>
-                    </TableCell>
-                    <TableCell>
-                      <select value={editData.local} onChange={e => setEditData({ ...editData, local: e.target.value })}
-                        className="bg-input border border-border rounded px-2 py-1 text-xs font-orbitron uppercase">
-                        <option value="Pátio">PÁTIO</option>
-                        <option value="Doca">DOCA</option>
-                      </select>
-                    </TableCell>
+                    <TableCell>{editInput("placa", editData.placa, "PLACA")}</TableCell>
+                    <TableCell>{editInput("frota", editData.frota, "FROTA")}</TableCell>
+                    <TableCell>{editSelect("estado", editData.estado, ["Vazia", "Carga"])}</TableCell>
+                    <TableCell>{editSelect("local", editData.local, ["Pátio", "Doca"])}</TableCell>
                     <TableCell>
                       <div className="space-y-1">
-                        <select value={editData.status} onChange={e => { setEditData({ ...editData, status: e.target.value, motivo_bloqueio: e.target.value !== "Bloqueio" ? "" : editData.motivo_bloqueio }); }}
-                          className="bg-input border border-border rounded px-2 py-1 text-xs font-orbitron uppercase w-full">
-                          <option value="Livre">LIVRE</option>
-                          <option value="Bloqueio">BLOQUEIO</option>
-                        </select>
+                        {editSelect("status", editData.status, ["Livre", "Bloqueio"])}
                         {editData.status === "Bloqueio" && (
                           <Textarea value={editData.motivo_bloqueio} onChange={e => setEditData({ ...editData, motivo_bloqueio: e.target.value })}
                             placeholder="MOTIVO..." className="text-xs uppercase min-h-[40px] bg-input border-destructive/50" />
                         )}
                       </div>
                     </TableCell>
+                    <TableCell>{editInput("eixo", editData.eixo, "EIXO")}</TableCell>
+                    <TableCell>{editInput("modelo", editData.modelo, "MODELO")}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <button onClick={() => saveEdit(r.id)} className="h-8 w-8 rounded-full bg-accent/20 text-accent hover:bg-accent/40 flex items-center justify-center">
+                          <Save className="h-4 w-4" />
+                        </button>
+                        <button onClick={cancelEdit} className="h-8 w-8 rounded-full bg-destructive/20 text-destructive hover:bg-destructive/40 flex items-center justify-center">
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </TableCell>
                   </>
                 ) : (
                   <>
+                    <TableCell className="font-mono-neon text-primary text-sm">{r.placa}</TableCell>
+                    <TableCell className="text-sm font-orbitron">{r.frota}</TableCell>
                     <TableCell className="text-sm uppercase">{r.estado}</TableCell>
                     <TableCell className="text-sm uppercase">{r.local}</TableCell>
                     <TableCell className="text-sm uppercase">
@@ -176,27 +199,20 @@ export default function PatioTable({ refreshKey, session }: Props) {
                         <p className="text-[0.6rem] text-destructive/80 mt-0.5">{r.motivo_bloqueio}</p>
                       )}
                     </TableCell>
+                    <TableCell className="text-sm">{r.eixo}</TableCell>
+                    <TableCell className="text-sm">{r.modelo}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <button onClick={() => startEdit(r)} className="h-8 w-8 rounded-full bg-primary/20 text-primary hover:bg-primary/40 flex items-center justify-center">
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                        <button onClick={() => handleDelete(r.id)} className="h-8 w-8 rounded-full bg-destructive/20 text-destructive hover:bg-destructive/40 flex items-center justify-center">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </TableCell>
                   </>
                 )}
-
-                <TableCell className="text-sm">{r.eixo}</TableCell>
-                <TableCell className="text-sm">{r.modelo}</TableCell>
-                <TableCell>
-                  {editingId === r.id ? (
-                    <div className="flex gap-1">
-                      <button onClick={() => saveEdit(r.id)} className="h-7 w-7 rounded-full bg-accent/20 text-accent hover:bg-accent/40 flex items-center justify-center">
-                        <Save className="h-3.5 w-3.5" />
-                      </button>
-                      <button onClick={cancelEdit} className="h-7 w-7 rounded-full bg-destructive/20 text-destructive hover:bg-destructive/40 flex items-center justify-center">
-                        <X className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  ) : (
-                    <button onClick={() => startEdit(r)} className="h-7 w-7 rounded-full bg-primary/20 text-primary hover:bg-primary/40 flex items-center justify-center">
-                      <Pencil className="h-3.5 w-3.5" />
-                    </button>
-                  )}
-                </TableCell>
               </TableRow>
             ))}
           </TableBody>

@@ -12,7 +12,7 @@ const allModules = [
   { key: "patio", title: "GESTÃO DE PÁTIO", url: "/patio", icon: Truck },
   { key: "rodizio", title: "RODÍZIO DE PNEUS", url: "/rodizio", icon: RotateCcw },
   { key: "fornecedores", title: "FORNECEDORES", url: "/fornecedores", icon: Building2 },
-  { key: "expedicao", title: "EXPEDIÇÃO", url: "/expedicao", icon: PackageCheck },
+  { key: "expedicao", title: "MONITORAMENTO", url: "/expedicao", icon: PackageCheck },
   { key: "os", title: "ORDEM DE SERVIÇO", url: "/os", icon: Wrench },
 ];
 
