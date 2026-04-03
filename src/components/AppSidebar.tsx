@@ -14,6 +14,7 @@ const allModules = [
   { key: "fornecedores", title: "FORNECEDORES", url: "/fornecedores", icon: Building2 },
   { key: "expedicao", title: "MONITORAMENTO", url: "/expedicao", icon: PackageCheck },
   { key: "os", title: "ORDEM DE SERVIÇO", url: "/os", icon: Wrench },
+  { key: "lavacao", title: "LAVAÇÃO", url: "/lavacao", icon: Droplets },
 ];
 
 interface Props { session: UserSession; onLogout: () => void; }
