@@ -105,6 +105,8 @@ export type Database = {
         Row: {
           created_at: string
           data_lavacao: string
+          enviado_lavacao: boolean
+          foto_lavado: string
           frota: string
           id: string
           observacoes: string
@@ -116,6 +118,8 @@ export type Database = {
         Insert: {
           created_at?: string
           data_lavacao?: string
+          enviado_lavacao?: boolean
+          foto_lavado?: string
           frota?: string
           id?: string
           observacoes?: string
@@ -127,6 +131,8 @@ export type Database = {
         Update: {
           created_at?: string
           data_lavacao?: string
+          enviado_lavacao?: boolean
+          foto_lavado?: string
           frota?: string
           id?: string
           observacoes?: string
