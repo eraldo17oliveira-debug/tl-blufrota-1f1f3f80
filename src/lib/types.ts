@@ -39,6 +39,7 @@ export function getModuleAccess(permissoes: UserPermissions): string[] {
   if (permissoes.fornecedores) modules.push("fornecedores");
   if (permissoes.expedicao) modules.push("expedicao");
   if (permissoes.os) modules.push("os");
+  if (permissoes.lavacao) modules.push("lavacao");
   return modules;
 }
 

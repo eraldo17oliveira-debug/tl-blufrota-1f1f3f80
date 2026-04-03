@@ -39,6 +39,7 @@ function toPermissoes(u: any): UserPermissions {
     fornecedores: u.pode_fornecedores,
     expedicao: u.pode_expedicao,
     os: u.pode_patio || u.pode_rodizio,
+    lavacao: u.pode_lavacao ?? false,
     gerarPdf: u.pode_pdf,
     gerarExcel: u.pode_excel,
   };
