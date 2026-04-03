@@ -15,6 +15,7 @@ import FornecedoresPage from "@/pages/FornecedoresPage";
 import ExpedicaoPage from "@/pages/ExpedicaoPage";
 import UsuariosPage from "@/pages/UsuariosPage";
 import OrdemServicoPage from "@/pages/OrdemServicoPage";
+import LavacaoPage from "@/pages/LavacaoPage";
 import NotFound from "@/pages/NotFound";
 import { Menu } from "lucide-react";
 
