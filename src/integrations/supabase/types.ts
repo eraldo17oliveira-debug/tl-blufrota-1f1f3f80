@@ -101,6 +101,66 @@ export type Database = {
         }
         Relationships: []
       }
+      lavacao: {
+        Row: {
+          created_at: string
+          data_lavacao: string
+          frota: string
+          id: string
+          observacoes: string
+          placa: string
+          status: string
+          tipo_veiculo: string
+          valor: number
+        }
+        Insert: {
+          created_at?: string
+          data_lavacao?: string
+          frota?: string
+          id?: string
+          observacoes?: string
+          placa?: string
+          status?: string
+          tipo_veiculo?: string
+          valor?: number
+        }
+        Update: {
+          created_at?: string
+          data_lavacao?: string
+          frota?: string
+          id?: string
+          observacoes?: string
+          placa?: string
+          status?: string
+          tipo_veiculo?: string
+          valor?: number
+        }
+        Relationships: []
+      }
+      lavacao_contatos: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          id: string
+          nome: string
+          telefone: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          nome?: string
+          telefone?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          nome?: string
+          telefone?: string
+        }
+        Relationships: []
+      }
       patio: {
         Row: {
           concluido: boolean
@@ -195,6 +255,7 @@ export type Database = {
           pode_expedicao: boolean
           pode_fornecedores: boolean
           pode_inventario: boolean
+          pode_lavacao: boolean
           pode_patio: boolean
           pode_pdf: boolean
           pode_rodizio: boolean
@@ -212,6 +273,7 @@ export type Database = {
           pode_expedicao?: boolean
           pode_fornecedores?: boolean
           pode_inventario?: boolean
+          pode_lavacao?: boolean
           pode_patio?: boolean
           pode_pdf?: boolean
           pode_rodizio?: boolean
@@ -229,6 +291,7 @@ export type Database = {
           pode_expedicao?: boolean
           pode_fornecedores?: boolean
           pode_inventario?: boolean
+          pode_lavacao?: boolean
           pode_patio?: boolean
           pode_pdf?: boolean
           pode_rodizio?: boolean

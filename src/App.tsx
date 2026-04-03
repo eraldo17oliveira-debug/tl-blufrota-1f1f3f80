@@ -15,6 +15,7 @@ import FornecedoresPage from "@/pages/FornecedoresPage";
 import ExpedicaoPage from "@/pages/ExpedicaoPage";
 import UsuariosPage from "@/pages/UsuariosPage";
 import OrdemServicoPage from "@/pages/OrdemServicoPage";
+import LavacaoPage from "@/pages/LavacaoPage";
 import NotFound from "@/pages/NotFound";
 import { Menu } from "lucide-react";
 
@@ -46,6 +47,7 @@ function AppLayout({ session, onLogout }: { session: UserSession; onLogout: () =
               {allowed.includes("fornecedores") && <Route path="/fornecedores" element={<FornecedoresPage session={session} />} />}
               {allowed.includes("expedicao") && <Route path="/expedicao" element={<ExpedicaoPage session={session} />} />}
               {allowed.includes("os") && <Route path="/os" element={<OrdemServicoPage session={session} />} />}
+              {allowed.includes("lavacao") && <Route path="/lavacao" element={<LavacaoPage session={session} />} />}
               {session.perfil === "SUPERVISOR" && <Route path="/usuarios" element={<UsuariosPage />} />}
               <Route path="*" element={<Navigate to={defaultRoute} replace />} />
             </Routes>

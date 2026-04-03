@@ -48,7 +48,8 @@ export default function UsuariosPage() {
     setPermissoes({
       patio: u.pode_patio, rodizio: u.pode_rodizio,
       fornecedores: u.pode_fornecedores, expedicao: u.pode_expedicao,
-      os: u.pode_patio || u.pode_rodizio, gerarPdf: u.pode_pdf, gerarExcel: u.pode_excel,
+      os: u.pode_patio || u.pode_rodizio, lavacao: (u as any).pode_lavacao ?? false,
+      gerarPdf: u.pode_pdf, gerarExcel: u.pode_excel,
     });
     setModalOpen(true);
   };
