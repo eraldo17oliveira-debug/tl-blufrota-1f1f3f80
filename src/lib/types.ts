@@ -6,6 +6,7 @@ export interface UserPermissions {
   fornecedores: boolean;
   expedicao: boolean;
   os: boolean;
+  lavacao: boolean;
   gerarPdf: boolean;
   gerarExcel: boolean;
 }
