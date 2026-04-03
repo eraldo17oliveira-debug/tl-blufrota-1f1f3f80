@@ -19,16 +19,16 @@ export interface UserSession {
 
 export const DEFAULT_PERMISSIONS: Record<UserRole, UserPermissions> = {
   SUPERVISOR: {
-    patio: true, rodizio: true, fornecedores: true, expedicao: true, os: true, gerarPdf: true, gerarExcel: true,
+    patio: true, rodizio: true, fornecedores: true, expedicao: true, os: true, lavacao: true, gerarPdf: true, gerarExcel: true,
   },
   MANOBRA: {
-    patio: true, rodizio: false, fornecedores: false, expedicao: false, os: false, gerarPdf: true, gerarExcel: false,
+    patio: true, rodizio: false, fornecedores: false, expedicao: false, os: false, lavacao: false, gerarPdf: true, gerarExcel: false,
   },
   "MANUTENÇÃO": {
-    patio: false, rodizio: true, fornecedores: false, expedicao: false, os: true, gerarPdf: true, gerarExcel: false,
+    patio: false, rodizio: true, fornecedores: false, expedicao: false, os: true, lavacao: false, gerarPdf: true, gerarExcel: false,
   },
   "EXPEDIÇÃO": {
-    patio: false, rodizio: false, fornecedores: false, expedicao: true, os: false, gerarPdf: true, gerarExcel: true,
+    patio: false, rodizio: false, fornecedores: false, expedicao: true, os: false, lavacao: false, gerarPdf: true, gerarExcel: true,
   },
 };
 
