@@ -114,17 +114,6 @@ function SupervisorView({ session }: { session: UserSession }) {
     carregar();
   }
 
-  async function cadastrar() {
-    if (!placa) { toast.error("INFORME A PLACA!"); return; }
-    const { error } = await supabase.from("lavacao").insert({
-      placa, frota, tipo_veiculo: tipo, valor: parseFloat(valor) || 0,
-      observacoes: obs, data_lavacao: dataLavacao, status: "PENDENTE",
-    });
-    if (error) { toast.error("ERRO AO CADASTRAR!"); return; }
-    toast.success("VEÍCULO CADASTRADO!");
-    setPlaca(""); setFrota(""); setValor(""); setObs("");
-    carregar();
-  }
 
   async function enviarParaLavacao() {
     if (selecionados.size === 0) { toast.error("SELECIONE OS VEÍCULOS!"); return; }
