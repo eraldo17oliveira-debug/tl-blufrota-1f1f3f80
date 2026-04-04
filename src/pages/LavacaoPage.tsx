@@ -59,14 +59,10 @@ function SupervisorView({ session }: { session: UserSession }) {
   const [registros, setRegistros] = useState<LavacaoRecord[]>([]);
   const [contatos, setContatos] = useState<ContatoRecord[]>([]);
   const [patioVeiculos, setPatioVeiculos] = useState<PatioVeiculo[]>([]);
-  const [tab, setTab] = useState<"patio" | "cadastro" | "enviar" | "gestao" | "contatos">("patio");
+  const [tab, setTab] = useState<"patio" | "enviar" | "gestao" | "contatos">("patio");
 
-  const [placa, setPlaca] = useState("");
-  const [frota, setFrota] = useState("");
-  const [tipo, setTipo] = useState("CARRETA");
-  const [valor, setValor] = useState("");
-  const [obs, setObs] = useState("");
-  const [dataLavacao, setDataLavacao] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [contatoNome, setContatoNome] = useState("");
+  const [contatoTel, setContatoTel] = useState("");
 
   const [contatoNome, setContatoNome] = useState("");
   const [contatoTel, setContatoTel] = useState("");
