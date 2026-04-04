@@ -1,4 +1,4 @@
-export type UserRole = "SUPERVISOR" | "MANOBRA" | "MANUTENÇÃO" | "EXPEDIÇÃO";
+export type UserRole = "SUPERVISOR" | "MANOBRA" | "MANUTENÇÃO" | "EXPEDIÇÃO" | "LAVAÇÃO";
 
 export interface UserPermissions {
   patio: boolean;
@@ -29,6 +29,9 @@ export const DEFAULT_PERMISSIONS: Record<UserRole, UserPermissions> = {
   },
   "EXPEDIÇÃO": {
     patio: false, rodizio: false, fornecedores: false, expedicao: true, os: false, lavacao: false, gerarPdf: true, gerarExcel: true,
+  },
+  "LAVAÇÃO": {
+    patio: false, rodizio: false, fornecedores: false, expedicao: false, os: false, lavacao: true, gerarPdf: false, gerarExcel: false,
   },
 };
 

@@ -51,6 +51,7 @@ function nivelToPerfil(nivel: string) {
     MANOBRA: "MANOBRA",
     MANUTENCAO: "MANUTENÇÃO",
     EXPEDICAO: "EXPEDIÇÃO",
+    LAVACAO: "LAVAÇÃO",
   };
   return map[nivel] || nivel;
 }
@@ -61,6 +62,7 @@ export function perfilToNivel(perfil: string) {
     MANOBRA: "MANOBRA",
     "MANUTENÇÃO": "MANUTENCAO",
     "EXPEDIÇÃO": "EXPEDICAO",
+    "LAVAÇÃO": "LAVACAO",
   };
   return map[perfil] || perfil;
 }
