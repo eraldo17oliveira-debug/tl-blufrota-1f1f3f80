@@ -1,4 +1,4 @@
-export type UserRole = "SUPERVISOR" | "MANOBRA" | "MANUTENÇÃO" | "EXPEDIÇÃO";
+export type UserRole = "SUPERVISOR" | "MANOBRA" | "MANUTENÇÃO" | "EXPEDIÇÃO" | "LAVAÇÃO";
 
 export interface UserPermissions {
   patio: boolean;
