@@ -160,10 +160,9 @@ function SupervisorView({ session }: { session: UserSession }) {
     const contatosAtivos = contatos.filter(c => c.ativo);
     if (!contatosAtivos.length) { toast.error("NENHUM CONTATO CADASTRADO!"); return; }
 
-    const msg = `🚿 *LAVAÇÃO TL-BLU - ${filtroData}*\n\n` +
-      enviados.map((r, i) => `${i + 1}. *${r.placa}* | ${r.frota} | ${r.tipo_veiculo}`).join("\n") +
-      `\n\n📊 *TOTAL: ${enviados.length} VEÍCULO(S)*` +
-      `\n\n📸 *ACESSE O SISTEMA PARA BATER AS FOTOS:*\n${APP_URL}`;
+    const msg = `LAVACAO TL-BLU ${filtroData}\n\n` +
+      enviados.map((r, i) => `${i + 1}. ${r.placa} - ${r.frota} - ${r.tipo_veiculo}`).join("\n") +
+      `\nTOTAL: ${enviados.length}\n\nFOTOS: ${APP_URL}`;
 
     contatosAtivos.forEach(c => {
       const tel = c.telefone.replace(/\D/g, "");
