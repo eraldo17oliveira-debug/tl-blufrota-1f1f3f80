@@ -302,31 +302,6 @@ function SupervisorView({ session }: { session: UserSession }) {
         </div>
       )}
 
-      {/* CADASTRO MANUAL */}
-      {tab === "cadastro" && (
-        <div className="glass-card rounded-xl p-4 border border-border/30 space-y-3">
-          <h2 className="font-orbitron text-sm text-primary uppercase">CADASTRAR VEÍCULO MANUALMENTE</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <PlacaInput value={placa} onChange={setPlaca} />
-            <Input placeholder="FROTA" value={frota} onChange={e => setFrota(e.target.value.toUpperCase())}
-              className="uppercase h-12 text-center font-orbitron bg-input border-border" />
-            <select value={tipo} onChange={e => setTipo(e.target.value)}
-              className="h-12 rounded-md border border-border bg-input px-3 text-sm font-orbitron uppercase text-foreground">
-              {TIPOS_VEICULO.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
-            <Input placeholder="VALOR (R$)" type="number" step="0.01" value={valor}
-              onChange={e => setValor(e.target.value)}
-              className="h-12 text-center font-orbitron bg-input border-border" />
-            <Input type="date" value={dataLavacao} onChange={e => setDataLavacao(e.target.value)}
-              className="h-12 text-center font-orbitron bg-input border-border" />
-          </div>
-          <Textarea placeholder="OBSERVAÇÕES..." value={obs} onChange={e => setObs(e.target.value.toUpperCase())}
-            className="uppercase font-orbitron text-xs bg-input border-border" />
-          <Button onClick={cadastrar} className="w-full h-12 neon-button font-orbitron uppercase text-sm tracking-wider gap-2">
-            <Plus className="h-5 w-5" /> REGISTRAR VEÍCULO
-          </Button>
-        </div>
-      )}
 
       {/* ENVIAR PARA LAVAÇÃO */}
       {tab === "enviar" && (
