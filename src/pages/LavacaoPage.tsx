@@ -2,8 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import PlacaInput from "@/components/PlacaInput";
 import { UserSession } from "@/lib/types";
 import { toast } from "sonner";
 import { Plus, Send, Trash2, Edit2, Check, X, Phone, UserPlus, Car, FileText, Camera, CheckCircle2, Droplets } from "lucide-react";
@@ -59,14 +57,7 @@ function SupervisorView({ session }: { session: UserSession }) {
   const [registros, setRegistros] = useState<LavacaoRecord[]>([]);
   const [contatos, setContatos] = useState<ContatoRecord[]>([]);
   const [patioVeiculos, setPatioVeiculos] = useState<PatioVeiculo[]>([]);
-  const [tab, setTab] = useState<"patio" | "cadastro" | "enviar" | "gestao" | "contatos">("patio");
-
-  const [placa, setPlaca] = useState("");
-  const [frota, setFrota] = useState("");
-  const [tipo, setTipo] = useState("CARRETA");
-  const [valor, setValor] = useState("");
-  const [obs, setObs] = useState("");
-  const [dataLavacao, setDataLavacao] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [tab, setTab] = useState<"patio" | "enviar" | "gestao" | "contatos">("patio");
 
   const [contatoNome, setContatoNome] = useState("");
   const [contatoTel, setContatoTel] = useState("");
@@ -121,17 +112,6 @@ function SupervisorView({ session }: { session: UserSession }) {
     carregar();
   }
 
-  async function cadastrar() {
-    if (!placa) { toast.error("INFORME A PLACA!"); return; }
-    const { error } = await supabase.from("lavacao").insert({
-      placa, frota, tipo_veiculo: tipo, valor: parseFloat(valor) || 0,
-      observacoes: obs, data_lavacao: dataLavacao, status: "PENDENTE",
-    });
-    if (error) { toast.error("ERRO AO CADASTRAR!"); return; }
-    toast.success("VEÍCULO CADASTRADO!");
-    setPlaca(""); setFrota(""); setValor(""); setObs("");
-    carregar();
-  }
 
   async function enviarParaLavacao() {
     if (selecionados.size === 0) { toast.error("SELECIONE OS VEÍCULOS!"); return; }
@@ -178,10 +158,9 @@ function SupervisorView({ session }: { session: UserSession }) {
     const contatosAtivos = contatos.filter(c => c.ativo);
     if (!contatosAtivos.length) { toast.error("NENHUM CONTATO CADASTRADO!"); return; }
 
-    const msg = `🚿 *LAVAÇÃO TL-BLU - ${filtroData}*\n\n` +
-      enviados.map((r, i) => `${i + 1}. *${r.placa}* | ${r.frota} | ${r.tipo_veiculo}`).join("\n") +
-      `\n\n📊 *TOTAL: ${enviados.length} VEÍCULO(S)*` +
-      `\n\n📸 *ACESSE O SISTEMA PARA BATER AS FOTOS:*\n${APP_URL}`;
+    const msg = `LAVACAO TL-BLU ${filtroData}\n\n` +
+      enviados.map((r, i) => `${i + 1}. ${r.placa} - ${r.frota} - ${r.tipo_veiculo}`).join("\n") +
+      `\nTOTAL: ${enviados.length}\n\nFOTOS: ${APP_URL}`;
 
     contatosAtivos.forEach(c => {
       const tel = c.telefone.replace(/\D/g, "");
@@ -263,7 +242,6 @@ function SupervisorView({ session }: { session: UserSession }) {
       <div className="flex flex-wrap gap-2">
         {([
           { key: "patio", label: "VEÍCULOS DO PÁTIO", icon: Car },
-          { key: "cadastro", label: "CADASTRO MANUAL", icon: Plus },
           { key: "enviar", label: "ENVIAR P/ LAVAÇÃO", icon: Send },
           { key: "gestao", label: "GESTÃO", icon: Edit2 },
           { key: "contatos", label: "WHATSAPP", icon: Phone },
@@ -322,31 +300,6 @@ function SupervisorView({ session }: { session: UserSession }) {
         </div>
       )}
 
-      {/* CADASTRO MANUAL */}
-      {tab === "cadastro" && (
-        <div className="glass-card rounded-xl p-4 border border-border/30 space-y-3">
-          <h2 className="font-orbitron text-sm text-primary uppercase">CADASTRAR VEÍCULO MANUALMENTE</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <PlacaInput value={placa} onChange={setPlaca} />
-            <Input placeholder="FROTA" value={frota} onChange={e => setFrota(e.target.value.toUpperCase())}
-              className="uppercase h-12 text-center font-orbitron bg-input border-border" />
-            <select value={tipo} onChange={e => setTipo(e.target.value)}
-              className="h-12 rounded-md border border-border bg-input px-3 text-sm font-orbitron uppercase text-foreground">
-              {TIPOS_VEICULO.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
-            <Input placeholder="VALOR (R$)" type="number" step="0.01" value={valor}
-              onChange={e => setValor(e.target.value)}
-              className="h-12 text-center font-orbitron bg-input border-border" />
-            <Input type="date" value={dataLavacao} onChange={e => setDataLavacao(e.target.value)}
-              className="h-12 text-center font-orbitron bg-input border-border" />
-          </div>
-          <Textarea placeholder="OBSERVAÇÕES..." value={obs} onChange={e => setObs(e.target.value.toUpperCase())}
-            className="uppercase font-orbitron text-xs bg-input border-border" />
-          <Button onClick={cadastrar} className="w-full h-12 neon-button font-orbitron uppercase text-sm tracking-wider gap-2">
-            <Plus className="h-5 w-5" /> REGISTRAR VEÍCULO
-          </Button>
-        </div>
-      )}
 
       {/* ENVIAR PARA LAVAÇÃO */}
       {tab === "enviar" && (
