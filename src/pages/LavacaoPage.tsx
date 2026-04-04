@@ -64,9 +64,6 @@ function SupervisorView({ session }: { session: UserSession }) {
   const [contatoNome, setContatoNome] = useState("");
   const [contatoTel, setContatoTel] = useState("");
 
-  const [contatoNome, setContatoNome] = useState("");
-  const [contatoTel, setContatoTel] = useState("");
-
   const [editId, setEditId] = useState<string | null>(null);
   const [editData, setEditData] = useState<Partial<LavacaoRecord>>({});
 
