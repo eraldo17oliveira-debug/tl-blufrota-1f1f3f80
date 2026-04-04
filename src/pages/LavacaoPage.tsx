@@ -244,7 +244,6 @@ function SupervisorView({ session }: { session: UserSession }) {
       <div className="flex flex-wrap gap-2">
         {([
           { key: "patio", label: "VEÍCULOS DO PÁTIO", icon: Car },
-          { key: "cadastro", label: "CADASTRO MANUAL", icon: Plus },
           { key: "enviar", label: "ENVIAR P/ LAVAÇÃO", icon: Send },
           { key: "gestao", label: "GESTÃO", icon: Edit2 },
           { key: "contatos", label: "WHATSAPP", icon: Phone },
