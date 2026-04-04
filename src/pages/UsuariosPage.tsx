@@ -10,7 +10,7 @@ import { Users, Plus, Pencil, Trash2, Shield, Ban } from "lucide-react";
 import OptionGroup from "@/components/OptionGroup";
 import { toast } from "sonner";
 
-const ROLES: UserRole[] = ["SUPERVISOR", "MANOBRA", "MANUTENÇÃO", "EXPEDIÇÃO"];
+const ROLES: UserRole[] = ["SUPERVISOR", "MANOBRA", "MANUTENÇÃO", "EXPEDIÇÃO", "LAVAÇÃO"];
 
 const PERM_LABELS: { key: keyof UserPermissions; dbKey: string; label: string }[] = [
   { key: "patio", dbKey: "pode_patio", label: "ACESSAR PÁTIO" },
