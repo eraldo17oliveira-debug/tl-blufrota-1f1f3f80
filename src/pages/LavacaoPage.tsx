@@ -2,8 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import PlacaInput from "@/components/PlacaInput";
 import { UserSession } from "@/lib/types";
 import { toast } from "sonner";
 import { Plus, Send, Trash2, Edit2, Check, X, Phone, UserPlus, Car, FileText, Camera, CheckCircle2, Droplets } from "lucide-react";
