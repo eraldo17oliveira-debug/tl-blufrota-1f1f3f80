@@ -23,7 +23,7 @@ const PERM_LABELS: { key: keyof UserPermissions; dbKey: string; label: string }[
 ];
 
 function nivelToPerfil(nivel: string): string {
-  const map: Record<string, string> = { SUPERVISOR: "SUPERVISOR", MANOBRA: "MANOBRA", MANUTENCAO: "MANUTENÇÃO", EXPEDICAO: "EXPEDIÇÃO" };
+  const map: Record<string, string> = { SUPERVISOR: "SUPERVISOR", MANOBRA: "MANOBRA", MANUTENCAO: "MANUTENÇÃO", EXPEDICAO: "EXPEDIÇÃO", LAVACAO: "LAVAÇÃO" };
   return map[nivel] || nivel;
 }
 
