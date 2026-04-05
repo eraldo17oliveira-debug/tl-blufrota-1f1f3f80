@@ -78,11 +78,16 @@ export default function App() {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          {session ? (
-            <AppLayout session={session} onLogout={handleLogout} />
-          ) : (
-            <LoginScreen onLogin={handleLogin} />
-          )}
+          <Routes>
+            <Route path="/lavacao-publica" element={<LavacaoPublicaPage />} />
+            <Route path="*" element={
+              session ? (
+                <AppLayout session={session} onLogout={handleLogout} />
+              ) : (
+                <LoginScreen onLogin={handleLogin} />
+              )
+            } />
+          </Routes>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
