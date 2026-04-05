@@ -16,6 +16,7 @@ import ExpedicaoPage from "@/pages/ExpedicaoPage";
 import UsuariosPage from "@/pages/UsuariosPage";
 import OrdemServicoPage from "@/pages/OrdemServicoPage";
 import LavacaoPage from "@/pages/LavacaoPage";
+import LavacaoPublicaPage from "@/pages/LavacaoPublicaPage";
 import NotFound from "@/pages/NotFound";
 import { Menu } from "lucide-react";
 
@@ -77,11 +78,16 @@ export default function App() {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          {session ? (
-            <AppLayout session={session} onLogout={handleLogout} />
-          ) : (
-            <LoginScreen onLogin={handleLogin} />
-          )}
+          <Routes>
+            <Route path="/lavacao-publica" element={<LavacaoPublicaPage />} />
+            <Route path="*" element={
+              session ? (
+                <AppLayout session={session} onLogout={handleLogout} />
+              ) : (
+                <LoginScreen onLogin={handleLogin} />
+              )
+            } />
+          </Routes>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>

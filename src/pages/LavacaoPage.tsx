@@ -1,10 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { UserSession } from "@/lib/types";
 import { toast } from "sonner";
-import { Plus, Send, Trash2, Edit2, Check, X, Phone, UserPlus, Car, FileText, Camera, CheckCircle2, Droplets } from "lucide-react";
+import { Plus, Send, Trash2, Edit2, Check, X, Phone, UserPlus, FileText, Camera, CheckCircle2, Droplets, Car } from "lucide-react";
 import { format } from "date-fns";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -30,34 +30,25 @@ interface ContatoRecord {
   ativo: boolean;
 }
 
-interface PatioVeiculo {
-  id: string;
-  placa: string;
-  frota: string;
-  modelo: string;
-  eixo: string;
-}
-
 const TIPOS_VEICULO = ["CARRETA", "CAVALO", "TRUCK", "TOCO", "VAN", "UTILITÁRIO", "CARRO"];
 
-const APP_URL = "https://tl-blufrota.lovable.app";
+const APP_URL = "https://tl-blufrota.lovable.app/lavacao-publica";
 
 export default function LavacaoPage({ session }: { session: UserSession }) {
-  const isLavador = session.perfil === "LAVAÇÃO";
-  
-  if (isLavador) {
-    return <LavadorView session={session} />;
-  }
-
   return <SupervisorView session={session} />;
 }
 
-// ─── SUPERVISOR VIEW ───
 function SupervisorView({ session }: { session: UserSession }) {
   const [registros, setRegistros] = useState<LavacaoRecord[]>([]);
   const [contatos, setContatos] = useState<ContatoRecord[]>([]);
-  const [patioVeiculos, setPatioVeiculos] = useState<PatioVeiculo[]>([]);
-  const [tab, setTab] = useState<"patio" | "enviar" | "gestao" | "contatos">("patio");
+  const [tab, setTab] = useState<"cadastro" | "enviar" | "gestao" | "contatos">("cadastro");
+
+  // Cadastro fields
+  const [placa, setPlaca] = useState("");
+  const [frota, setFrota] = useState("");
+  const [tipoVeiculo, setTipoVeiculo] = useState("CARRETA");
+  const [valor, setValor] = useState("");
+  const [obs, setObs] = useState("");
 
   const [contatoNome, setContatoNome] = useState("");
   const [contatoTel, setContatoTel] = useState("");
@@ -67,16 +58,8 @@ function SupervisorView({ session }: { session: UserSession }) {
 
   const [filtroData, setFiltroData] = useState(format(new Date(), "yyyy-MM-dd"));
   const [selecionados, setSelecionados] = useState<Set<string>>(new Set());
-  const [selecionadosPatio, setSelecionadosPatio] = useState<Set<string>>(new Set());
 
-  useEffect(() => { carregar(); carregarContatos(); carregarPatio(); }, [filtroData]);
-
-  async function carregarPatio() {
-    const { data } = await supabase.from("patio").select("id, placa, frota, modelo, eixo")
-      .eq("concluido", false)
-      .order("created_at", { ascending: false });
-    setPatioVeiculos((data as any[]) || []);
-  }
+  useEffect(() => { carregar(); carregarContatos(); }, [filtroData]);
 
   async function carregar() {
     const { data } = await supabase.from("lavacao").select("*")
@@ -90,28 +73,22 @@ function SupervisorView({ session }: { session: UserSession }) {
     setContatos((data as any[]) || []);
   }
 
-  async function enviarPatioParaLavacao() {
-    if (selecionadosPatio.size === 0) { toast.error("SELECIONE OS VEÍCULOS DO PÁTIO!"); return; }
-    const veiculos = patioVeiculos.filter(v => selecionadosPatio.has(v.id));
-    
-    for (const v of veiculos) {
-      // Check if already in lavacao today
-      const { data: existing } = await supabase.from("lavacao").select("id")
-        .eq("placa", v.placa).eq("data_lavacao", format(new Date(), "yyyy-MM-dd"));
-      if (existing && existing.length > 0) continue;
-      
-      await supabase.from("lavacao").insert({
-        placa: v.placa, frota: v.frota, tipo_veiculo: v.modelo || "CARRETA",
-        valor: 0, observacoes: "", data_lavacao: format(new Date(), "yyyy-MM-dd"),
-        status: "PENDENTE", enviado_lavacao: true,
-      });
-    }
-    
-    toast.success(`${veiculos.length} VEÍCULO(S) ENVIADO(S) PARA LAVAÇÃO!`);
-    setSelecionadosPatio(new Set());
+  async function cadastrarVeiculo() {
+    if (!placa.trim()) { toast.error("INFORME A PLACA!"); return; }
+    await supabase.from("lavacao").insert({
+      placa: placa.toUpperCase().trim(),
+      frota: frota.toUpperCase().trim(),
+      tipo_veiculo: tipoVeiculo,
+      valor: parseFloat(valor) || 0,
+      observacoes: obs.toUpperCase().trim(),
+      data_lavacao: format(new Date(), "yyyy-MM-dd"),
+      status: "PENDENTE",
+      enviado_lavacao: false,
+    });
+    toast.success("VEÍCULO CADASTRADO!");
+    setPlaca(""); setFrota(""); setValor(""); setObs("");
     carregar();
   }
-
 
   async function enviarParaLavacao() {
     if (selecionados.size === 0) { toast.error("SELECIONE OS VEÍCULOS!"); return; }
@@ -160,7 +137,7 @@ function SupervisorView({ session }: { session: UserSession }) {
 
     const msg = `LAVACAO TL-BLU ${filtroData}\n\n` +
       enviados.map((r, i) => `${i + 1}. ${r.placa} - ${r.frota} - ${r.tipo_veiculo}`).join("\n") +
-      `\nTOTAL: ${enviados.length}\n\nFOTOS: ${APP_URL}`;
+      `\nTOTAL: ${enviados.length}\n\nACESSE AQUI PARA VER E REGISTRAR: ${APP_URL}`;
 
     contatosAtivos.forEach(c => {
       const tel = c.telefone.replace(/\D/g, "");
@@ -203,14 +180,6 @@ function SupervisorView({ session }: { session: UserSession }) {
     });
   }
 
-  function togglePatio(id: string) {
-    setSelecionadosPatio(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  }
-
   const naoEnviados = registros.filter(r => !r.enviado_lavacao);
   const totalHoje = registros.length;
   const totalConcluidos = registros.filter(r => r.status === "CONCLUÍDO").length;
@@ -226,7 +195,7 @@ function SupervisorView({ session }: { session: UserSession }) {
       {/* Dashboard */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: "PÁTIO", value: patioVeiculos.length, color: "text-primary" },
+          { label: "CADASTRADOS", value: totalHoje, color: "text-primary" },
           { label: "ENVIADOS", value: totalEnviados, color: "text-orange-400" },
           { label: "CONCLUÍDOS", value: totalConcluidos, color: "text-accent" },
           { label: "VALOR TOTAL", value: `R$ ${totalValor.toFixed(2)}`, color: "text-primary" },
@@ -241,7 +210,7 @@ function SupervisorView({ session }: { session: UserSession }) {
       {/* Tabs */}
       <div className="flex flex-wrap gap-2">
         {([
-          { key: "patio", label: "VEÍCULOS DO PÁTIO", icon: Car },
+          { key: "cadastro", label: "CADASTRAR", icon: Plus },
           { key: "enviar", label: "ENVIAR P/ LAVAÇÃO", icon: Send },
           { key: "gestao", label: "GESTÃO", icon: Edit2 },
           { key: "contatos", label: "WHATSAPP", icon: Phone },
@@ -253,53 +222,65 @@ function SupervisorView({ session }: { session: UserSession }) {
         ))}
       </div>
 
-      {/* VEÍCULOS DO PÁTIO */}
-      {tab === "patio" && (
+      {/* CADASTRAR VEÍCULO */}
+      {tab === "cadastro" && (
         <div className="space-y-3">
-          <div className="flex items-center gap-3 flex-wrap">
-            <Button onClick={enviarPatioParaLavacao} disabled={selecionadosPatio.size === 0}
-              className="neon-button font-orbitron text-xs uppercase gap-1 h-12 flex-1">
-              <Send className="h-4 w-4" /> ENVIAR SELECIONADOS PARA LAVAÇÃO ({selecionadosPatio.size})
+          <div className="glass-card rounded-xl p-4 border border-border/30 space-y-3">
+            <h2 className="font-orbitron text-sm text-primary uppercase flex items-center gap-2">
+              <Car className="h-4 w-4" /> CADASTRAR VEÍCULO PARA LAVAÇÃO
+            </h2>
+            <div className="grid grid-cols-2 gap-3">
+              <Input placeholder="PLACA" value={placa}
+                onChange={e => setPlaca(e.target.value.toUpperCase())}
+                className="h-12 uppercase font-orbitron bg-input border-border text-lg tracking-widest" />
+              <Input placeholder="FROTA" value={frota}
+                onChange={e => setFrota(e.target.value.toUpperCase())}
+                className="h-12 uppercase font-orbitron bg-input border-border" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <select value={tipoVeiculo} onChange={e => setTipoVeiculo(e.target.value)}
+                className="h-12 rounded-md border border-border bg-input px-3 text-sm text-foreground font-orbitron uppercase">
+                {TIPOS_VEICULO.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+              <Input placeholder="VALOR R$" type="number" value={valor}
+                onChange={e => setValor(e.target.value)}
+                className="h-12 font-orbitron bg-input border-border" />
+            </div>
+            <Input placeholder="OBSERVAÇÕES" value={obs}
+              onChange={e => setObs(e.target.value.toUpperCase())}
+              className="h-12 uppercase font-orbitron bg-input border-border" />
+            <Button onClick={cadastrarVeiculo}
+              className="w-full h-14 neon-button font-orbitron uppercase text-sm gap-2">
+              <Plus className="h-5 w-5" /> CADASTRAR VEÍCULO
             </Button>
           </div>
 
-          <div className="space-y-2">
-            {patioVeiculos.length === 0 && (
-              <div className="text-center text-muted-foreground text-xs font-orbitron p-6 uppercase">
-                NENHUM VEÍCULO NO PÁTIO
-              </div>
-            )}
-            {patioVeiculos.map(v => (
-              <div key={v.id}
-                onClick={() => togglePatio(v.id)}
-                className={`glass-card rounded-xl p-4 border cursor-pointer transition-all duration-200 ${
-                  selecionadosPatio.has(v.id)
-                    ? "border-primary/60 bg-primary/10 shadow-[0_0_15px_hsl(var(--primary)/0.2)]"
-                    : "border-border/30 hover:border-primary/30"
-                }`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                      selecionadosPatio.has(v.id) ? "border-primary bg-primary" : "border-muted-foreground"
-                    }`}>
-                      {selecionadosPatio.has(v.id) && <Check className="h-4 w-4 text-primary-foreground" />}
-                    </div>
-                    <div>
-                      <span className="font-orbitron text-sm text-primary font-bold">{v.placa}</span>
-                      <span className="ml-3 font-orbitron text-xs text-muted-foreground">{v.frota}</span>
-                    </div>
+          {/* Lista de cadastrados hoje */}
+          {registros.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="font-orbitron text-xs text-muted-foreground uppercase">CADASTRADOS HOJE ({registros.length})</h3>
+              {registros.map(r => (
+                <div key={r.id} className="glass-card rounded-xl p-3 border border-border/30 flex items-center justify-between">
+                  <div>
+                    <span className="font-orbitron text-sm text-primary font-bold">{r.placa}</span>
+                    <span className="ml-2 font-orbitron text-xs text-muted-foreground">{r.frota} • {r.tipo_veiculo}</span>
                   </div>
-                  <div className="flex items-center gap-3 text-xs font-orbitron text-muted-foreground">
-                    <span>{v.modelo}</span>
-                    <span>{v.eixo}</span>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2 py-0.5 rounded text-[0.6rem] font-orbitron ${
+                      r.status === "CONCLUÍDO" ? "bg-accent/20 text-accent" :
+                      r.enviado_lavacao ? "bg-orange-400/20 text-orange-400" :
+                      "bg-muted/30 text-muted-foreground"
+                    }`}>{r.enviado_lavacao ? r.status : "AGUARDANDO"}</span>
+                    <Button size="icon" variant="ghost" onClick={() => excluir(r.id)} className="h-7 w-7 text-destructive">
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
-
 
       {/* ENVIAR PARA LAVAÇÃO */}
       {tab === "enviar" && (
@@ -319,11 +300,10 @@ function SupervisorView({ session }: { session: UserSession }) {
             </Button>
           </div>
 
+          {/* Não enviados - selecionáveis */}
           <div className="space-y-2">
-            {naoEnviados.length === 0 && (
-              <div className="text-center text-muted-foreground text-xs font-orbitron p-6 uppercase">
-                TODOS JÁ ENVIADOS OU NENHUM CADASTRADO
-              </div>
+            {naoEnviados.length > 0 && (
+              <h3 className="font-orbitron text-xs text-muted-foreground uppercase">SELECIONE PARA ENVIAR</h3>
             )}
             {naoEnviados.map(r => (
               <div key={r.id}
@@ -352,31 +332,37 @@ function SupervisorView({ session }: { session: UserSession }) {
                 </div>
               </div>
             ))}
-
-            {registros.filter(r => r.enviado_lavacao).length > 0 && (
-              <>
-                <h3 className="font-orbitron text-xs text-accent uppercase mt-4 flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4" /> JÁ ENVIADOS PARA LAVAÇÃO
-                </h3>
-                {registros.filter(r => r.enviado_lavacao).map(r => (
-                  <div key={r.id} className="glass-card rounded-xl p-4 border border-accent/30 opacity-70">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="font-orbitron text-sm text-accent font-bold">{r.placa}</span>
-                        <span className="ml-3 font-orbitron text-xs text-muted-foreground">{r.frota}</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-xs font-orbitron">
-                        <span className={`px-2 py-0.5 rounded text-[0.6rem] ${
-                          r.status === "CONCLUÍDO" ? "bg-accent/20 text-accent" : "bg-orange-400/20 text-orange-400"
-                        }`}>{r.status}</span>
-                        {r.foto_lavado && <Camera className="h-4 w-4 text-accent" />}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </>
+            {naoEnviados.length === 0 && (
+              <div className="text-center text-muted-foreground text-xs font-orbitron p-6 uppercase">
+                TODOS JÁ ENVIADOS OU NENHUM CADASTRADO
+              </div>
             )}
           </div>
+
+          {/* Já enviados */}
+          {registros.filter(r => r.enviado_lavacao).length > 0 && (
+            <>
+              <h3 className="font-orbitron text-xs text-accent uppercase mt-4 flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4" /> JÁ ENVIADOS PARA LAVAÇÃO
+              </h3>
+              {registros.filter(r => r.enviado_lavacao).map(r => (
+                <div key={r.id} className="glass-card rounded-xl p-4 border border-accent/30 opacity-70">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="font-orbitron text-sm text-accent font-bold">{r.placa}</span>
+                      <span className="ml-3 font-orbitron text-xs text-muted-foreground">{r.frota}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-xs font-orbitron">
+                      <span className={`px-2 py-0.5 rounded text-[0.6rem] ${
+                        r.status === "CONCLUÍDO" ? "bg-accent/20 text-accent" : "bg-orange-400/20 text-orange-400"
+                      }`}>{r.status}</span>
+                      {r.foto_lavado && <Camera className="h-4 w-4 text-accent" />}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
         </div>
       )}
 
@@ -502,145 +488,6 @@ function SupervisorView({ session }: { session: UserSession }) {
               </div>
             )}
           </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── LAVADOR VIEW (exclusive LAVAÇÃO user) ───
-function LavadorView({ session }: { session: UserSession }) {
-  const [registros, setRegistros] = useState<LavacaoRecord[]>([]);
-  const [uploading, setUploading] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [fotoTarget, setFotoTarget] = useState<string | null>(null);
-
-  useEffect(() => { carregar(); }, []);
-
-  async function carregar() {
-    const hoje = format(new Date(), "yyyy-MM-dd");
-    const { data } = await supabase.from("lavacao").select("*")
-      .eq("enviado_lavacao", true)
-      .eq("data_lavacao", hoje)
-      .order("created_at", { ascending: false });
-    setRegistros((data as any[]) || []);
-  }
-
-  function iniciarFoto(id: string) {
-    setFotoTarget(id);
-    fileInputRef.current?.click();
-  }
-
-  async function handleFoto(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file || !fotoTarget) return;
-
-    setUploading(fotoTarget);
-    const fileName = `${fotoTarget}_${Date.now()}.${file.name.split('.').pop()}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from("lavacao-fotos")
-      .upload(fileName, file, { cacheControl: "3600", upsert: true });
-
-    if (uploadError) {
-      toast.error("ERRO AO ENVIAR FOTO!");
-      setUploading(null);
-      return;
-    }
-
-    const { data: urlData } = supabase.storage.from("lavacao-fotos").getPublicUrl(fileName);
-
-    await supabase.from("lavacao").update({
-      foto_lavado: urlData.publicUrl,
-      status: "CONCLUÍDO",
-    } as any).eq("id", fotoTarget);
-
-    toast.success("FOTO SALVA! LAVAÇÃO CONCLUÍDA!");
-    setUploading(null);
-    setFotoTarget(null);
-    e.target.value = "";
-    carregar();
-  }
-
-  const pendentes = registros.filter(r => r.status !== "CONCLUÍDO");
-  const concluidos = registros.filter(r => r.status === "CONCLUÍDO");
-
-  return (
-    <div className="space-y-4">
-      <h1 className="font-orbitron text-xl text-primary neon-text uppercase tracking-wider flex items-center gap-2">
-        <Droplets className="h-6 w-6" /> LAVAÇÃO - {session.nome}
-      </h1>
-
-      <input ref={fileInputRef} type="file" accept="image/*" capture="environment"
-        className="hidden" onChange={handleFoto} />
-
-      {/* Dashboard */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="glass-card rounded-xl p-3 text-center border border-border/30">
-          <div className="font-orbitron text-2xl font-bold text-orange-400">{pendentes.length}</div>
-          <div className="text-[0.6rem] text-muted-foreground font-orbitron uppercase">PARA LAVAR</div>
-        </div>
-        <div className="glass-card rounded-xl p-3 text-center border border-border/30">
-          <div className="font-orbitron text-2xl font-bold text-accent">{concluidos.length}</div>
-          <div className="text-[0.6rem] text-muted-foreground font-orbitron uppercase">LAVADOS</div>
-        </div>
-      </div>
-
-      {/* Pending vehicles - with LAVADO button next to each */}
-      {pendentes.length > 0 && (
-        <div className="space-y-2">
-          <h2 className="font-orbitron text-sm text-orange-400 uppercase flex items-center gap-2">
-            <Car className="h-4 w-4" /> VEÍCULOS DISPONÍVEIS
-          </h2>
-          {pendentes.map(r => (
-            <div key={r.id} className="glass-card rounded-xl p-4 border border-orange-400/30">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-orbitron text-lg text-primary font-bold">{r.placa}</div>
-                  <div className="font-orbitron text-xs text-muted-foreground">{r.frota} • {r.tipo_veiculo}</div>
-                </div>
-                <Button
-                  onClick={() => iniciarFoto(r.id)}
-                  disabled={uploading === r.id}
-                  className="h-12 px-4 neon-button-green font-orbitron uppercase text-xs gap-2">
-                  <Camera className="h-5 w-5" />
-                  {uploading === r.id ? "ENVIANDO..." : "LAVADO ✅"}
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Completed */}
-      {concluidos.length > 0 && (
-        <div className="space-y-2">
-          <h2 className="font-orbitron text-sm text-accent uppercase flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4" /> LAVADOS HOJE
-          </h2>
-          {concluidos.map(r => (
-            <div key={r.id} className="glass-card rounded-xl p-4 border border-accent/30">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-orbitron text-sm text-accent font-bold">{r.placa}</div>
-                  <div className="font-orbitron text-xs text-muted-foreground">{r.frota} • {r.tipo_veiculo}</div>
-                </div>
-                <CheckCircle2 className="h-6 w-6 text-accent" />
-              </div>
-              {r.foto_lavado && (
-                <a href={r.foto_lavado} target="_blank" rel="noreferrer">
-                  <img src={r.foto_lavado} alt={`Foto ${r.placa}`}
-                    className="mt-2 rounded-lg w-full max-h-48 object-cover border border-accent/20" />
-                </a>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {registros.length === 0 && (
-        <div className="text-center text-muted-foreground text-xs font-orbitron p-8 uppercase">
-          NENHUM VEÍCULO ENVIADO PARA LAVAÇÃO HOJE
         </div>
       )}
     </div>
