@@ -93,10 +93,27 @@ function SupervisorView({ session }: { session: UserSession }) {
   async function enviarParaLavacao() {
     if (selecionados.size === 0) { toast.error("SELECIONE OS VEÍCULOS!"); return; }
     const ids = Array.from(selecionados);
+    const veiculosSelecionados = registros.filter(r => ids.includes(r.id));
     for (const id of ids) {
       await supabase.from("lavacao").update({ enviado_lavacao: true, status: "EM LAVAÇÃO" } as any).eq("id", id);
     }
     toast.success(`${ids.length} VEÍCULO(S) ENVIADO(S) PARA LAVAÇÃO!`);
+
+    // Enviar WhatsApp com lista + link
+    const contatosAtivos = contatos.filter(c => c.ativo);
+    if (contatosAtivos.length > 0) {
+      const msg = `LAVACAO TL-BLU ${filtroData}\n\n` +
+        veiculosSelecionados.map((r, i) => `${i + 1}. ${r.placa} - ${r.frota} - ${r.tipo_veiculo}`).join("\n") +
+        `\n\nTOTAL: ${veiculosSelecionados.length} VEICULOS\n\nACESSE PARA REGISTRAR FOTOS:\n${APP_URL}`;
+
+      contatosAtivos.forEach(c => {
+        const tel = c.telefone.replace(/\D/g, "");
+        window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`, "_blank");
+      });
+    } else {
+      toast.info("NENHUM CONTATO CADASTRADO PARA WHATSAPP");
+    }
+
     setSelecionados(new Set());
     carregar();
   }
