@@ -93,10 +93,27 @@ function SupervisorView({ session }: { session: UserSession }) {
   async function enviarParaLavacao() {
     if (selecionados.size === 0) { toast.error("SELECIONE OS VEÍCULOS!"); return; }
     const ids = Array.from(selecionados);
+    const veiculosSelecionados = registros.filter(r => ids.includes(r.id));
     for (const id of ids) {
       await supabase.from("lavacao").update({ enviado_lavacao: true, status: "EM LAVAÇÃO" } as any).eq("id", id);
     }
     toast.success(`${ids.length} VEÍCULO(S) ENVIADO(S) PARA LAVAÇÃO!`);
+
+    // Enviar WhatsApp com lista + link
+    const contatosAtivos = contatos.filter(c => c.ativo);
+    if (contatosAtivos.length > 0) {
+      const msg = `LAVACAO TL-BLU ${filtroData}\n\n` +
+        veiculosSelecionados.map((r, i) => `${i + 1}. ${r.placa} - ${r.frota} - ${r.tipo_veiculo}`).join("\n") +
+        `\n\nTOTAL: ${veiculosSelecionados.length} VEICULOS\n\nACESSE PARA REGISTRAR FOTOS:\n${APP_URL}`;
+
+      contatosAtivos.forEach(c => {
+        const tel = c.telefone.replace(/\D/g, "");
+        window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`, "_blank");
+      });
+    } else {
+      toast.info("NENHUM CONTATO CADASTRADO PARA WHATSAPP");
+    }
+
     setSelecionados(new Set());
     carregar();
   }
@@ -290,13 +307,10 @@ function SupervisorView({ session }: { session: UserSession }) {
               className="h-10 w-48 font-orbitron text-xs bg-input border-border" />
             <Button onClick={enviarParaLavacao} disabled={selecionados.size === 0}
               className="neon-button font-orbitron text-xs uppercase gap-1 h-10">
-              <Send className="h-4 w-4" /> ENVIAR ({selecionados.size})
+              <Send className="h-4 w-4" /> ENVIAR + WHATSAPP ({selecionados.size})
             </Button>
             <Button onClick={gerarPDF} className="neon-button-green font-orbitron text-xs uppercase gap-1 h-10">
               <FileText className="h-4 w-4" /> PDF
-            </Button>
-            <Button onClick={enviarWhatsApp} className="neon-button-green font-orbitron text-xs uppercase gap-1 h-10">
-              <Phone className="h-4 w-4" /> WHATSAPP
             </Button>
           </div>
 
