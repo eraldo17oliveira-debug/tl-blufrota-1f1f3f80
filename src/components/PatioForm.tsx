@@ -19,6 +19,22 @@ export default function PatioForm({ onSaved, onFechar }: { onSaved: () => void; 
   const [status, setStatus] = useState("");
   const [motivoBloqueio, setMotivoBloqueio] = useState("");
 
+  const handlePlacaChange = useCallback(async (v: string) => {
+    setPlaca(v);
+    const clean = v.replace(/[^A-Za-z0-9]/g, "");
+    if (clean.length === 7 && isPlacaValid(v)) {
+      const ultimo = await buscarUltimoPatio(v);
+      if (ultimo) {
+        setFrota(ultimo.frota || "");
+        setModelo(ultimo.modelo || "");
+        setEixo(ultimo.eixo || "");
+        setEstado(ultimo.estado || "");
+        setLocal(ultimo.local || "");
+        toast.info("DADOS PRÉ-PREENCHIDOS DA ÚLTIMA ENTRADA!");
+      }
+    }
+  }, []);
+
   const handleSave = async () => {
     if (!placa) { toast.error("INFORME A PLACA!"); return; }
     if (status === "Bloqueio" && !motivoBloqueio.trim()) { toast.error("INFORME O MOTIVO DO BLOQUEIO!"); return; }
