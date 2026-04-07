@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { salvarPatio } from "@/lib/storage";
+import { useState, useCallback } from "react";
+import { salvarPatio, buscarUltimoPatio } from "@/lib/storage";
+import { isPlacaValid } from "@/lib/placaMask";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
