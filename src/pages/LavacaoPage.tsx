@@ -265,7 +265,7 @@ function SupervisorView({ session }: { session: UserSession }) {
             </h2>
             <div className="grid grid-cols-2 gap-3">
               <Input placeholder="PLACA" value={placa}
-                onChange={e => setPlaca(e.target.value.toUpperCase())}
+                onChange={e => handlePlacaChange(e.target.value.toUpperCase())}
                 className="h-12 uppercase font-orbitron bg-input border-border text-lg tracking-widest" />
               <Input placeholder="FROTA" value={frota}
                 onChange={e => setFrota(e.target.value.toUpperCase())}
