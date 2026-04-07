@@ -50,7 +50,7 @@ export default function PatioForm({ onSaved, onFechar }: { onSaved: () => void; 
   return (
     <div className="glass-card rounded-2xl p-5 space-y-5">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <PlacaInput value={placa} onChange={setPlaca} />
+        <PlacaInput value={placa} onChange={handlePlacaChange} />
         <Input placeholder="FROTA" value={frota} onChange={e => setFrota(e.target.value)}
           className="uppercase text-center font-orbitron font-semibold bg-input border-border/50 focus:border-primary h-12" />
       </div>
