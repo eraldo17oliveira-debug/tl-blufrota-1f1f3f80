@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { isPlacaValid } from "@/lib/placaMask";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { UserSession } from "@/lib/types";
@@ -58,6 +59,22 @@ function SupervisorView({ session }: { session: UserSession }) {
 
   const [filtroData, setFiltroData] = useState(format(new Date(), "yyyy-MM-dd"));
   const [selecionados, setSelecionados] = useState<Set<string>>(new Set());
+
+  async function handlePlacaChange(v: string) {
+    setPlaca(v);
+    const clean = v.replace(/[^A-Za-z0-9]/g, "");
+    if (clean.length === 7 && isPlacaValid(v)) {
+      const { data } = await supabase.from("lavacao").select("*")
+        .ilike("placa", `%${clean.slice(0,3)}%${clean.slice(3)}%`)
+        .order("created_at", { ascending: false }).limit(1);
+      if (data && data.length > 0) {
+        setFrota(data[0].frota || "");
+        setTipoVeiculo(data[0].tipo_veiculo || "CARRETA");
+        setValor(data[0].valor ? String(data[0].valor) : "");
+        toast.info("DADOS PRÉ-PREENCHIDOS!");
+      }
+    }
+  }
 
   useEffect(() => { carregar(); carregarContatos(); }, [filtroData]);
 
@@ -248,7 +265,7 @@ function SupervisorView({ session }: { session: UserSession }) {
             </h2>
             <div className="grid grid-cols-2 gap-3">
               <Input placeholder="PLACA" value={placa}
-                onChange={e => setPlaca(e.target.value.toUpperCase())}
+                onChange={e => handlePlacaChange(e.target.value.toUpperCase())}
                 className="h-12 uppercase font-orbitron bg-input border-border text-lg tracking-widest" />
               <Input placeholder="FROTA" value={frota}
                 onChange={e => setFrota(e.target.value.toUpperCase())}

@@ -391,6 +391,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      limpar_registros_antigos: { Args: never; Returns: undefined }
       list_users_safe: { Args: never; Returns: Json[] }
       verify_login: {
         Args: { p_login: string; p_senha: string }

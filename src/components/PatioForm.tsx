@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { salvarPatio } from "@/lib/storage";
+import { useState, useCallback } from "react";
+import { salvarPatio, buscarUltimoPatio } from "@/lib/storage";
+import { isPlacaValid } from "@/lib/placaMask";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,6 +19,22 @@ export default function PatioForm({ onSaved, onFechar }: { onSaved: () => void; 
   const [status, setStatus] = useState("");
   const [motivoBloqueio, setMotivoBloqueio] = useState("");
 
+  const handlePlacaChange = useCallback(async (v: string) => {
+    setPlaca(v);
+    const clean = v.replace(/[^A-Za-z0-9]/g, "");
+    if (clean.length === 7 && isPlacaValid(v)) {
+      const ultimo = await buscarUltimoPatio(v);
+      if (ultimo) {
+        setFrota(ultimo.frota || "");
+        setModelo(ultimo.modelo || "");
+        setEixo(ultimo.eixo || "");
+        setEstado(ultimo.estado || "");
+        setLocal(ultimo.local || "");
+        toast.info("DADOS PRÉ-PREENCHIDOS DA ÚLTIMA ENTRADA!");
+      }
+    }
+  }, []);
+
   const handleSave = async () => {
     if (!placa) { toast.error("INFORME A PLACA!"); return; }
     if (status === "Bloqueio" && !motivoBloqueio.trim()) { toast.error("INFORME O MOTIVO DO BLOQUEIO!"); return; }
@@ -33,7 +50,7 @@ export default function PatioForm({ onSaved, onFechar }: { onSaved: () => void; 
   return (
     <div className="glass-card rounded-2xl p-5 space-y-5">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <PlacaInput value={placa} onChange={setPlaca} />
+        <PlacaInput value={placa} onChange={handlePlacaChange} />
         <Input placeholder="FROTA" value={frota} onChange={e => setFrota(e.target.value)}
           className="uppercase text-center font-orbitron font-semibold bg-input border-border/50 focus:border-primary h-12" />
       </div>

@@ -103,6 +103,25 @@ export async function atualizarStatusOS(id: string, status: string) {
   if (error) console.error(error);
 }
 
+// ── Buscar último registro por placa ──
+export async function buscarUltimoPatio(placa: string) {
+  const clean = placa.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+  if (clean.length < 7) return null;
+  const { data } = await supabase.from("patio").select("*")
+    .ilike("placa", `%${clean.slice(0,3)}%${clean.slice(3)}%`)
+    .order("created_at", { ascending: false }).limit(1);
+  return data && data.length > 0 ? data[0] : null;
+}
+
+export async function buscarUltimaLavacao(placa: string) {
+  const clean = placa.replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+  if (clean.length < 7) return null;
+  const { data } = await supabase.from("lavacao").select("*")
+    .ilike("placa", `%${clean.slice(0,3)}%${clean.slice(3)}%`)
+    .order("created_at", { ascending: false }).limit(1);
+  return data && data.length > 0 ? data[0] : null;
+}
+
 // ── CSV Export utility ──
 export function exportCSV(filename: string, headers: string[], rows: string[][]) {
   const csvContent = [headers.join(";"), ...rows.map(r => r.join(";"))].join("\n");
