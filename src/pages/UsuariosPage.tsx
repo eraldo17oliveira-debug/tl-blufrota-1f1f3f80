@@ -13,11 +13,12 @@ import { toast } from "sonner";
 const ROLES: UserRole[] = ["SUPERVISOR", "MANOBRA", "MANUTENÇÃO", "EXPEDIÇÃO", "LAVAÇÃO"];
 
 const PERM_LABELS: { key: keyof UserPermissions; dbKey: string; label: string }[] = [
-  { key: "patio", dbKey: "pode_patio", label: "ACESSAR PÁTIO" },
-  { key: "rodizio", dbKey: "pode_rodizio", label: "ACESSAR PNEUS" },
-  { key: "fornecedores", dbKey: "pode_fornecedores", label: "ACESSAR FORNECEDORES" },
-  { key: "expedicao", dbKey: "pode_expedicao", label: "CONSULTAR EXPEDIÇÃO" },
+  { key: "patio", dbKey: "pode_patio", label: "GESTÃO DE PÁTIO" },
+  { key: "rodizio", dbKey: "pode_rodizio", label: "RODÍZIO DE PNEUS" },
+  { key: "fornecedores", dbKey: "pode_fornecedores", label: "FORNECEDORES" },
+  { key: "expedicao", dbKey: "pode_expedicao", label: "MONITORAMENTO" },
   { key: "os", dbKey: "pode_patio", label: "ORDEM DE SERVIÇO" },
+  { key: "lavacao", dbKey: "pode_lavacao", label: "LAVAÇÃO" },
   { key: "gerarPdf", dbKey: "pode_pdf", label: "GERAR PDF" },
   { key: "gerarExcel", dbKey: "pode_excel", label: "GERAR EXCEL" },
 ];
