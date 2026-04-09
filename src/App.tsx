@@ -55,6 +55,7 @@ function AppLayout({ session, onLogout }: { session: UserSession; onLogout: () =
             </Routes>
           </main>
         </div>
+        <AIChatWidget />
       </div>
     </SidebarProvider>
   );
