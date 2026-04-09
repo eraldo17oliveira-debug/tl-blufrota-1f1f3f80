@@ -94,6 +94,7 @@ export async function salvarUsuario(user: Omit<RegisteredUser, "id"> & { senha?:
     nivel: user.nivel, pode_patio: user.pode_patio, pode_rodizio: user.pode_rodizio,
     pode_combustivel: user.pode_combustivel, pode_inventario: user.pode_inventario,
     pode_fornecedores: user.pode_fornecedores, pode_expedicao: user.pode_expedicao,
+    pode_lavacao: (user as any).pode_lavacao ?? false,
     pode_pdf: user.pode_pdf, pode_excel: user.pode_excel, ativo: user.ativo,
   });
   if (error) console.error("Erro ao salvar usuário");

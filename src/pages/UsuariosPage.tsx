@@ -65,6 +65,7 @@ export default function UsuariosPage() {
       nome: nome.toUpperCase(), login: nome.toUpperCase(), nivel,
       pode_patio: permissoes.patio, pode_rodizio: permissoes.rodizio,
       pode_fornecedores: permissoes.fornecedores, pode_expedicao: permissoes.expedicao,
+      pode_lavacao: permissoes.lavacao,
       pode_pdf: permissoes.gerarPdf, pode_excel: permissoes.gerarExcel, ativo: true,
     };
     if (senha) userData.senha = senha;
