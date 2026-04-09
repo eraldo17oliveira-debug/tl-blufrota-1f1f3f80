@@ -18,6 +18,7 @@ import OrdemServicoPage from "@/pages/OrdemServicoPage";
 import LavacaoPage from "@/pages/LavacaoPage";
 import LavacaoPublicaPage from "@/pages/LavacaoPublicaPage";
 import NotFound from "@/pages/NotFound";
+import AIChatWidget from "@/components/AIChatWidget";
 import { Menu } from "lucide-react";
 
 const queryClient = new QueryClient();
@@ -54,6 +55,7 @@ function AppLayout({ session, onLogout }: { session: UserSession; onLogout: () =
             </Routes>
           </main>
         </div>
+        <AIChatWidget />
       </div>
     </SidebarProvider>
   );
