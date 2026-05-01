@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      bloqueados: {
+        Row: {
+          created_at: string
+          data_bloqueio: string
+          data_desbloqueio: string | null
+          foto: string
+          frota: string
+          id: string
+          modelo: string
+          motivo: string
+          observacoes_desbloqueio: string
+          placa: string
+          responsavel: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          data_bloqueio?: string
+          data_desbloqueio?: string | null
+          foto?: string
+          frota?: string
+          id?: string
+          modelo?: string
+          motivo?: string
+          observacoes_desbloqueio?: string
+          placa: string
+          responsavel?: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          data_bloqueio?: string
+          data_desbloqueio?: string | null
+          foto?: string
+          frota?: string
+          id?: string
+          modelo?: string
+          motivo?: string
+          observacoes_desbloqueio?: string
+          placa?: string
+          responsavel?: string
+          status?: string
+        }
+        Relationships: []
+      }
       combustivel_carga: {
         Row: {
           created_at: string
@@ -256,6 +301,7 @@ export type Database = {
           login: string
           nivel: string
           nome: string
+          pode_bloqueados: boolean
           pode_combustivel: boolean
           pode_excel: boolean
           pode_expedicao: boolean
@@ -274,6 +320,7 @@ export type Database = {
           login: string
           nivel?: string
           nome: string
+          pode_bloqueados?: boolean
           pode_combustivel?: boolean
           pode_excel?: boolean
           pode_expedicao?: boolean
@@ -292,6 +339,7 @@ export type Database = {
           login?: string
           nivel?: string
           nome?: string
+          pode_bloqueados?: boolean
           pode_combustivel?: boolean
           pode_excel?: boolean
           pode_expedicao?: boolean
