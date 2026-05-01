@@ -40,6 +40,7 @@ function toPermissoes(u: any): UserPermissions {
     expedicao: u.pode_expedicao,
     os: u.pode_patio || u.pode_rodizio,
     lavacao: u.pode_lavacao ?? false,
+    bloqueados: u.pode_bloqueados ?? false,
     gerarPdf: u.pode_pdf,
     gerarExcel: u.pode_excel,
   };
@@ -95,6 +96,7 @@ export async function salvarUsuario(user: Omit<RegisteredUser, "id"> & { senha?:
     pode_combustivel: user.pode_combustivel, pode_inventario: user.pode_inventario,
     pode_fornecedores: user.pode_fornecedores, pode_expedicao: user.pode_expedicao,
     pode_lavacao: (user as any).pode_lavacao ?? false,
+    pode_bloqueados: (user as any).pode_bloqueados ?? false,
     pode_pdf: user.pode_pdf, pode_excel: user.pode_excel, ativo: user.ativo,
   });
   if (error) console.error("Erro ao salvar usuário");
