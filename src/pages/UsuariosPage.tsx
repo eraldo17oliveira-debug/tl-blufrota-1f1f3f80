@@ -89,6 +89,10 @@ export default function UsuariosPage() {
     <div className="space-y-5">
       <h1 className="font-orbitron text-lg font-bold text-primary neon-text uppercase tracking-wider">👥 GESTÃO MASTER</h1>
 
+      <div className="glass-card border border-warning/40 rounded-xl p-3 text-[0.65rem] font-orbitron text-warning uppercase text-center">
+        ⚠️ APÓS ALTERAR PERMISSÕES, O USUÁRIO DEVE SAIR E ENTRAR NOVAMENTE PARA APLICAR
+      </div>
+
       <Button onClick={openNew} className="gap-2 bg-primary hover:bg-primary/80 text-primary-foreground font-orbitron font-bold text-sm h-14 rounded-xl neon-glow-primary neon-pulse transition-all duration-300 uppercase w-full">
         <Plus className="h-5 w-5" /> CADASTRAR NOVO USUÁRIO
       </Button>
