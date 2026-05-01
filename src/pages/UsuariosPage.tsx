@@ -57,7 +57,7 @@ export default function UsuariosPage() {
     setModalOpen(true);
   };
 
-  const handlePerfilChange = (v: string) => { const role = v as UserRole; setPerfil(role); setPermissoes(DEFAULT_PERMISSIONS[role]); };
+  const handlePerfilChange = (v: string) => { setPerfil(v as UserRole); };
   const togglePerm = (key: keyof UserPermissions) => { setPermissoes(prev => ({ ...prev, [key]: !prev[key] })); };
 
   const handleSave = async () => {
