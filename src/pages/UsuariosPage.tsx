@@ -19,6 +19,7 @@ const PERM_LABELS: { key: keyof UserPermissions; dbKey: string; label: string }[
   { key: "expedicao", dbKey: "pode_expedicao", label: "MONITORAMENTO" },
   { key: "os", dbKey: "pode_patio", label: "ORDEM DE SERVIÇO" },
   { key: "lavacao", dbKey: "pode_lavacao", label: "LAVAÇÃO" },
+  { key: "bloqueados", dbKey: "pode_bloqueados", label: "BLOQUEADOS" },
   { key: "gerarPdf", dbKey: "pode_pdf", label: "GERAR PDF" },
   { key: "gerarExcel", dbKey: "pode_excel", label: "GERAR EXCEL" },
 ];
@@ -50,6 +51,7 @@ export default function UsuariosPage() {
       patio: u.pode_patio, rodizio: u.pode_rodizio,
       fornecedores: u.pode_fornecedores, expedicao: u.pode_expedicao,
       os: u.pode_patio || u.pode_rodizio, lavacao: (u as any).pode_lavacao ?? false,
+      bloqueados: (u as any).pode_bloqueados ?? false,
       gerarPdf: u.pode_pdf, gerarExcel: u.pode_excel,
     });
     setModalOpen(true);
@@ -66,6 +68,7 @@ export default function UsuariosPage() {
       pode_patio: permissoes.patio, pode_rodizio: permissoes.rodizio,
       pode_fornecedores: permissoes.fornecedores, pode_expedicao: permissoes.expedicao,
       pode_lavacao: permissoes.lavacao,
+      pode_bloqueados: permissoes.bloqueados,
       pode_pdf: permissoes.gerarPdf, pode_excel: permissoes.gerarExcel, ativo: true,
     };
     if (senha) userData.senha = senha;
