@@ -16,6 +16,7 @@ import ExpedicaoPage from "@/pages/ExpedicaoPage";
 import UsuariosPage from "@/pages/UsuariosPage";
 import OrdemServicoPage from "@/pages/OrdemServicoPage";
 import LavacaoPage from "@/pages/LavacaoPage";
+import BloqueadosPage from "@/pages/BloqueadosPage";
 import LavacaoPublicaPage from "@/pages/LavacaoPublicaPage";
 import NotFound from "@/pages/NotFound";
 import AIChatWidget from "@/components/AIChatWidget";
@@ -50,6 +51,7 @@ function AppLayout({ session, onLogout }: { session: UserSession; onLogout: () =
               {allowed.includes("expedicao") && <Route path="/expedicao" element={<ExpedicaoPage session={session} />} />}
               {allowed.includes("os") && <Route path="/os" element={<OrdemServicoPage session={session} />} />}
               {allowed.includes("lavacao") && <Route path="/lavacao" element={<LavacaoPage session={session} />} />}
+              {allowed.includes("bloqueados") && <Route path="/bloqueados" element={<BloqueadosPage session={session} />} />}
               {session.perfil === "SUPERVISOR" && <Route path="/usuarios" element={<UsuariosPage />} />}
               <Route path="*" element={<Navigate to={defaultRoute} replace />} />
             </Routes>

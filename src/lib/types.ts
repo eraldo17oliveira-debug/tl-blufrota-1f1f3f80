@@ -7,6 +7,7 @@ export interface UserPermissions {
   expedicao: boolean;
   os: boolean;
   lavacao: boolean;
+  bloqueados: boolean;
   gerarPdf: boolean;
   gerarExcel: boolean;
 }
@@ -19,19 +20,19 @@ export interface UserSession {
 
 export const DEFAULT_PERMISSIONS: Record<UserRole, UserPermissions> = {
   SUPERVISOR: {
-    patio: true, rodizio: true, fornecedores: true, expedicao: true, os: true, lavacao: true, gerarPdf: true, gerarExcel: true,
+    patio: true, rodizio: true, fornecedores: true, expedicao: true, os: true, lavacao: true, bloqueados: true, gerarPdf: true, gerarExcel: true,
   },
   MANOBRA: {
-    patio: true, rodizio: false, fornecedores: false, expedicao: false, os: false, lavacao: false, gerarPdf: true, gerarExcel: false,
+    patio: true, rodizio: false, fornecedores: false, expedicao: false, os: false, lavacao: false, bloqueados: false, gerarPdf: true, gerarExcel: false,
   },
   "MANUTENÇÃO": {
-    patio: false, rodizio: true, fornecedores: false, expedicao: false, os: true, lavacao: false, gerarPdf: true, gerarExcel: false,
+    patio: false, rodizio: true, fornecedores: false, expedicao: false, os: true, lavacao: false, bloqueados: false, gerarPdf: true, gerarExcel: false,
   },
   "EXPEDIÇÃO": {
-    patio: false, rodizio: false, fornecedores: false, expedicao: true, os: false, lavacao: false, gerarPdf: true, gerarExcel: true,
+    patio: false, rodizio: false, fornecedores: false, expedicao: true, os: false, lavacao: false, bloqueados: true, gerarPdf: true, gerarExcel: true,
   },
   "LAVAÇÃO": {
-    patio: false, rodizio: false, fornecedores: false, expedicao: false, os: false, lavacao: true, gerarPdf: false, gerarExcel: false,
+    patio: false, rodizio: false, fornecedores: false, expedicao: false, os: false, lavacao: true, bloqueados: false, gerarPdf: false, gerarExcel: false,
   },
 };
 
@@ -43,6 +44,7 @@ export function getModuleAccess(permissoes: UserPermissions): string[] {
   if (permissoes.expedicao) modules.push("expedicao");
   if (permissoes.os) modules.push("os");
   if (permissoes.lavacao) modules.push("lavacao");
+  if (permissoes.bloqueados) modules.push("bloqueados");
   return modules;
 }
 
