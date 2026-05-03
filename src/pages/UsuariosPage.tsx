@@ -108,9 +108,6 @@ export default function UsuariosPage() {
             <Input placeholder={editingId ? "NOVA SENHA (DEIXE VAZIO PARA MANTER)" : "SENHA"} value={senha} onChange={e => setSenha(e.target.value)} type="password"
               className="text-center bg-input border-border focus:border-primary h-14" />
 
-            <OptionGroup label="PERFIL" value={perfil} onChange={handlePerfilChange}
-              colorClass="bg-primary text-primary-foreground" glowClass="neon-glow-primary"
-              options={ROLES.map(r => ({ label: r, value: r }))} />
 
             <div className="space-y-3">
               <p className="font-orbitron text-[0.65rem] text-muted-foreground uppercase tracking-widest flex items-center gap-2">
