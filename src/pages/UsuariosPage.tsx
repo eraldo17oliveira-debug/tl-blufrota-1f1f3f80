@@ -60,7 +60,7 @@ export default function UsuariosPage() {
 
   const handleSave = async () => {
     if (!nome) { toast.error("INFORME O NOME!"); return; }
-    const nivel = perfilToNivel(perfil);
+    const nivel = "MANOBRA";
     const userData: any = {
       nome: nome.toUpperCase(), login: nome.toUpperCase(), nivel,
       pode_patio: permissoes.patio, pode_rodizio: permissoes.rodizio,
