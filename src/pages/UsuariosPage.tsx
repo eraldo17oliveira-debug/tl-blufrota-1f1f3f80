@@ -35,18 +35,16 @@ export default function UsuariosPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [nome, setNome] = useState("");
   const [senha, setSenha] = useState("");
-  const [perfil, setPerfil] = useState<UserRole>("MANOBRA");
   const [permissoes, setPermissoes] = useState<UserPermissions>(DEFAULT_PERMISSIONS["MANOBRA"]);
 
   const load = async () => { const data = await lerUsuarios(); setUsuarios(data); };
   useEffect(() => { load(); }, []);
 
-  const resetForm = () => { setNome(""); setSenha(""); setPerfil("MANOBRA"); setPermissoes(DEFAULT_PERMISSIONS["MANOBRA"]); setEditingId(null); };
+  const resetForm = () => { setNome(""); setSenha(""); setPermissoes(DEFAULT_PERMISSIONS["MANOBRA"]); setEditingId(null); };
   const openNew = () => { resetForm(); setModalOpen(true); };
 
   const openEdit = (u: RegisteredUser) => {
     setEditingId(u.id); setNome(u.nome); setSenha("");
-    setPerfil(nivelToPerfil(u.nivel) as UserRole);
     setPermissoes({
       patio: u.pode_patio, rodizio: u.pode_rodizio,
       fornecedores: u.pode_fornecedores, expedicao: u.pode_expedicao,
@@ -57,12 +55,12 @@ export default function UsuariosPage() {
     setModalOpen(true);
   };
 
-  const handlePerfilChange = (v: string) => { setPerfil(v as UserRole); };
+  const togglePerm2 = null;
   const togglePerm = (key: keyof UserPermissions) => { setPermissoes(prev => ({ ...prev, [key]: !prev[key] })); };
 
   const handleSave = async () => {
     if (!nome) { toast.error("INFORME O NOME!"); return; }
-    const nivel = perfilToNivel(perfil);
+    const nivel = "MANOBRA";
     const userData: any = {
       nome: nome.toUpperCase(), login: nome.toUpperCase(), nivel,
       pode_patio: permissoes.patio, pode_rodizio: permissoes.rodizio,
@@ -110,9 +108,6 @@ export default function UsuariosPage() {
             <Input placeholder={editingId ? "NOVA SENHA (DEIXE VAZIO PARA MANTER)" : "SENHA"} value={senha} onChange={e => setSenha(e.target.value)} type="password"
               className="text-center bg-input border-border focus:border-primary h-14" />
 
-            <OptionGroup label="PERFIL" value={perfil} onChange={handlePerfilChange}
-              colorClass="bg-primary text-primary-foreground" glowClass="neon-glow-primary"
-              options={ROLES.map(r => ({ label: r, value: r }))} />
 
             <div className="space-y-3">
               <p className="font-orbitron text-[0.65rem] text-muted-foreground uppercase tracking-widest flex items-center gap-2">
