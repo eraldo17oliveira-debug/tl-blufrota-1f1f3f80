@@ -35,18 +35,16 @@ export default function UsuariosPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [nome, setNome] = useState("");
   const [senha, setSenha] = useState("");
-  const [perfil, setPerfil] = useState<UserRole>("MANOBRA");
   const [permissoes, setPermissoes] = useState<UserPermissions>(DEFAULT_PERMISSIONS["MANOBRA"]);
 
   const load = async () => { const data = await lerUsuarios(); setUsuarios(data); };
   useEffect(() => { load(); }, []);
 
-  const resetForm = () => { setNome(""); setSenha(""); setPerfil("MANOBRA"); setPermissoes(DEFAULT_PERMISSIONS["MANOBRA"]); setEditingId(null); };
+  const resetForm = () => { setNome(""); setSenha(""); setPermissoes(DEFAULT_PERMISSIONS["MANOBRA"]); setEditingId(null); };
   const openNew = () => { resetForm(); setModalOpen(true); };
 
   const openEdit = (u: RegisteredUser) => {
     setEditingId(u.id); setNome(u.nome); setSenha("");
-    setPerfil(nivelToPerfil(u.nivel) as UserRole);
     setPermissoes({
       patio: u.pode_patio, rodizio: u.pode_rodizio,
       fornecedores: u.pode_fornecedores, expedicao: u.pode_expedicao,
