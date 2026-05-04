@@ -12,6 +12,7 @@ export interface RegisteredUser {
   pode_inventario: boolean;
   pode_fornecedores: boolean;
   pode_expedicao: boolean;
+  pode_os: boolean;
   pode_lavacao: boolean;
   pode_bloqueados: boolean;
   pode_pdf: boolean;
@@ -40,7 +41,7 @@ function toPermissoes(u: any): UserPermissions {
     rodizio: u.pode_rodizio,
     fornecedores: u.pode_fornecedores,
     expedicao: u.pode_expedicao,
-    os: u.pode_patio || u.pode_rodizio,
+    os: u.pode_os ?? false,
     lavacao: u.pode_lavacao ?? false,
     bloqueados: u.pode_bloqueados ?? false,
     gerarPdf: u.pode_pdf,
@@ -85,6 +86,7 @@ export async function lerUsuarios(): Promise<RegisteredUser[]> {
     pode_inventario: d.pode_inventario,
     pode_fornecedores: d.pode_fornecedores,
     pode_expedicao: d.pode_expedicao,
+    pode_os: d.pode_os ?? false,
     pode_lavacao: d.pode_lavacao,
     pode_bloqueados: d.pode_bloqueados,
     pode_pdf: d.pode_pdf,
@@ -99,11 +101,12 @@ export async function salvarUsuario(user: Omit<RegisteredUser, "id"> & { senha?:
     nivel: user.nivel, pode_patio: user.pode_patio, pode_rodizio: user.pode_rodizio,
     pode_combustivel: user.pode_combustivel, pode_inventario: user.pode_inventario,
     pode_fornecedores: user.pode_fornecedores, pode_expedicao: user.pode_expedicao,
+    pode_os: (user as any).pode_os ?? false,
     pode_lavacao: (user as any).pode_lavacao ?? false,
     pode_bloqueados: (user as any).pode_bloqueados ?? false,
     pode_pdf: user.pode_pdf, pode_excel: user.pode_excel, ativo: user.ativo,
   });
-  if (error) console.error("Erro ao salvar usuário");
+  if (error) throw error;
 }
 
 export async function atualizarUsuario(id: string, user: Partial<RegisteredUser> & { senha?: string }) {
@@ -111,12 +114,12 @@ export async function atualizarUsuario(id: string, user: Partial<RegisteredUser>
   delete updateData.id;
   if (!updateData.senha) delete updateData.senha;
   const { error } = await supabase.from("profiles").update(updateData).eq("id", id);
-  if (error) console.error("Erro ao atualizar usuário");
+  if (error) throw error;
 }
 
 export async function excluirUsuario(id: string) {
   const { error } = await supabase.from("profiles").delete().eq("id", id);
-  if (error) console.error("Erro ao excluir usuário");
+  if (error) throw error;
 }
 
 // Secure login via RPC — passwords checked server-side only
