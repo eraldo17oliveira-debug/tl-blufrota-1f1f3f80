@@ -125,6 +125,10 @@ export default function BloqueadosPage({ session }: { session: UserSession }) {
 
   async function confirmarDesbloqueio() {
     if (!desbloqueioId) return;
+    if (session.perfil !== "SUPERVISOR") {
+      toast.error("APENAS O MASTER PODE DESBLOQUEAR!");
+      return;
+    }
     const { error } = await supabase.from("bloqueados" as any).update({
       status: "DESBLOQUEADO",
       data_desbloqueio: new Date().toISOString(),
