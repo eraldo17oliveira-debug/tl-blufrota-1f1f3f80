@@ -1,5 +1,7 @@
 import { useState, useCallback } from "react";
 import { salvarPatio, buscarUltimoPatio } from "@/lib/storage";
+import { supabase } from "@/integrations/supabase/client";
+import { UserSession } from "@/lib/types";
 import { isPlacaValid } from "@/lib/placaMask";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +11,7 @@ import OptionGroup from "./OptionGroup";
 import PlacaInput from "./PlacaInput";
 import { toast } from "sonner";
 
-export default function PatioForm({ onSaved, onFechar }: { onSaved: () => void; onFechar: () => void }) {
+export default function PatioForm({ session, onSaved, onFechar }: { session?: UserSession; onSaved: () => void; onFechar: () => void }) {
   const [placa, setPlaca] = useState("");
   const [frota, setFrota] = useState("");
   const [modelo, setModelo] = useState("");
