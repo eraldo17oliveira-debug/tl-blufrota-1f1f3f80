@@ -12,6 +12,8 @@ export interface RegisteredUser {
   pode_inventario: boolean;
   pode_fornecedores: boolean;
   pode_expedicao: boolean;
+  pode_lavacao: boolean;
+  pode_bloqueados: boolean;
   pode_pdf: boolean;
   pode_excel: boolean;
   ativo: boolean;
@@ -83,6 +85,8 @@ export async function lerUsuarios(): Promise<RegisteredUser[]> {
     pode_inventario: d.pode_inventario,
     pode_fornecedores: d.pode_fornecedores,
     pode_expedicao: d.pode_expedicao,
+    pode_lavacao: d.pode_lavacao,
+    pode_bloqueados: d.pode_bloqueados,
     pode_pdf: d.pode_pdf,
     pode_excel: d.pode_excel,
     ativo: d.ativo,
