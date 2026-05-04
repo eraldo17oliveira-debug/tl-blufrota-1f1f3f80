@@ -96,7 +96,7 @@ export async function lerUsuarios(): Promise<RegisteredUser[]> {
 }
 
 export async function salvarUsuario(user: Omit<RegisteredUser, "id"> & { senha?: string }) {
-  const { error } = await supabase.from("profiles").insert({
+  const insertData: any = {
     nome: user.nome, login: user.login, senha: user.senha || "",
     nivel: user.nivel, pode_patio: user.pode_patio, pode_rodizio: user.pode_rodizio,
     pode_combustivel: user.pode_combustivel, pode_inventario: user.pode_inventario,
@@ -105,7 +105,8 @@ export async function salvarUsuario(user: Omit<RegisteredUser, "id"> & { senha?:
     pode_lavacao: (user as any).pode_lavacao ?? false,
     pode_bloqueados: (user as any).pode_bloqueados ?? false,
     pode_pdf: user.pode_pdf, pode_excel: user.pode_excel, ativo: user.ativo,
-  });
+  };
+  const { error } = await supabase.from("profiles").insert(insertData);
   if (error) throw error;
 }
 
