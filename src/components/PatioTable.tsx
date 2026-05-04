@@ -45,6 +45,26 @@ export default function PatioTable({ refreshKey, session }: Props) {
   }, [date]);
   useEffect(() => { load(); }, [load, refreshKey]);
 
+  // Auto-atualização: recarrega a cada 60s e ao detectar mudanças em bloqueados/patio em tempo real
+  useEffect(() => {
+    const interval = setInterval(() => { load(); }, 60_000);
+    const channel = supabase
+      .channel("patio-bloqueados-watch")
+      .on("postgres_changes", { event: "*", schema: "public", table: "bloqueados" }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "patio" }, () => load())
+      .subscribe();
+    return () => { clearInterval(interval); supabase.removeChannel(channel); };
+  }, [load]);
+
+  // Lista destacada de bloqueios ativos com dias + motivo
+  const bloqueiosAtivos = records
+    .filter(r => r.status === "Bloqueio" && !r.concluido)
+    .map(r => {
+      const dias = Math.max(1, Math.floor((Date.now() - new Date(r.created_at).getTime()) / 86400000));
+      return { ...r, dias };
+    })
+    .sort((a, b) => b.dias - a.dias);
+
   const ativos = records.filter(r => !r.concluido);
   const totalPatio = ativos.length;
   const totalCarregadas = ativos.filter(r => r.estado === "Carga").length;
