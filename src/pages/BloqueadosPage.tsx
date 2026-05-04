@@ -237,6 +237,11 @@ export default function BloqueadosPage({ session }: { session: UserSession }) {
                 <div className="text-[0.55rem] font-orbitron text-muted-foreground uppercase mt-1">
                   POR: {r.responsavel} • {format(new Date(r.data_bloqueio), "dd/MM/yyyy HH:mm")}
                 </div>
+                {r.status === "BLOQUEADO" && (
+                  <div className="text-[0.6rem] font-orbitron text-destructive uppercase mt-1 font-bold">
+                    ⏱ {Math.max(1, Math.floor((Date.now() - new Date(r.data_bloqueio).getTime()) / 86400000))} DIA(S) BLOQUEADO
+                  </div>
+                )}
                 {r.status === "DESBLOQUEADO" && r.data_desbloqueio && (
                   <div className="text-[0.55rem] font-orbitron text-accent uppercase mt-1">
                     DESBLOQUEADO: {format(new Date(r.data_desbloqueio), "dd/MM/yyyy HH:mm")}
@@ -244,7 +249,7 @@ export default function BloqueadosPage({ session }: { session: UserSession }) {
                   </div>
                 )}
                 <div className="flex gap-2 mt-2">
-                  {r.status === "BLOQUEADO" && (
+                  {r.status === "BLOQUEADO" && session.perfil === "SUPERVISOR" && (
                     <Button size="sm" onClick={() => setDesbloqueioId(r.id)}
                       className="h-7 text-[0.6rem] font-orbitron bg-accent hover:bg-accent/80 text-accent-foreground uppercase gap-1">
                       <CheckCircle2 className="h-3 w-3" /> DESBLOQUEAR
