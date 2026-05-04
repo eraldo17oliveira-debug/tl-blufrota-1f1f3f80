@@ -308,6 +308,7 @@ export type Database = {
           pode_fornecedores: boolean
           pode_inventario: boolean
           pode_lavacao: boolean
+          pode_os: boolean
           pode_patio: boolean
           pode_pdf: boolean
           pode_rodizio: boolean
@@ -327,6 +328,7 @@ export type Database = {
           pode_fornecedores?: boolean
           pode_inventario?: boolean
           pode_lavacao?: boolean
+          pode_os?: boolean
           pode_patio?: boolean
           pode_pdf?: boolean
           pode_rodizio?: boolean
@@ -346,6 +348,7 @@ export type Database = {
           pode_fornecedores?: boolean
           pode_inventario?: boolean
           pode_lavacao?: boolean
+          pode_os?: boolean
           pode_patio?: boolean
           pode_pdf?: boolean
           pode_rodizio?: boolean

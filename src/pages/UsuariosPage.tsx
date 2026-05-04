@@ -1,23 +1,20 @@
 import { useState, useEffect } from "react";
-import { lerUsuarios, salvarUsuario, atualizarUsuario, excluirUsuario, RegisteredUser, perfilToNivel } from "@/lib/auth";
-import { UserRole, DEFAULT_PERMISSIONS, UserPermissions } from "@/lib/types";
+import { lerUsuarios, salvarUsuario, atualizarUsuario, excluirUsuario, RegisteredUser } from "@/lib/auth";
+import { DEFAULT_PERMISSIONS, UserPermissions } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Users, Plus, Pencil, Trash2, Shield, Ban } from "lucide-react";
-import OptionGroup from "@/components/OptionGroup";
 import { toast } from "sonner";
-
-const ROLES: UserRole[] = ["SUPERVISOR", "MANOBRA", "MANUTENÇÃO", "EXPEDIÇÃO", "LAVAÇÃO"];
 
 const PERM_LABELS: { key: keyof UserPermissions; dbKey: string; label: string }[] = [
   { key: "patio", dbKey: "pode_patio", label: "GESTÃO DE PÁTIO" },
   { key: "rodizio", dbKey: "pode_rodizio", label: "RODÍZIO DE PNEUS" },
   { key: "fornecedores", dbKey: "pode_fornecedores", label: "FORNECEDORES" },
   { key: "expedicao", dbKey: "pode_expedicao", label: "MONITORAMENTO" },
-  { key: "os", dbKey: "pode_patio", label: "ORDEM DE SERVIÇO" },
+  { key: "os", dbKey: "pode_os", label: "ORDEM DE SERVIÇO" },
   { key: "lavacao", dbKey: "pode_lavacao", label: "LAVAÇÃO" },
   { key: "bloqueados", dbKey: "pode_bloqueados", label: "BLOQUEADOS" },
   { key: "gerarPdf", dbKey: "pode_pdf", label: "GERAR PDF" },
@@ -48,8 +45,8 @@ export default function UsuariosPage() {
     setPermissoes({
       patio: u.pode_patio, rodizio: u.pode_rodizio,
       fornecedores: u.pode_fornecedores, expedicao: u.pode_expedicao,
-      os: u.pode_patio || u.pode_rodizio, lavacao: (u as any).pode_lavacao ?? false,
-      bloqueados: (u as any).pode_bloqueados ?? false,
+      os: u.pode_os ?? false, lavacao: u.pode_lavacao,
+      bloqueados: u.pode_bloqueados,
       gerarPdf: u.pode_pdf, gerarExcel: u.pode_excel,
     });
     setModalOpen(true);
@@ -65,17 +62,22 @@ export default function UsuariosPage() {
       nome: nome.toUpperCase(), login: nome.toUpperCase(), nivel,
       pode_patio: permissoes.patio, pode_rodizio: permissoes.rodizio,
       pode_fornecedores: permissoes.fornecedores, pode_expedicao: permissoes.expedicao,
+      pode_os: permissoes.os,
       pode_lavacao: permissoes.lavacao,
       pode_bloqueados: permissoes.bloqueados,
       pode_pdf: permissoes.gerarPdf, pode_excel: permissoes.gerarExcel, ativo: true,
     };
     if (senha) userData.senha = senha;
-    if (editingId) { await atualizarUsuario(editingId, userData); toast.success("USUÁRIO ATUALIZADO!"); }
-    else { await salvarUsuario(userData); toast.success("USUÁRIO CADASTRADO!"); }
-    setModalOpen(false); resetForm(); load();
+    try {
+      if (editingId) { await atualizarUsuario(editingId, userData); toast.success("USUÁRIO ATUALIZADO!"); }
+      else { await salvarUsuario(userData); toast.success("USUÁRIO CADASTRADO!"); }
+      setModalOpen(false); resetForm(); load();
+    } catch (error: any) {
+      toast.error(error?.code === "23505" ? "ESSE NOME JÁ EXISTE! CLIQUE NO LÁPIS PARA EDITAR." : "ERRO AO SALVAR USUÁRIO!");
+    }
   };
 
-  const handleDelete = async (id: string) => { await excluirUsuario(id); toast.success("USUÁRIO REMOVIDO!"); load(); };
+  const handleDelete = async (id: string) => { try { await excluirUsuario(id); toast.success("USUÁRIO REMOVIDO!"); load(); } catch { toast.error("ERRO AO REMOVER USUÁRIO!"); } };
 
   const handleToggleAtivo = async (u: RegisteredUser) => {
     await atualizarUsuario(u.id, { ativo: !u.ativo } as any);
