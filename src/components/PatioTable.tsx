@@ -22,7 +22,26 @@ export default function PatioTable({ refreshKey, session }: Props) {
 
   const load = useCallback(async () => {
     const data = await lerPatio(date);
-    setRecords(data);
+    // Buscar carretas bloqueadas ATIVAS — aparecem todos os dias até serem desbloqueadas
+    const { data: blocked } = await supabase.from("bloqueados" as any).select("*").eq("status", "BLOQUEADO");
+    const placasNoPatio = new Set((data || []).map((r: any) => (r.placa || "").toUpperCase()));
+    const virtuais = ((blocked as any[]) || [])
+      .filter(b => !placasNoPatio.has((b.placa || "").toUpperCase()))
+      .map((b: any) => ({
+        id: `bloq-${b.id}`,
+        placa: b.placa,
+        frota: b.frota || "",
+        modelo: b.modelo || "",
+        eixo: "",
+        estado: "Vazia",
+        local: "Pátio",
+        status: "Bloqueio",
+        motivo_bloqueio: `${b.motivo} (AGUARDANDO DESBLOQUEIO • ${Math.max(1, Math.floor((Date.now() - new Date(b.data_bloqueio).getTime()) / 86400000))} DIA(S))`,
+        concluido: false,
+        created_at: b.data_bloqueio,
+        _virtual: true,
+      }));
+    setRecords([...(data || []), ...virtuais]);
   }, [date]);
   useEffect(() => { load(); }, [load, refreshKey]);
 
@@ -203,12 +222,19 @@ export default function PatioTable({ refreshKey, session }: Props) {
                     <TableCell className="text-sm">{r.modelo}</TableCell>
                     <TableCell>
                       <div className="flex gap-1">
-                        <button onClick={() => startEdit(r)} className="h-8 w-8 rounded-full bg-primary/20 text-primary hover:bg-primary/40 flex items-center justify-center">
-                          <Pencil className="h-4 w-4" />
-                        </button>
-                        <button onClick={() => handleDelete(r.id)} className="h-8 w-8 rounded-full bg-destructive/20 text-destructive hover:bg-destructive/40 flex items-center justify-center">
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        {!r._virtual && (
+                          <>
+                            <button onClick={() => startEdit(r)} className="h-8 w-8 rounded-full bg-primary/20 text-primary hover:bg-primary/40 flex items-center justify-center">
+                              <Pencil className="h-4 w-4" />
+                            </button>
+                            <button onClick={() => handleDelete(r.id)} className="h-8 w-8 rounded-full bg-destructive/20 text-destructive hover:bg-destructive/40 flex items-center justify-center">
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </>
+                        )}
+                        {r._virtual && (
+                          <span className="text-[0.55rem] font-orbitron text-destructive uppercase px-1">BLOQ.</span>
+                        )}
                       </div>
                     </TableCell>
                   </>
