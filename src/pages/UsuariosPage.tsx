@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { lerUsuarios, salvarUsuario, atualizarUsuario, excluirUsuario, RegisteredUser } from "@/lib/auth";
-import { UserRole, DEFAULT_PERMISSIONS, UserPermissions } from "@/lib/types";
+import { DEFAULT_PERMISSIONS, UserPermissions } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
