@@ -34,7 +34,7 @@ export default function PatioPage({ session }: { session: UserSession }) {
       </div>
 
       {modo === "cadastro" ? (
-        <PatioForm onSaved={() => setRefreshKey(k => k + 1)} onFechar={() => { setModo("monitoramento"); setRefreshKey(k => k + 1); }} />
+        <PatioForm session={session} onSaved={() => setRefreshKey(k => k + 1)} onFechar={() => { setModo("monitoramento"); setRefreshKey(k => k + 1); }} />
       ) : (
         <PatioTable refreshKey={refreshKey} session={session} />
       )}
