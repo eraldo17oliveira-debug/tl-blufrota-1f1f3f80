@@ -222,12 +222,19 @@ export default function PatioTable({ refreshKey, session }: Props) {
                     <TableCell className="text-sm">{r.modelo}</TableCell>
                     <TableCell>
                       <div className="flex gap-1">
-                        <button onClick={() => startEdit(r)} className="h-8 w-8 rounded-full bg-primary/20 text-primary hover:bg-primary/40 flex items-center justify-center">
-                          <Pencil className="h-4 w-4" />
-                        </button>
-                        <button onClick={() => handleDelete(r.id)} className="h-8 w-8 rounded-full bg-destructive/20 text-destructive hover:bg-destructive/40 flex items-center justify-center">
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        {!r._virtual && (
+                          <>
+                            <button onClick={() => startEdit(r)} className="h-8 w-8 rounded-full bg-primary/20 text-primary hover:bg-primary/40 flex items-center justify-center">
+                              <Pencil className="h-4 w-4" />
+                            </button>
+                            <button onClick={() => handleDelete(r.id)} className="h-8 w-8 rounded-full bg-destructive/20 text-destructive hover:bg-destructive/40 flex items-center justify-center">
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </>
+                        )}
+                        {r._virtual && (
+                          <span className="text-[0.55rem] font-orbitron text-destructive uppercase px-1">BLOQ.</span>
+                        )}
                       </div>
                     </TableCell>
                   </>
