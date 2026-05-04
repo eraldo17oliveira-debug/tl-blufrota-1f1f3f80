@@ -18,8 +18,10 @@ export async function atualizarPatio(id: string, dados: { placa?: string; frota?
 }
 
 export async function lerPatio(dataFiltro: string) {
-  const startOfDay = `${dataFiltro}T00:00:00`;
-  const endOfDay = `${dataFiltro}T23:59:59`;
+  // Constrói intervalo no fuso local e converte para ISO (UTC) para alinhar com created_at do banco
+  const [y, m, d] = dataFiltro.split("-").map(Number);
+  const startOfDay = new Date(y, m - 1, d, 0, 0, 0, 0).toISOString();
+  const endOfDay = new Date(y, m - 1, d, 23, 59, 59, 999).toISOString();
   const { data, error } = await supabase.from("patio").select("*")
     .gte("created_at", startOfDay).lte("created_at", endOfDay)
     .order("created_at", { ascending: false });
