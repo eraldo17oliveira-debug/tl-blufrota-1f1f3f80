@@ -1,5 +1,7 @@
 import { useState, useCallback } from "react";
 import { salvarPatio, buscarUltimoPatio } from "@/lib/storage";
+import { supabase } from "@/integrations/supabase/client";
+import { UserSession } from "@/lib/types";
 import { isPlacaValid } from "@/lib/placaMask";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +11,7 @@ import OptionGroup from "./OptionGroup";
 import PlacaInput from "./PlacaInput";
 import { toast } from "sonner";
 
-export default function PatioForm({ onSaved, onFechar }: { onSaved: () => void; onFechar: () => void }) {
+export default function PatioForm({ session, onSaved, onFechar }: { session?: UserSession; onSaved: () => void; onFechar: () => void }) {
   const [placa, setPlaca] = useState("");
   const [frota, setFrota] = useState("");
   const [modelo, setModelo] = useState("");
@@ -42,6 +44,26 @@ export default function PatioForm({ onSaved, onFechar }: { onSaved: () => void; 
       placa: placa.toUpperCase(), frota: frota.toUpperCase(), modelo, eixo, estado, local, status,
       motivo_bloqueio: status === "Bloqueio" ? motivoBloqueio.toUpperCase() : "",
     });
+
+    // Se foi cadastrado como BLOQUEIO, registra também em "bloqueados" (se não houver ativo)
+    if (status === "Bloqueio") {
+      const placaUp = placa.toUpperCase();
+      const { data: existente } = await supabase.from("bloqueados" as any)
+        .select("id").eq("placa", placaUp).eq("status", "BLOQUEADO").limit(1);
+      if (!existente || existente.length === 0) {
+        await supabase.from("bloqueados" as any).insert({
+          placa: placaUp,
+          frota: frota.toUpperCase(),
+          modelo: (modelo || "").toUpperCase(),
+          motivo: motivoBloqueio.toUpperCase(),
+          foto: "",
+          responsavel: session?.nome || "SISTEMA",
+          status: "BLOQUEADO",
+        } as any);
+        toast.warning("CARRETA REGISTRADA EM BLOQUEADOS — DESBLOQUEIE PARA REMOVER!");
+      }
+    }
+
     toast.success("MOVIMENTAÇÃO REGISTRADA!");
     setPlaca(""); setFrota(""); setModelo(""); setEixo(""); setEstado(""); setLocal(""); setStatus(""); setMotivoBloqueio("");
     onSaved();

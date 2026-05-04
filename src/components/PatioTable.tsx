@@ -96,6 +96,21 @@ export default function PatioTable({ refreshKey, session }: Props) {
       status: editData.status,
       motivo_bloqueio: editData.status === "Bloqueio" ? editData.motivo_bloqueio : "",
     });
+    if (editData.status === "Bloqueio") {
+      const placaUp = (editData.placa || "").toUpperCase();
+      const { data: existente } = await supabase.from("bloqueados" as any)
+        .select("id").eq("placa", placaUp).eq("status", "BLOQUEADO").limit(1);
+      if (!existente || existente.length === 0) {
+        await supabase.from("bloqueados" as any).insert({
+          placa: placaUp,
+          frota: (editData.frota || "").toUpperCase(),
+          modelo: (editData.modelo || "").toUpperCase(),
+          motivo: (editData.motivo_bloqueio || "").toUpperCase(),
+          foto: "", responsavel: session.nome, status: "BLOQUEADO",
+        } as any);
+        toast.warning("REGISTRADO EM BLOQUEADOS — DESBLOQUEIE PARA LIBERAR!");
+      }
+    }
     toast.success("REGISTRO ATUALIZADO!");
     cancelEdit();
     load();
