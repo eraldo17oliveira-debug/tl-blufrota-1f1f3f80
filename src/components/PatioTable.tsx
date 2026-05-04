@@ -22,7 +22,26 @@ export default function PatioTable({ refreshKey, session }: Props) {
 
   const load = useCallback(async () => {
     const data = await lerPatio(date);
-    setRecords(data);
+    // Buscar carretas bloqueadas ATIVAS — aparecem todos os dias até serem desbloqueadas
+    const { data: blocked } = await supabase.from("bloqueados" as any).select("*").eq("status", "BLOQUEADO");
+    const placasNoPatio = new Set((data || []).map((r: any) => (r.placa || "").toUpperCase()));
+    const virtuais = ((blocked as any[]) || [])
+      .filter(b => !placasNoPatio.has((b.placa || "").toUpperCase()))
+      .map((b: any) => ({
+        id: `bloq-${b.id}`,
+        placa: b.placa,
+        frota: b.frota || "",
+        modelo: b.modelo || "",
+        eixo: "",
+        estado: "Vazia",
+        local: "Pátio",
+        status: "Bloqueio",
+        motivo_bloqueio: `${b.motivo} (AGUARDANDO DESBLOQUEIO • ${Math.max(1, Math.floor((Date.now() - new Date(b.data_bloqueio).getTime()) / 86400000))} DIA(S))`,
+        concluido: false,
+        created_at: b.data_bloqueio,
+        _virtual: true,
+      }));
+    setRecords([...(data || []), ...virtuais]);
   }, [date]);
   useEffect(() => { load(); }, [load, refreshKey]);
 
