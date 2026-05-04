@@ -18,8 +18,10 @@ export async function atualizarPatio(id: string, dados: { placa?: string; frota?
 }
 
 export async function lerPatio(dataFiltro: string) {
-  const startOfDay = `${dataFiltro}T00:00:00`;
-  const endOfDay = `${dataFiltro}T23:59:59`;
+  // Constrói intervalo no fuso local e converte para ISO (UTC) para alinhar com created_at do banco
+  const [y, m, d] = dataFiltro.split("-").map(Number);
+  const startOfDay = new Date(y, m - 1, d, 0, 0, 0, 0).toISOString();
+  const endOfDay = new Date(y, m - 1, d, 23, 59, 59, 999).toISOString();
   const { data, error } = await supabase.from("patio").select("*")
     .gte("created_at", startOfDay).lte("created_at", endOfDay)
     .order("created_at", { ascending: false });
@@ -41,8 +43,12 @@ export async function salvarRodizio(record: { placa: string; frota: string; posi
 }
 
 export async function lerRodizio(de: string, ate: string) {
+  const [y1, m1, d1] = de.split("-").map(Number);
+  const [y2, m2, d2] = ate.split("-").map(Number);
+  const start = new Date(y1, m1 - 1, d1, 0, 0, 0, 0).toISOString();
+  const end = new Date(y2, m2 - 1, d2, 23, 59, 59, 999).toISOString();
   const { data, error } = await supabase.from("rodizio").select("*")
-    .gte("created_at", `${de}T00:00:00`).lte("created_at", `${ate}T23:59:59`)
+    .gte("created_at", start).lte("created_at", end)
     .order("created_at", { ascending: false });
   if (error) { console.error(error); return []; }
   return data || [];
