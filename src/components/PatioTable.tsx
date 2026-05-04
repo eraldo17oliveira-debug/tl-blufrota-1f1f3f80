@@ -45,6 +45,26 @@ export default function PatioTable({ refreshKey, session }: Props) {
   }, [date]);
   useEffect(() => { load(); }, [load, refreshKey]);
 
+  // Auto-atualização: recarrega a cada 60s e ao detectar mudanças em bloqueados/patio em tempo real
+  useEffect(() => {
+    const interval = setInterval(() => { load(); }, 60_000);
+    const channel = supabase
+      .channel("patio-bloqueados-watch")
+      .on("postgres_changes", { event: "*", schema: "public", table: "bloqueados" }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "patio" }, () => load())
+      .subscribe();
+    return () => { clearInterval(interval); supabase.removeChannel(channel); };
+  }, [load]);
+
+  // Lista destacada de bloqueios ativos com dias + motivo
+  const bloqueiosAtivos = records
+    .filter(r => r.status === "Bloqueio" && !r.concluido)
+    .map(r => {
+      const dias = Math.max(1, Math.floor((Date.now() - new Date(r.created_at).getTime()) / 86400000));
+      return { ...r, dias };
+    })
+    .sort((a, b) => b.dias - a.dias);
+
   const ativos = records.filter(r => !r.concluido);
   const totalPatio = ativos.length;
   const totalCarregadas = ativos.filter(r => r.estado === "Carga").length;
@@ -141,6 +161,31 @@ export default function PatioTable({ refreshKey, session }: Props) {
           )}
         </div>
       </div>
+
+      {bloqueiosAtivos.length > 0 && (
+        <div className="m-4 mb-0 rounded-xl border border-destructive/50 bg-destructive/10 p-3 space-y-2">
+          <div className="flex items-center gap-2 text-destructive font-orbitron text-xs uppercase font-bold">
+            <AlertTriangle className="h-4 w-4 animate-pulse" />
+            ⚠ {bloqueiosAtivos.length} CARRETA(S) EM BLOQUEIO — AGUARDANDO LIBERAÇÃO
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {bloqueiosAtivos.map(r => (
+              <div key={r.id} className="flex items-start gap-2 rounded-lg bg-background/40 border border-destructive/30 p-2">
+                <div className={cn(
+                  "px-2 py-1 rounded font-orbitron text-[0.65rem] font-bold uppercase shrink-0",
+                  r.dias >= 3 ? "bg-destructive text-destructive-foreground animate-pulse" : "bg-destructive/30 text-destructive"
+                )}>
+                  {r.dias} DIA{r.dias > 1 ? "S" : ""}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-mono-neon text-primary text-sm">{r.placa} {r.frota && <span className="text-muted-foreground text-xs">• {r.frota}</span>}</div>
+                  <div className="text-[0.65rem] font-orbitron text-foreground uppercase line-clamp-2">{r.motivo_bloqueio || "SEM MOTIVO REGISTRADO"}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-4 gap-2 p-4">
         {[
