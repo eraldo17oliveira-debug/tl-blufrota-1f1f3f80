@@ -113,6 +113,7 @@ export async function atualizarUsuario(id: string, user: Partial<RegisteredUser>
   const updateData: any = { ...user };
   delete updateData.id;
   if (!updateData.senha) delete updateData.senha;
+  if (updateData.pode_os === undefined) delete updateData.pode_os;
   const { error } = await supabase.from("profiles").update(updateData).eq("id", id);
   if (error) throw error;
 }
