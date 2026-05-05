@@ -32,13 +32,7 @@ export default function PatioForm({ session, onSaved, onFechar }: { session?: Us
     r.onload = () => setFotoPreview(r.result as string);
     r.readAsDataURL(f);
   };
-  const [frota, setFrota] = useState("");
-  const [modelo, setModelo] = useState("");
-  const [eixo, setEixo] = useState("");
-  const [estado, setEstado] = useState("");
-  const [local, setLocal] = useState("");
-  const [status, setStatus] = useState("");
-  const [motivoBloqueio, setMotivoBloqueio] = useState("");
+
 
   const handlePlacaChange = useCallback(async (v: string) => {
     setPlaca(v);
