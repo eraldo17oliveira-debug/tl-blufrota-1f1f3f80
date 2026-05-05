@@ -24,6 +24,7 @@ export type Database = {
           id: string
           modelo: string
           motivo: string
+          na_oficina: boolean
           observacoes_desbloqueio: string
           placa: string
           responsavel: string
@@ -38,6 +39,7 @@ export type Database = {
           id?: string
           modelo?: string
           motivo?: string
+          na_oficina?: boolean
           observacoes_desbloqueio?: string
           placa: string
           responsavel?: string
@@ -52,6 +54,7 @@ export type Database = {
           id?: string
           modelo?: string
           motivo?: string
+          na_oficina?: boolean
           observacoes_desbloqueio?: string
           placa?: string
           responsavel?: string

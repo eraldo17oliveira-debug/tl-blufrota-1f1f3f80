@@ -1,0 +1,1 @@
+ALTER TABLE public.bloqueados ADD COLUMN IF NOT EXISTS na_oficina boolean NOT NULL DEFAULT false;
