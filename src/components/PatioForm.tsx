@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { salvarPatio, buscarUltimoPatio } from "@/lib/storage";
 import { supabase } from "@/integrations/supabase/client";
 import { UserSession } from "@/lib/types";
@@ -6,13 +6,32 @@ import { isPlacaValid } from "@/lib/placaMask";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { CheckCircle2, Truck, Container, MapPin, Lock, Axis3D, XCircle } from "lucide-react";
+import { CheckCircle2, Truck, Container, MapPin, Lock, Axis3D, XCircle, Camera, X } from "lucide-react";
 import OptionGroup from "./OptionGroup";
 import PlacaInput from "./PlacaInput";
 import { toast } from "sonner";
 
 export default function PatioForm({ session, onSaved, onFechar }: { session?: UserSession; onSaved: () => void; onFechar: () => void }) {
   const [placa, setPlaca] = useState("");
+  const [frota, setFrota] = useState("");
+  const [modelo, setModelo] = useState("");
+  const [eixo, setEixo] = useState("");
+  const [estado, setEstado] = useState("");
+  const [local, setLocal] = useState("");
+  const [status, setStatus] = useState("");
+  const [motivoBloqueio, setMotivoBloqueio] = useState("");
+  const [fotoFile, setFotoFile] = useState<File | null>(null);
+  const [fotoPreview, setFotoPreview] = useState<string>("");
+  const cameraRef = useRef<HTMLInputElement>(null);
+
+  const handleFoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setFotoFile(f);
+    const r = new FileReader();
+    r.onload = () => setFotoPreview(r.result as string);
+    r.readAsDataURL(f);
+  };
   const [frota, setFrota] = useState("");
   const [modelo, setModelo] = useState("");
   const [eixo, setEixo] = useState("");
