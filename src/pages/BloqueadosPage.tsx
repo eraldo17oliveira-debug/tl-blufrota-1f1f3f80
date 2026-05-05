@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Ban, Camera, CheckCircle2, Trash2, Plus, X, Search } from "lucide-react";
+import { Ban, Camera, CheckCircle2, Trash2, Plus, X, Search, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -21,6 +21,7 @@ interface BloqueadoRecord {
   data_bloqueio: string;
   data_desbloqueio: string | null;
   observacoes_desbloqueio: string;
+  na_oficina?: boolean;
 }
 
 export default function BloqueadosPage({ session }: { session: UserSession }) {
@@ -30,6 +31,7 @@ export default function BloqueadosPage({ session }: { session: UserSession }) {
   const [frota, setFrota] = useState("");
   const [modelo, setModelo] = useState("");
   const [motivo, setMotivo] = useState("");
+  const [naOficina, setNaOficina] = useState(false);
   const [fotoBase64, setFotoBase64] = useState<string>("");
   const [fotoFile, setFotoFile] = useState<File | null>(null);
   const [salvando, setSalvando] = useState(false);
@@ -82,7 +84,7 @@ export default function BloqueadosPage({ session }: { session: UserSession }) {
 
   function resetForm() {
     setPlaca(""); setFrota(""); setModelo(""); setMotivo("");
-    setFotoBase64(""); setFotoFile(null);
+    setFotoBase64(""); setFotoFile(null); setNaOficina(false);
   }
 
   async function salvarBloqueio() {
@@ -112,6 +114,7 @@ export default function BloqueadosPage({ session }: { session: UserSession }) {
       foto: fotoUrl,
       responsavel: session.nome,
       status: "BLOQUEADO",
+      na_oficina: naOficina,
     } as any);
 
     setSalvando(false);
