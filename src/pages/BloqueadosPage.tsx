@@ -319,6 +319,15 @@ export default function BloqueadosPage({ session }: { session: UserSession }) {
               onChange={e => setMotivo(e.target.value.toUpperCase())}
               className="uppercase font-orbitron bg-input border-border min-h-[80px]" />
 
+            <button type="button" onClick={() => setNaOficina(v => !v)}
+              className={`w-full h-12 rounded-lg font-orbitron uppercase text-xs flex items-center justify-center gap-2 border transition-all ${
+                naOficina
+                  ? "bg-[hsl(var(--neon-orange))]/20 border-[hsl(var(--neon-orange))] text-[hsl(var(--neon-orange))]"
+                  : "bg-input border-border text-muted-foreground"
+              }`}>
+              <Wrench className="h-4 w-4" /> {naOficina ? "✓ ESTÁ NA OFICINA" : "MARCAR COMO NA OFICINA"}
+            </button>
+
             {/* Câmera */}
             <input ref={cameraInputRef} type="file" accept="image/*" capture="environment"
               onChange={handleFoto} className="hidden" />
