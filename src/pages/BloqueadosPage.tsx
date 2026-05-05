@@ -150,6 +150,15 @@ export default function BloqueadosPage({ session }: { session: UserSession }) {
     carregar();
   }
 
+  async function toggleOficina(r: BloqueadoRecord) {
+    const novo = !r.na_oficina;
+    const { error } = await supabase.from("bloqueados" as any)
+      .update({ na_oficina: novo } as any).eq("id", r.id);
+    if (error) { toast.error("ERRO!"); return; }
+    toast.success(novo ? "MARCADA COMO NA OFICINA!" : "REMOVIDO STATUS DE OFICINA!");
+    carregar();
+  }
+
   const filtrados = registros.filter(r => {
     if (filtroStatus !== "TODOS" && r.status !== filtroStatus) return false;
     if (busca && !r.placa.includes(busca.toUpperCase()) && !r.frota.includes(busca.toUpperCase())) return false;
