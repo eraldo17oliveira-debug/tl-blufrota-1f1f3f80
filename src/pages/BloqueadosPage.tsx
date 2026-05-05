@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Ban, Camera, CheckCircle2, Trash2, Plus, X, Search } from "lucide-react";
+import { Ban, Camera, CheckCircle2, Trash2, Plus, X, Search, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -21,6 +21,7 @@ interface BloqueadoRecord {
   data_bloqueio: string;
   data_desbloqueio: string | null;
   observacoes_desbloqueio: string;
+  na_oficina?: boolean;
 }
 
 export default function BloqueadosPage({ session }: { session: UserSession }) {
@@ -30,6 +31,7 @@ export default function BloqueadosPage({ session }: { session: UserSession }) {
   const [frota, setFrota] = useState("");
   const [modelo, setModelo] = useState("");
   const [motivo, setMotivo] = useState("");
+  const [naOficina, setNaOficina] = useState(false);
   const [fotoBase64, setFotoBase64] = useState<string>("");
   const [fotoFile, setFotoFile] = useState<File | null>(null);
   const [salvando, setSalvando] = useState(false);
@@ -82,7 +84,7 @@ export default function BloqueadosPage({ session }: { session: UserSession }) {
 
   function resetForm() {
     setPlaca(""); setFrota(""); setModelo(""); setMotivo("");
-    setFotoBase64(""); setFotoFile(null);
+    setFotoBase64(""); setFotoFile(null); setNaOficina(false);
   }
 
   async function salvarBloqueio() {
@@ -112,6 +114,7 @@ export default function BloqueadosPage({ session }: { session: UserSession }) {
       foto: fotoUrl,
       responsavel: session.nome,
       status: "BLOQUEADO",
+      na_oficina: naOficina,
     } as any);
 
     setSalvando(false);
@@ -144,6 +147,15 @@ export default function BloqueadosPage({ session }: { session: UserSession }) {
     if (!confirm("EXCLUIR ESTE REGISTRO?")) return;
     await supabase.from("bloqueados" as any).delete().eq("id", id);
     toast.success("REMOVIDO!");
+    carregar();
+  }
+
+  async function toggleOficina(r: BloqueadoRecord) {
+    const novo = !r.na_oficina;
+    const { error } = await supabase.from("bloqueados" as any)
+      .update({ na_oficina: novo } as any).eq("id", r.id);
+    if (error) { toast.error("ERRO!"); return; }
+    toast.success(novo ? "MARCADA COMO NA OFICINA!" : "REMOVIDO STATUS DE OFICINA!");
     carregar();
   }
 
@@ -224,9 +236,16 @@ export default function BloqueadosPage({ session }: { session: UserSession }) {
                   <span className={`font-orbitron text-base font-bold ${
                     r.status === "BLOQUEADO" ? "text-destructive" : "text-accent"
                   }`}>{r.placa}</span>
-                  <span className={`px-2 py-0.5 rounded text-[0.6rem] font-orbitron uppercase ${
-                    r.status === "BLOQUEADO" ? "bg-destructive/20 text-destructive" : "bg-accent/20 text-accent"
-                  }`}>{r.status}</span>
+                  <div className="flex items-center gap-1">
+                    {r.na_oficina && r.status === "BLOQUEADO" && (
+                      <span className="px-2 py-0.5 rounded text-[0.6rem] font-orbitron uppercase bg-[hsl(var(--neon-orange))]/20 text-[hsl(var(--neon-orange))] flex items-center gap-1">
+                        <Wrench className="h-3 w-3" /> NA OFICINA
+                      </span>
+                    )}
+                    <span className={`px-2 py-0.5 rounded text-[0.6rem] font-orbitron uppercase ${
+                      r.status === "BLOQUEADO" ? "bg-destructive/20 text-destructive" : "bg-accent/20 text-accent"
+                    }`}>{r.status}</span>
+                  </div>
                 </div>
                 <div className="text-[0.65rem] font-orbitron text-muted-foreground uppercase mt-1">
                   {r.frota} {r.modelo && `• ${r.modelo}`}
@@ -248,7 +267,17 @@ export default function BloqueadosPage({ session }: { session: UserSession }) {
                     {r.observacoes_desbloqueio && ` • ${r.observacoes_desbloqueio}`}
                   </div>
                 )}
-                <div className="flex gap-2 mt-2">
+                <div className="flex gap-2 mt-2 flex-wrap">
+                  {r.status === "BLOQUEADO" && (
+                    <Button size="sm" onClick={() => toggleOficina(r)}
+                      className={`h-7 text-[0.6rem] font-orbitron uppercase gap-1 ${
+                        r.na_oficina
+                          ? "bg-[hsl(var(--neon-orange))]/30 text-[hsl(var(--neon-orange))] hover:bg-[hsl(var(--neon-orange))]/40"
+                          : "bg-muted/40 text-foreground hover:bg-muted/60"
+                      }`}>
+                      <Wrench className="h-3 w-3" /> {r.na_oficina ? "SAIU DA OFICINA" : "ESTÁ NA OFICINA"}
+                    </Button>
+                  )}
                   {r.status === "BLOQUEADO" && session.perfil === "SUPERVISOR" && (
                     <Button size="sm" onClick={() => setDesbloqueioId(r.id)}
                       className="h-7 text-[0.6rem] font-orbitron bg-accent hover:bg-accent/80 text-accent-foreground uppercase gap-1">
@@ -289,6 +318,15 @@ export default function BloqueadosPage({ session }: { session: UserSession }) {
             <Textarea placeholder="MOTIVO DO BLOQUEIO" value={motivo}
               onChange={e => setMotivo(e.target.value.toUpperCase())}
               className="uppercase font-orbitron bg-input border-border min-h-[80px]" />
+
+            <button type="button" onClick={() => setNaOficina(v => !v)}
+              className={`w-full h-12 rounded-lg font-orbitron uppercase text-xs flex items-center justify-center gap-2 border transition-all ${
+                naOficina
+                  ? "bg-[hsl(var(--neon-orange))]/20 border-[hsl(var(--neon-orange))] text-[hsl(var(--neon-orange))]"
+                  : "bg-input border-border text-muted-foreground"
+              }`}>
+              <Wrench className="h-4 w-4" /> {naOficina ? "✓ ESTÁ NA OFICINA" : "MARCAR COMO NA OFICINA"}
+            </button>
 
             {/* Câmera */}
             <input ref={cameraInputRef} type="file" accept="image/*" capture="environment"
