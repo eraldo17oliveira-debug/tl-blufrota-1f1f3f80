@@ -64,12 +64,21 @@ export default function PatioForm({ session, onSaved, onFechar }: { session?: Us
       const { data: existente } = await supabase.from("bloqueados" as any)
         .select("id").eq("placa", placaUp).eq("status", "BLOQUEADO").limit(1);
       if (!existente || existente.length === 0) {
+        let fotoUrl = "";
+        if (fotoFile) {
+          const fileName = `${Date.now()}_${placaUp.replace(/[^A-Z0-9]/gi, "")}.jpg`;
+          const { error: upErr } = await supabase.storage.from("bloqueados-fotos").upload(fileName, fotoFile);
+          if (!upErr) {
+            const { data: urlData } = supabase.storage.from("bloqueados-fotos").getPublicUrl(fileName);
+            fotoUrl = urlData.publicUrl;
+          }
+        }
         await supabase.from("bloqueados" as any).insert({
           placa: placaUp,
           frota: frota.toUpperCase(),
           modelo: (modelo || "").toUpperCase(),
           motivo: motivoBloqueio.toUpperCase(),
-          foto: "",
+          foto: fotoUrl,
           responsavel: session?.nome || "SISTEMA",
           status: "BLOQUEADO",
         } as any);
@@ -79,6 +88,7 @@ export default function PatioForm({ session, onSaved, onFechar }: { session?: Us
 
     toast.success("MOVIMENTAÇÃO REGISTRADA!");
     setPlaca(""); setFrota(""); setModelo(""); setEixo(""); setEstado(""); setLocal(""); setStatus(""); setMotivoBloqueio("");
+    setFotoFile(null); setFotoPreview("");
     onSaved();
   };
 
@@ -120,12 +130,30 @@ export default function PatioForm({ session, onSaved, onFechar }: { session?: Us
       </div>
 
       {status === "Bloqueio" && (
-        <Textarea
-          placeholder="MOTIVO DO BLOQUEIO..."
-          value={motivoBloqueio}
-          onChange={e => setMotivoBloqueio(e.target.value)}
-          className="uppercase font-orbitron text-xs bg-input border-destructive/50 focus:border-destructive min-h-[60px]"
-        />
+        <div className="space-y-3">
+          <Textarea
+            placeholder="MOTIVO DO BLOQUEIO..."
+            value={motivoBloqueio}
+            onChange={e => setMotivoBloqueio(e.target.value)}
+            className="uppercase font-orbitron text-xs bg-input border-destructive/50 focus:border-destructive min-h-[60px]"
+          />
+          <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={handleFoto} className="hidden" />
+          {fotoPreview ? (
+            <div className="relative">
+              <img src={fotoPreview} alt="prévia" className="w-full max-h-56 object-contain rounded-lg border border-destructive/30" />
+              <Button type="button" size="icon" variant="ghost"
+                onClick={() => { setFotoFile(null); setFotoPreview(""); }}
+                className="absolute top-1 right-1 h-7 w-7 bg-destructive/80 hover:bg-destructive text-destructive-foreground">
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <Button type="button" onClick={() => cameraRef.current?.click()} variant="outline"
+              className="w-full h-12 font-orbitron uppercase text-xs gap-2 border-destructive/40 text-destructive">
+              <Camera className="h-4 w-4" /> TIRAR FOTO DO BLOQUEIO
+            </Button>
+          )}
+        </div>
       )}
 
       <div className="flex gap-3">
