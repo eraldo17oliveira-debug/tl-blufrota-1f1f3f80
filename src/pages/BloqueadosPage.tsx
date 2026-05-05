@@ -236,9 +236,16 @@ export default function BloqueadosPage({ session }: { session: UserSession }) {
                   <span className={`font-orbitron text-base font-bold ${
                     r.status === "BLOQUEADO" ? "text-destructive" : "text-accent"
                   }`}>{r.placa}</span>
-                  <span className={`px-2 py-0.5 rounded text-[0.6rem] font-orbitron uppercase ${
-                    r.status === "BLOQUEADO" ? "bg-destructive/20 text-destructive" : "bg-accent/20 text-accent"
-                  }`}>{r.status}</span>
+                  <div className="flex items-center gap-1">
+                    {r.na_oficina && r.status === "BLOQUEADO" && (
+                      <span className="px-2 py-0.5 rounded text-[0.6rem] font-orbitron uppercase bg-[hsl(var(--neon-orange))]/20 text-[hsl(var(--neon-orange))] flex items-center gap-1">
+                        <Wrench className="h-3 w-3" /> NA OFICINA
+                      </span>
+                    )}
+                    <span className={`px-2 py-0.5 rounded text-[0.6rem] font-orbitron uppercase ${
+                      r.status === "BLOQUEADO" ? "bg-destructive/20 text-destructive" : "bg-accent/20 text-accent"
+                    }`}>{r.status}</span>
+                  </div>
                 </div>
                 <div className="text-[0.65rem] font-orbitron text-muted-foreground uppercase mt-1">
                   {r.frota} {r.modelo && `• ${r.modelo}`}
@@ -260,7 +267,17 @@ export default function BloqueadosPage({ session }: { session: UserSession }) {
                     {r.observacoes_desbloqueio && ` • ${r.observacoes_desbloqueio}`}
                   </div>
                 )}
-                <div className="flex gap-2 mt-2">
+                <div className="flex gap-2 mt-2 flex-wrap">
+                  {r.status === "BLOQUEADO" && (
+                    <Button size="sm" onClick={() => toggleOficina(r)}
+                      className={`h-7 text-[0.6rem] font-orbitron uppercase gap-1 ${
+                        r.na_oficina
+                          ? "bg-[hsl(var(--neon-orange))]/30 text-[hsl(var(--neon-orange))] hover:bg-[hsl(var(--neon-orange))]/40"
+                          : "bg-muted/40 text-foreground hover:bg-muted/60"
+                      }`}>
+                      <Wrench className="h-3 w-3" /> {r.na_oficina ? "SAIU DA OFICINA" : "ESTÁ NA OFICINA"}
+                    </Button>
+                  )}
                   {r.status === "BLOQUEADO" && session.perfil === "SUPERVISOR" && (
                     <Button size="sm" onClick={() => setDesbloqueioId(r.id)}
                       className="h-7 text-[0.6rem] font-orbitron bg-accent hover:bg-accent/80 text-accent-foreground uppercase gap-1">
