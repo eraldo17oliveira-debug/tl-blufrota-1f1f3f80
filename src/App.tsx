@@ -18,6 +18,8 @@ import OrdemServicoPage from "@/pages/OrdemServicoPage";
 import LavacaoPage from "@/pages/LavacaoPage";
 import BloqueadosPage from "@/pages/BloqueadosPage";
 import LavacaoPublicaPage from "@/pages/LavacaoPublicaPage";
+import RelatorioConfigPage from "@/pages/RelatorioConfigPage";
+import WhatsappAgendador from "@/components/WhatsappAgendador";
 import NotFound from "@/pages/NotFound";
 import { Menu } from "lucide-react";
 
