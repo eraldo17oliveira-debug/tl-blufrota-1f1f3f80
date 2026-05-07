@@ -31,6 +31,7 @@ function AppLayout({ session, onLogout }: { session: UserSession; onLogout: () =
 
   return (
     <SidebarProvider>
+      <WhatsappAgendador />
       <div className="min-h-screen flex w-full">
         <AppSidebar session={session} onLogout={onLogout} />
         <div className="flex-1 flex flex-col min-w-0">
