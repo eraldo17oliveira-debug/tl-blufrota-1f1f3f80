@@ -18,6 +18,8 @@ import OrdemServicoPage from "@/pages/OrdemServicoPage";
 import LavacaoPage from "@/pages/LavacaoPage";
 import BloqueadosPage from "@/pages/BloqueadosPage";
 import LavacaoPublicaPage from "@/pages/LavacaoPublicaPage";
+import RelatorioConfigPage from "@/pages/RelatorioConfigPage";
+import WhatsappAgendador from "@/components/WhatsappAgendador";
 import NotFound from "@/pages/NotFound";
 import { Menu } from "lucide-react";
 
@@ -29,6 +31,7 @@ function AppLayout({ session, onLogout }: { session: UserSession; onLogout: () =
 
   return (
     <SidebarProvider>
+      <WhatsappAgendador />
       <div className="min-h-screen flex w-full">
         <AppSidebar session={session} onLogout={onLogout} />
         <div className="flex-1 flex flex-col min-w-0">
@@ -51,6 +54,7 @@ function AppLayout({ session, onLogout }: { session: UserSession; onLogout: () =
               {allowed.includes("os") && <Route path="/os" element={<OrdemServicoPage session={session} />} />}
               {allowed.includes("lavacao") && <Route path="/lavacao" element={<LavacaoPage session={session} />} />}
               {allowed.includes("bloqueados") && <Route path="/bloqueados" element={<BloqueadosPage session={session} />} />}
+              <Route path="/relatorio-config" element={<RelatorioConfigPage />} />
               {session.perfil === "SUPERVISOR" && <Route path="/usuarios" element={<UsuariosPage />} />}
               <Route path="*" element={<Navigate to={defaultRoute} replace />} />
             </Routes>
