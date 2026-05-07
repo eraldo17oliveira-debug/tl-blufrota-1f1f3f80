@@ -440,6 +440,51 @@ export type Database = {
         }
         Relationships: []
       }
+      whatsapp_contatos: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          id: string
+          nome: string
+          telefone: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          nome?: string
+          telefone?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          nome?: string
+          telefone?: string
+        }
+        Relationships: []
+      }
+      whatsapp_horarios: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          hora: string
+          id: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          hora: string
+          id?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          hora?: string
+          id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
