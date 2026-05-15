@@ -1,11 +1,14 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { lerPatio, todayStr } from "@/lib/storage";
 import { UserSession } from "@/lib/types";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Eye, AlertTriangle, Bell } from "lucide-react";
+import { Eye, AlertTriangle, Bell, Pencil, Check, X, Trash2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 function removeDash(placa: string): string {
   return placa.replace(/-/g, "");
