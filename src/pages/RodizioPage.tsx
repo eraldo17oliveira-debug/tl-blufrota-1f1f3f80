@@ -320,6 +320,11 @@ export default function RodizioPage({ session }: { session: UserSession }) {
                 <FileText className="h-3.5 w-3.5" /> PDF
               </Button>
             )}
+            {session.permissoes.gerarPdf && (
+              <Button variant="outline" size="sm" onClick={handlePDFPorPlaca} className="gap-1.5 border-[hsl(var(--neon-purple))]/50 text-[hsl(var(--neon-purple))] hover:bg-[hsl(var(--neon-purple))]/10 font-orbitron text-xs uppercase font-bold">
+                <FileText className="h-3.5 w-3.5" /> PDF / PLACA
+              </Button>
+            )}
             {session.permissoes.gerarExcel && (
               <Button variant="outline" size="sm" onClick={handleExcel} className="gap-1.5 border-accent/50 text-accent hover:bg-accent/10 font-orbitron text-xs neon-glow-green uppercase font-bold">
                 <FileSpreadsheet className="h-3.5 w-3.5" /> EXCEL
