@@ -1,24 +1,45 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { lerPatio, todayStr } from "@/lib/storage";
 import { UserSession } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Eye, AlertTriangle } from "lucide-react";
+import { Eye, AlertTriangle, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 function removeDash(placa: string): string {
   return placa.replace(/-/g, "");
+}
+function normPlaca(p: string): string {
+  return (p || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
 }
 
 export default function ExpedicaoPage({ session }: { session: UserSession }) {
   const [date, setDate] = useState(todayStr());
   const [records, setRecords] = useState<any[]>([]);
+  const [alertas, setAlertas] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
     const data = await lerPatio(date);
     setRecords(data);
   }, [date]);
   useEffect(() => { load(); }, [load]);
+
+  useEffect(() => {
+    const carregarAlertas = async () => {
+      const { data } = await supabase.from("placas_alerta" as any).select("placa, motivo, ativo");
+      const map: Record<string, string> = {};
+      ((data as any) || []).forEach((p: any) => {
+        if (p.ativo) map[normPlaca(p.placa)] = p.motivo || "PLACA EM ALERTA";
+      });
+      setAlertas(map);
+    };
+    carregarAlertas();
+    const ch = supabase.channel("placas_alerta_ch")
+      .on("postgres_changes", { event: "*", schema: "public", table: "placas_alerta" }, carregarAlertas)
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, []);
 
   const ativos = records.filter(r => !r.concluido);
 
