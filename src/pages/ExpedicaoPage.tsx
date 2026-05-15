@@ -235,6 +235,44 @@ export default function ExpedicaoPage({ session }: { session: UserSession }) {
           </Table>
         </div>
       </div>
+
+      <Dialog open={!!editAlerta} onOpenChange={(o) => !o && setEditAlerta(null)}>
+        <DialogContent className="glass-card border-border/50">
+          <DialogHeader>
+            <DialogTitle className="font-orbitron uppercase tracking-wider" style={{ color: "hsl(48 100% 60%)" }}>
+              ✏️ EDITAR PLACA EM ALERTA
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="font-orbitron text-[0.65rem] uppercase text-muted-foreground tracking-widest">PLACA</label>
+              <Input
+                value={editPlaca}
+                onChange={e => setEditPlaca(e.target.value.toUpperCase())}
+                className="font-mono-neon text-center text-lg uppercase bg-input border-border/50 mt-1"
+                maxLength={8}
+              />
+            </div>
+            <div>
+              <label className="font-orbitron text-[0.65rem] uppercase text-muted-foreground tracking-widest">MOTIVO</label>
+              <Input
+                value={editMotivo}
+                onChange={e => setEditMotivo(e.target.value.toUpperCase())}
+                className="uppercase bg-input border-border/50 mt-1"
+                placeholder="MOTIVO DO ALERTA"
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setEditAlerta(null)} className="gap-1.5">
+              <X className="h-4 w-4" /> CANCELAR
+            </Button>
+            <Button onClick={saveEdit} className="gap-1.5 bg-accent hover:bg-accent/80 text-accent-foreground">
+              <Check className="h-4 w-4" /> SALVAR
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
