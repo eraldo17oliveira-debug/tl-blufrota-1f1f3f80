@@ -386,34 +386,46 @@ export type Database = {
       rodizio: {
         Row: {
           created_at: string
+          dot: string
           frota: string
           id: string
           lacre: string
+          marca: string
+          modelo: string
           num_fogo: string
           placa: string
           posicao: string
+          serie: string
           sulco: string
           tipo: string
         }
         Insert: {
           created_at?: string
+          dot?: string
           frota?: string
           id?: string
           lacre?: string
+          marca?: string
+          modelo?: string
           num_fogo?: string
           placa: string
           posicao?: string
+          serie?: string
           sulco?: string
           tipo?: string
         }
         Update: {
           created_at?: string
+          dot?: string
           frota?: string
           id?: string
           lacre?: string
+          marca?: string
+          modelo?: string
           num_fogo?: string
           placa?: string
           posicao?: string
+          serie?: string
           sulco?: string
           tipo?: string
         }
