@@ -98,7 +98,7 @@ export default function RodizioPage({ session }: { session: UserSession }) {
   // Edit record
   const startEdit = (r: any) => {
     setEditingId(r.id);
-    setEditData({ placa: r.placa, frota: r.frota, posicao: r.posicao, num_fogo: r.num_fogo, lacre: r.lacre, tipo: r.tipo });
+    setEditData({ placa: r.placa, frota: r.frota, posicao: r.posicao, num_fogo: r.num_fogo, lacre: r.lacre, tipo: r.tipo, marca: r.marca || "", modelo: r.modelo || "", serie: r.serie || "", dot: r.dot || "", sulco: r.sulco || "" });
   };
   const cancelEdit = () => { setEditingId(null); setEditData({}); };
   const saveEdit = async () => {
@@ -131,6 +131,67 @@ export default function RodizioPage({ session }: { session: UserSession }) {
     doc.setFontSize(8);
     doc.text("GASPAR - SC | SISTEMA OPERACIONAL TL-BLU", 14, finalY);
     doc.save(`rodizio_${de}_${ate}.pdf`);
+  };
+
+  const handlePDFPorPlaca = () => {
+    if (records.length === 0) { toast.error("NENHUM REGISTRO NO PERÍODO!"); return; }
+    const doc = new jsPDF({ orientation: "portrait" });
+    const pageW = doc.internal.pageSize.getWidth();
+
+    // Group by placa
+    const grupos: Record<string, any[]> = {};
+    records.forEach(r => {
+      const k = (r.placa || "—").toUpperCase();
+      if (!grupos[k]) grupos[k] = [];
+      grupos[k].push(r);
+    });
+
+    const placas = Object.keys(grupos).sort();
+    placas.forEach((placaKey, idx) => {
+      if (idx > 0) doc.addPage();
+      const recs = grupos[placaKey];
+      const frota = recs[0].frota || "—";
+
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("TL-BLU FROTA — RODÍZIO DE PNEUS", pageW / 2, 15, { align: "center" });
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text(`PERÍODO: ${de} A ${ate}`, pageW / 2, 22, { align: "center" });
+
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text(`PLACA: ${placaKey}`, 14, 32);
+      doc.text(`FROTA: ${frota}`, pageW - 14, 32, { align: "right" });
+
+      autoTable(doc, {
+        startY: 38,
+        styles: { fontSize: 8, cellPadding: 1.5 },
+        headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 8 },
+        head: [["POSIÇÃO", "TIPO", "Nº FOGO", "LACRE", "MARCA", "MODELO", "SÉRIE", "DOT", "SULCO", "DATA"]],
+        body: recs.map(r => [
+          r.posicao || "—",
+          r.tipo || "—",
+          r.num_fogo || "—",
+          r.lacre || "—",
+          r.marca || "—",
+          r.modelo || "—",
+          r.serie || "—",
+          r.dot || "—",
+          r.sulco || "—",
+          new Date(r.created_at).toLocaleDateString("pt-BR"),
+        ]),
+      });
+
+      const finalY = (doc as any).lastAutoTable.finalY + 8;
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "italic");
+      doc.text(`Total de pneus: ${recs.length}`, 14, finalY);
+      doc.text("GASPAR - SC | SISTEMA OPERACIONAL TL-BLU", pageW - 14, finalY, { align: "right" });
+    });
+
+    doc.save(`rodizio_por_placa_${de}_${ate}.pdf`);
+    toast.success(`PDF GERADO: ${placas.length} PLACA(S)!`);
   };
 
   const handleExcel = () => {
