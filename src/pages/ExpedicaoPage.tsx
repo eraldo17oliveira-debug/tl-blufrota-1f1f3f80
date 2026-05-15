@@ -1,11 +1,14 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { lerPatio, todayStr } from "@/lib/storage";
 import { UserSession } from "@/lib/types";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Eye, AlertTriangle, Bell } from "lucide-react";
+import { Eye, AlertTriangle, Bell, Pencil, Check, X, Trash2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 function removeDash(placa: string): string {
   return placa.replace(/-/g, "");
@@ -14,10 +17,16 @@ function normPlaca(p: string): string {
   return (p || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
 }
 
+type AlertaRow = { id: string; placa: string; motivo: string; ativo: boolean };
+
 export default function ExpedicaoPage({ session }: { session: UserSession }) {
   const [date, setDate] = useState(todayStr());
   const [records, setRecords] = useState<any[]>([]);
   const [alertas, setAlertas] = useState<Record<string, string>>({});
+  const [alertasList, setAlertasList] = useState<AlertaRow[]>([]);
+  const [editAlerta, setEditAlerta] = useState<AlertaRow | null>(null);
+  const [editPlaca, setEditPlaca] = useState("");
+  const [editMotivo, setEditMotivo] = useState("");
 
   const load = useCallback(async () => {
     const data = await lerPatio(date);
@@ -25,21 +34,46 @@ export default function ExpedicaoPage({ session }: { session: UserSession }) {
   }, [date]);
   useEffect(() => { load(); }, [load]);
 
+  const carregarAlertas = useCallback(async () => {
+    const { data } = await supabase.from("placas_alerta" as any).select("id, placa, motivo, ativo");
+    const list = ((data as any) || []) as AlertaRow[];
+    setAlertasList(list);
+    const map: Record<string, string> = {};
+    list.forEach((p) => {
+      if (p.ativo) map[normPlaca(p.placa)] = p.motivo || "PLACA EM ALERTA";
+    });
+    setAlertas(map);
+  }, []);
+
   useEffect(() => {
-    const carregarAlertas = async () => {
-      const { data } = await supabase.from("placas_alerta" as any).select("placa, motivo, ativo");
-      const map: Record<string, string> = {};
-      ((data as any) || []).forEach((p: any) => {
-        if (p.ativo) map[normPlaca(p.placa)] = p.motivo || "PLACA EM ALERTA";
-      });
-      setAlertas(map);
-    };
     carregarAlertas();
     const ch = supabase.channel("placas_alerta_ch")
-      .on("postgres_changes", { event: "*", schema: "public", table: "placas_alerta" }, carregarAlertas)
+      .on("postgres_changes", { event: "*", schema: "public", table: "placas_alerta" }, () => carregarAlertas())
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, []);
+  }, [carregarAlertas]);
+
+  const openEdit = (a: AlertaRow) => {
+    setEditAlerta(a);
+    setEditPlaca(a.placa);
+    setEditMotivo(a.motivo || "");
+  };
+  const saveEdit = async () => {
+    if (!editAlerta) return;
+    const { error } = await supabase.from("placas_alerta" as any)
+      .update({ placa: editPlaca.toUpperCase(), motivo: editMotivo.toUpperCase() } as any)
+      .eq("id", editAlerta.id);
+    if (error) { toast.error("ERRO AO SALVAR!"); return; }
+    toast.success("ALERTA ATUALIZADO!");
+    setEditAlerta(null);
+    carregarAlertas();
+  };
+  const removerAlerta = async (id: string) => {
+    if (!confirm("DESATIVAR ESTE ALERTA?")) return;
+    await supabase.from("placas_alerta" as any).update({ ativo: false } as any).eq("id", id);
+    toast.success("ALERTA DESATIVADO!");
+    carregarAlertas();
+  };
 
   const ativos = records.filter(r => !r.concluido);
 
@@ -80,6 +114,60 @@ export default function ExpedicaoPage({ session }: { session: UserSession }) {
           </div>
         ))}
       </div>
+
+      {alertasList.filter(a => a.ativo).length > 0 && (
+        <div
+          className="glass-card rounded-2xl p-4 sm:p-5 space-y-3"
+          style={{
+            background: "linear-gradient(135deg, hsl(48 100% 50% / 0.08), hsl(48 100% 50% / 0.02))",
+            borderColor: "hsl(48 100% 50% / 0.4)",
+            boxShadow: "0 0 24px hsl(48 100% 50% / 0.15)",
+          }}
+        >
+          <div className="flex items-center gap-2">
+            <Bell className="h-4 w-4" style={{ color: "hsl(48 100% 55%)" }} />
+            <h2 className="font-orbitron text-sm font-bold uppercase tracking-wider" style={{ color: "hsl(48 100% 55%)" }}>
+              PLACAS EM ALERTA ({alertasList.filter(a => a.ativo).length})
+            </h2>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {alertasList.filter(a => a.ativo).map(a => (
+              <div
+                key={a.id}
+                className="flex items-center gap-2 rounded-xl px-3 py-2 border"
+                style={{ background: "hsl(48 100% 50% / 0.12)", borderColor: "hsl(48 100% 50% / 0.5)" }}
+              >
+                <Bell className="h-3.5 w-3.5" style={{ color: "hsl(48 100% 55%)" }} />
+                <div className="flex flex-col">
+                  <span className="font-mono-neon text-sm font-bold" style={{ color: "hsl(48 100% 65%)" }}>
+                    {a.placa.replace(/-/g, "")}
+                  </span>
+                  {a.motivo && (
+                    <span className="text-[0.6rem] font-orbitron uppercase opacity-80" style={{ color: "hsl(48 100% 70%)" }}>
+                      ⚠ {a.motivo}
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={() => openEdit(a)}
+                  className="ml-2 h-7 w-7 rounded-full flex items-center justify-center transition-all hover:scale-110"
+                  style={{ background: "hsl(48 100% 50% / 0.2)", color: "hsl(48 100% 65%)" }}
+                  title="EDITAR"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  onClick={() => removerAlerta(a.id)}
+                  className="h-7 w-7 rounded-full flex items-center justify-center bg-destructive/20 text-destructive hover:bg-destructive/40 transition-all hover:scale-110"
+                  title="DESATIVAR"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="glass-card rounded-2xl overflow-hidden border-accent/20">
         <div className="flex flex-row items-center justify-between gap-4 flex-wrap p-5 border-b border-border/30">
@@ -147,6 +235,44 @@ export default function ExpedicaoPage({ session }: { session: UserSession }) {
           </Table>
         </div>
       </div>
+
+      <Dialog open={!!editAlerta} onOpenChange={(o) => !o && setEditAlerta(null)}>
+        <DialogContent className="glass-card border-border/50">
+          <DialogHeader>
+            <DialogTitle className="font-orbitron uppercase tracking-wider" style={{ color: "hsl(48 100% 60%)" }}>
+              ✏️ EDITAR PLACA EM ALERTA
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="font-orbitron text-[0.65rem] uppercase text-muted-foreground tracking-widest">PLACA</label>
+              <Input
+                value={editPlaca}
+                onChange={e => setEditPlaca(e.target.value.toUpperCase())}
+                className="font-mono-neon text-center text-lg uppercase bg-input border-border/50 mt-1"
+                maxLength={8}
+              />
+            </div>
+            <div>
+              <label className="font-orbitron text-[0.65rem] uppercase text-muted-foreground tracking-widest">MOTIVO</label>
+              <Input
+                value={editMotivo}
+                onChange={e => setEditMotivo(e.target.value.toUpperCase())}
+                className="uppercase bg-input border-border/50 mt-1"
+                placeholder="MOTIVO DO ALERTA"
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setEditAlerta(null)} className="gap-1.5">
+              <X className="h-4 w-4" /> CANCELAR
+            </Button>
+            <Button onClick={saveEdit} className="gap-1.5 bg-accent hover:bg-accent/80 text-accent-foreground">
+              <Check className="h-4 w-4" /> SALVAR
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

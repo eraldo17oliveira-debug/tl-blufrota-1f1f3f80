@@ -27,6 +27,11 @@ interface PneuEntry {
   numFogo: string;
   lacre: string;
   tipo: string;
+  marca: string;
+  serie: string;
+  dot: string;
+  modelo: string;
+  sulco: string;
 }
 
 export default function RodizioPage({ session }: { session: UserSession }) {
@@ -50,11 +55,11 @@ export default function RodizioPage({ session }: { session: UserSession }) {
     if (!placa) { toast.error("INFORME A PLACA PRIMEIRO!"); return; }
     setSelectedPos(posId);
     if (!pneus.find(p => p.posicao === posId)) {
-      setPneus(prev => [...prev, { posicao: posId, numFogo: "", lacre: "", tipo: "ENTRADA" }]);
+      setPneus(prev => [...prev, { posicao: posId, numFogo: "", lacre: "", tipo: "ENTRADA", marca: "", serie: "", dot: "", modelo: "", sulco: "" }]);
     }
   };
 
-  const updatePneu = (posId: string, field: "numFogo" | "lacre" | "tipo", value: string) => {
+  const updatePneu = (posId: string, field: keyof Omit<PneuEntry, "posicao">, value: string) => {
     setPneus(prev => prev.map(p => p.posicao === posId ? { ...p, [field]: value } : p));
   };
 
@@ -76,8 +81,12 @@ export default function RodizioPage({ session }: { session: UserSession }) {
         posicao: p.posicao,
         num_fogo: p.numFogo.toUpperCase(),
         lacre: p.lacre.toUpperCase(),
-        sulco: "",
+        sulco: p.sulco.toUpperCase(),
         tipo: p.tipo,
+        marca: p.marca.toUpperCase(),
+        serie: p.serie.toUpperCase(),
+        dot: p.dot.toUpperCase(),
+        modelo: p.modelo.toUpperCase(),
       });
     }
     toast.success(`${pneus.length} PNEU(S) REGISTRADO(S)!`);
@@ -89,7 +98,7 @@ export default function RodizioPage({ session }: { session: UserSession }) {
   // Edit record
   const startEdit = (r: any) => {
     setEditingId(r.id);
-    setEditData({ placa: r.placa, frota: r.frota, posicao: r.posicao, num_fogo: r.num_fogo, lacre: r.lacre, tipo: r.tipo });
+    setEditData({ placa: r.placa, frota: r.frota, posicao: r.posicao, num_fogo: r.num_fogo, lacre: r.lacre, tipo: r.tipo, marca: r.marca || "", modelo: r.modelo || "", serie: r.serie || "", dot: r.dot || "", sulco: r.sulco || "" });
   };
   const cancelEdit = () => { setEditingId(null); setEditData({}); };
   const saveEdit = async () => {
@@ -122,6 +131,67 @@ export default function RodizioPage({ session }: { session: UserSession }) {
     doc.setFontSize(8);
     doc.text("GASPAR - SC | SISTEMA OPERACIONAL TL-BLU", 14, finalY);
     doc.save(`rodizio_${de}_${ate}.pdf`);
+  };
+
+  const handlePDFPorPlaca = () => {
+    if (records.length === 0) { toast.error("NENHUM REGISTRO NO PERÍODO!"); return; }
+    const doc = new jsPDF({ orientation: "portrait" });
+    const pageW = doc.internal.pageSize.getWidth();
+
+    // Group by placa
+    const grupos: Record<string, any[]> = {};
+    records.forEach(r => {
+      const k = (r.placa || "—").toUpperCase();
+      if (!grupos[k]) grupos[k] = [];
+      grupos[k].push(r);
+    });
+
+    const placas = Object.keys(grupos).sort();
+    placas.forEach((placaKey, idx) => {
+      if (idx > 0) doc.addPage();
+      const recs = grupos[placaKey];
+      const frota = recs[0].frota || "—";
+
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("TL-BLU FROTA — RODÍZIO DE PNEUS", pageW / 2, 15, { align: "center" });
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      doc.text(`PERÍODO: ${de} A ${ate}`, pageW / 2, 22, { align: "center" });
+
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text(`PLACA: ${placaKey}`, 14, 32);
+      doc.text(`FROTA: ${frota}`, pageW - 14, 32, { align: "right" });
+
+      autoTable(doc, {
+        startY: 38,
+        styles: { fontSize: 8, cellPadding: 1.5 },
+        headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 8 },
+        head: [["POSIÇÃO", "TIPO", "Nº FOGO", "LACRE", "MARCA", "MODELO", "SÉRIE", "DOT", "SULCO", "DATA"]],
+        body: recs.map(r => [
+          r.posicao || "—",
+          r.tipo || "—",
+          r.num_fogo || "—",
+          r.lacre || "—",
+          r.marca || "—",
+          r.modelo || "—",
+          r.serie || "—",
+          r.dot || "—",
+          r.sulco || "—",
+          new Date(r.created_at).toLocaleDateString("pt-BR"),
+        ]),
+      });
+
+      const finalY = (doc as any).lastAutoTable.finalY + 8;
+      doc.setFontSize(7);
+      doc.setFont("helvetica", "italic");
+      doc.text(`Total de pneus: ${recs.length}`, 14, finalY);
+      doc.text("GASPAR - SC | SISTEMA OPERACIONAL TL-BLU", pageW - 14, finalY, { align: "right" });
+    });
+
+    doc.save(`rodizio_por_placa_${de}_${ate}.pdf`);
+    toast.success(`PDF GERADO: ${placas.length} PLACA(S)!`);
   };
 
   const handleExcel = () => {
@@ -207,6 +277,23 @@ export default function RodizioPage({ session }: { session: UserSession }) {
                     </button>
                   </div>
                 </div>
+                {p.numFogo.trim() && (
+                  <div className="space-y-2 pt-2 border-t border-border/30">
+                    <p className="font-orbitron text-[0.55rem] text-muted-foreground uppercase tracking-widest">📋 ANOTAÇÕES DO PNEU</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input placeholder="MARCA" value={p.marca} onChange={e => updatePneu(p.posicao, "marca", e.target.value)}
+                        className="text-xs bg-input border-border/50 focus:border-accent h-10 uppercase" />
+                      <Input placeholder="MODELO" value={p.modelo} onChange={e => updatePneu(p.posicao, "modelo", e.target.value)}
+                        className="text-xs bg-input border-border/50 focus:border-accent h-10 uppercase" />
+                      <Input placeholder="SÉRIE" value={p.serie} onChange={e => updatePneu(p.posicao, "serie", e.target.value)}
+                        className="text-xs bg-input border-border/50 focus:border-accent h-10 uppercase" />
+                      <Input placeholder="DOT (SEM/ANO)" value={p.dot} onChange={e => updatePneu(p.posicao, "dot", e.target.value)}
+                        className="text-xs bg-input border-border/50 focus:border-accent h-10 uppercase" />
+                      <Input placeholder="SULCO (MM)" value={p.sulco} onChange={e => updatePneu(p.posicao, "sulco", e.target.value)}
+                        className="col-span-2 text-xs bg-input border-border/50 focus:border-accent h-10 uppercase" />
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -231,6 +318,11 @@ export default function RodizioPage({ session }: { session: UserSession }) {
             {session.permissoes.gerarPdf && (
               <Button variant="outline" size="sm" onClick={handlePDF} className="gap-1.5 border-primary/50 text-primary hover:bg-primary/10 font-orbitron text-xs neon-glow-primary uppercase font-bold">
                 <FileText className="h-3.5 w-3.5" /> PDF
+              </Button>
+            )}
+            {session.permissoes.gerarPdf && (
+              <Button variant="outline" size="sm" onClick={handlePDFPorPlaca} className="gap-1.5 border-[hsl(var(--neon-purple))]/50 text-[hsl(var(--neon-purple))] hover:bg-[hsl(var(--neon-purple))]/10 font-orbitron text-xs uppercase font-bold">
+                <FileText className="h-3.5 w-3.5" /> PDF / PLACA
               </Button>
             )}
             {session.permissoes.gerarExcel && (
