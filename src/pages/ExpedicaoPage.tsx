@@ -109,9 +109,21 @@ export default function ExpedicaoPage({ session }: { session: UserSession }) {
                     NENHUMA CARRETA NO PÁTIO.
                   </TableCell>
                 </TableRow>
-              ) : sorted.map(r => (
-                <TableRow key={r.id} className={cn("border-border/20 table-row-glow", r.status === "Bloqueio" && "bg-destructive/10")}>
-                  <TableCell className="font-mono-neon text-accent text-sm">{removeDash(r.placa)}</TableCell>
+              ) : sorted.map(r => {
+                const motivoAlerta = alertas[normPlaca(r.placa)];
+                const isAlerta = !!motivoAlerta && r.status !== "Bloqueio";
+                return (
+                <TableRow
+                  key={r.id}
+                  className={cn("border-border/20 table-row-glow", r.status === "Bloqueio" && "bg-destructive/10")}
+                  style={isAlerta ? { background: "hsl(48 100% 50% / 0.18)", boxShadow: "inset 0 0 0 1px hsl(48 100% 50% / 0.5)" } : undefined}
+                >
+                  <TableCell className="font-mono-neon text-sm" style={isAlerta ? { color: "hsl(48 100% 60%)" } : undefined}>
+                    <div className="flex items-center gap-1.5">
+                      {isAlerta && <Bell className="h-3.5 w-3.5" style={{ color: "hsl(48 100% 55%)" }} />}
+                      <span className={isAlerta ? "" : "text-accent"}>{removeDash(r.placa)}</span>
+                    </div>
+                  </TableCell>
                   <TableCell className="text-sm font-orbitron">{r.frota}</TableCell>
                   <TableCell className="text-sm uppercase">{r.estado}</TableCell>
                   <TableCell className="text-sm uppercase">{r.local}</TableCell>
@@ -123,11 +135,14 @@ export default function ExpedicaoPage({ session }: { session: UserSession }) {
                     {r.status === "Bloqueio" && r.motivo_bloqueio && (
                       <p className="text-[0.6rem] text-destructive/80 mt-0.5">{r.motivo_bloqueio}</p>
                     )}
+                    {isAlerta && (
+                      <p className="text-[0.6rem] mt-0.5 font-orbitron uppercase font-bold" style={{ color: "hsl(48 100% 55%)" }}>⚠ {motivoAlerta}</p>
+                    )}
                   </TableCell>
                   <TableCell className="text-sm">{r.eixo}</TableCell>
                   <TableCell className="text-sm">{r.modelo}</TableCell>
                 </TableRow>
-              ))}
+              );})}
             </TableBody>
           </Table>
         </div>
