@@ -27,6 +27,11 @@ interface PneuEntry {
   numFogo: string;
   lacre: string;
   tipo: string;
+  marca: string;
+  serie: string;
+  dot: string;
+  modelo: string;
+  sulco: string;
 }
 
 export default function RodizioPage({ session }: { session: UserSession }) {
@@ -50,11 +55,11 @@ export default function RodizioPage({ session }: { session: UserSession }) {
     if (!placa) { toast.error("INFORME A PLACA PRIMEIRO!"); return; }
     setSelectedPos(posId);
     if (!pneus.find(p => p.posicao === posId)) {
-      setPneus(prev => [...prev, { posicao: posId, numFogo: "", lacre: "", tipo: "ENTRADA" }]);
+      setPneus(prev => [...prev, { posicao: posId, numFogo: "", lacre: "", tipo: "ENTRADA", marca: "", serie: "", dot: "", modelo: "", sulco: "" }]);
     }
   };
 
-  const updatePneu = (posId: string, field: "numFogo" | "lacre" | "tipo", value: string) => {
+  const updatePneu = (posId: string, field: keyof Omit<PneuEntry, "posicao">, value: string) => {
     setPneus(prev => prev.map(p => p.posicao === posId ? { ...p, [field]: value } : p));
   };
 
@@ -76,8 +81,12 @@ export default function RodizioPage({ session }: { session: UserSession }) {
         posicao: p.posicao,
         num_fogo: p.numFogo.toUpperCase(),
         lacre: p.lacre.toUpperCase(),
-        sulco: "",
+        sulco: p.sulco.toUpperCase(),
         tipo: p.tipo,
+        marca: p.marca.toUpperCase(),
+        serie: p.serie.toUpperCase(),
+        dot: p.dot.toUpperCase(),
+        modelo: p.modelo.toUpperCase(),
       });
     }
     toast.success(`${pneus.length} PNEU(S) REGISTRADO(S)!`);
