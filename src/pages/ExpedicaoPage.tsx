@@ -43,12 +43,13 @@ export default function ExpedicaoPage({ session }: { session: UserSession }) {
 
   const ativos = records.filter(r => !r.concluido);
 
-  // Sort: Bloqueio first, then Vazia, then rest
+  // Sort: Bloqueio first, then Alerta, then Vazia, then rest
   const sorted = [...ativos].sort((a, b) => {
     const order = (r: any) => {
       if (r.status === "Bloqueio") return 0;
-      if (r.estado === "Vazia") return 1;
-      return 2;
+      if (alertas[normPlaca(r.placa)]) return 1;
+      if (r.estado === "Vazia") return 2;
+      return 3;
     };
     return order(a) - order(b);
   });
@@ -57,6 +58,7 @@ export default function ExpedicaoPage({ session }: { session: UserSession }) {
   const totalCarregadas = ativos.filter(r => r.estado === "Carga").length;
   const totalVazias = ativos.filter(r => r.estado === "Vazia" && r.status !== "Bloqueio").length;
   const emManutencao = ativos.filter(r => r.status === "Bloqueio").length;
+  const totalAlerta = ativos.filter(r => alertas[normPlaca(r.placa)]).length;
 
   return (
     <div className="space-y-5">
