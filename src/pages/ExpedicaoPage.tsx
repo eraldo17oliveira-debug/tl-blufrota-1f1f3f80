@@ -66,14 +66,15 @@ export default function ExpedicaoPage({ session }: { session: UserSession }) {
         👁️ MONITORAMENTO DE CARRETAS NO PÁTIO
       </h1>
 
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         {[
           { label: "TOTAL PÁTIO", val: totalPatio, cls: "text-primary border-primary/30" },
           { label: "CARREGADAS", val: totalCarregadas, cls: "text-accent border-accent/30" },
           { label: "VAZIAS", val: totalVazias, cls: "text-[hsl(var(--neon-orange))] border-[hsl(var(--neon-orange))]/30" },
           { label: "MANUTENÇÃO", val: emManutencao, cls: "text-destructive border-destructive/30" },
-        ].map(c => (
-          <div key={c.label} className={`glass-card rounded-xl p-4 text-center border ${c.cls}`}>
+          { label: "ALERTA", val: totalAlerta, cls: "border", style: { color: "hsl(48 100% 55%)", borderColor: "hsl(48 100% 50% / 0.4)" } },
+        ].map((c: any) => (
+          <div key={c.label} className={`glass-card rounded-xl p-4 text-center border ${c.cls}`} style={c.style}>
             <p className="text-2xl font-bold font-orbitron">{c.val}</p>
             <p className="text-[0.5rem] font-orbitron uppercase text-muted-foreground">{c.label}</p>
           </div>
