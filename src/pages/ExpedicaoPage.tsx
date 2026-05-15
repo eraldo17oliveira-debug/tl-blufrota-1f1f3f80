@@ -115,6 +115,60 @@ export default function ExpedicaoPage({ session }: { session: UserSession }) {
         ))}
       </div>
 
+      {alertasList.filter(a => a.ativo).length > 0 && (
+        <div
+          className="glass-card rounded-2xl p-4 sm:p-5 space-y-3"
+          style={{
+            background: "linear-gradient(135deg, hsl(48 100% 50% / 0.08), hsl(48 100% 50% / 0.02))",
+            borderColor: "hsl(48 100% 50% / 0.4)",
+            boxShadow: "0 0 24px hsl(48 100% 50% / 0.15)",
+          }}
+        >
+          <div className="flex items-center gap-2">
+            <Bell className="h-4 w-4" style={{ color: "hsl(48 100% 55%)" }} />
+            <h2 className="font-orbitron text-sm font-bold uppercase tracking-wider" style={{ color: "hsl(48 100% 55%)" }}>
+              PLACAS EM ALERTA ({alertasList.filter(a => a.ativo).length})
+            </h2>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {alertasList.filter(a => a.ativo).map(a => (
+              <div
+                key={a.id}
+                className="flex items-center gap-2 rounded-xl px-3 py-2 border"
+                style={{ background: "hsl(48 100% 50% / 0.12)", borderColor: "hsl(48 100% 50% / 0.5)" }}
+              >
+                <Bell className="h-3.5 w-3.5" style={{ color: "hsl(48 100% 55%)" }} />
+                <div className="flex flex-col">
+                  <span className="font-mono-neon text-sm font-bold" style={{ color: "hsl(48 100% 65%)" }}>
+                    {a.placa.replace(/-/g, "")}
+                  </span>
+                  {a.motivo && (
+                    <span className="text-[0.6rem] font-orbitron uppercase opacity-80" style={{ color: "hsl(48 100% 70%)" }}>
+                      ⚠ {a.motivo}
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={() => openEdit(a)}
+                  className="ml-2 h-7 w-7 rounded-full flex items-center justify-center transition-all hover:scale-110"
+                  style={{ background: "hsl(48 100% 50% / 0.2)", color: "hsl(48 100% 65%)" }}
+                  title="EDITAR"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  onClick={() => removerAlerta(a.id)}
+                  className="h-7 w-7 rounded-full flex items-center justify-center bg-destructive/20 text-destructive hover:bg-destructive/40 transition-all hover:scale-110"
+                  title="DESATIVAR"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="glass-card rounded-2xl overflow-hidden border-accent/20">
         <div className="flex flex-row items-center justify-between gap-4 flex-wrap p-5 border-b border-border/30">
           <div className="flex items-center gap-2">
