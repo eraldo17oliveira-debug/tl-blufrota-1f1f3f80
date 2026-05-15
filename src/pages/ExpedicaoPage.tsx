@@ -17,10 +17,16 @@ function normPlaca(p: string): string {
   return (p || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
 }
 
+type AlertaRow = { id: string; placa: string; motivo: string; ativo: boolean };
+
 export default function ExpedicaoPage({ session }: { session: UserSession }) {
   const [date, setDate] = useState(todayStr());
   const [records, setRecords] = useState<any[]>([]);
   const [alertas, setAlertas] = useState<Record<string, string>>({});
+  const [alertasList, setAlertasList] = useState<AlertaRow[]>([]);
+  const [editAlerta, setEditAlerta] = useState<AlertaRow | null>(null);
+  const [editPlaca, setEditPlaca] = useState("");
+  const [editMotivo, setEditMotivo] = useState("");
 
   const load = useCallback(async () => {
     const data = await lerPatio(date);
@@ -28,21 +34,46 @@ export default function ExpedicaoPage({ session }: { session: UserSession }) {
   }, [date]);
   useEffect(() => { load(); }, [load]);
 
+  const carregarAlertas = useCallback(async () => {
+    const { data } = await supabase.from("placas_alerta" as any).select("id, placa, motivo, ativo");
+    const list = ((data as any) || []) as AlertaRow[];
+    setAlertasList(list);
+    const map: Record<string, string> = {};
+    list.forEach((p) => {
+      if (p.ativo) map[normPlaca(p.placa)] = p.motivo || "PLACA EM ALERTA";
+    });
+    setAlertas(map);
+  }, []);
+
   useEffect(() => {
-    const carregarAlertas = async () => {
-      const { data } = await supabase.from("placas_alerta" as any).select("placa, motivo, ativo");
-      const map: Record<string, string> = {};
-      ((data as any) || []).forEach((p: any) => {
-        if (p.ativo) map[normPlaca(p.placa)] = p.motivo || "PLACA EM ALERTA";
-      });
-      setAlertas(map);
-    };
     carregarAlertas();
     const ch = supabase.channel("placas_alerta_ch")
-      .on("postgres_changes", { event: "*", schema: "public", table: "placas_alerta" }, carregarAlertas)
+      .on("postgres_changes", { event: "*", schema: "public", table: "placas_alerta" }, () => carregarAlertas())
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, []);
+  }, [carregarAlertas]);
+
+  const openEdit = (a: AlertaRow) => {
+    setEditAlerta(a);
+    setEditPlaca(a.placa);
+    setEditMotivo(a.motivo || "");
+  };
+  const saveEdit = async () => {
+    if (!editAlerta) return;
+    const { error } = await supabase.from("placas_alerta" as any)
+      .update({ placa: editPlaca.toUpperCase(), motivo: editMotivo.toUpperCase() } as any)
+      .eq("id", editAlerta.id);
+    if (error) { toast.error("ERRO AO SALVAR!"); return; }
+    toast.success("ALERTA ATUALIZADO!");
+    setEditAlerta(null);
+    carregarAlertas();
+  };
+  const removerAlerta = async (id: string) => {
+    if (!confirm("DESATIVAR ESTE ALERTA?")) return;
+    await supabase.from("placas_alerta" as any).update({ ativo: false } as any).eq("id", id);
+    toast.success("ALERTA DESATIVADO!");
+    carregarAlertas();
+  };
 
   const ativos = records.filter(r => !r.concluido);
 
