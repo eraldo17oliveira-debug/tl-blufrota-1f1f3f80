@@ -216,6 +216,23 @@ export default function RodizioPage({ session }: { session: UserSession }) {
                     </button>
                   </div>
                 </div>
+                {p.numFogo.trim() && (
+                  <div className="space-y-2 pt-2 border-t border-border/30">
+                    <p className="font-orbitron text-[0.55rem] text-muted-foreground uppercase tracking-widest">📋 ANOTAÇÕES DO PNEU</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input placeholder="MARCA" value={p.marca} onChange={e => updatePneu(p.posicao, "marca", e.target.value)}
+                        className="text-xs bg-input border-border/50 focus:border-accent h-10 uppercase" />
+                      <Input placeholder="MODELO" value={p.modelo} onChange={e => updatePneu(p.posicao, "modelo", e.target.value)}
+                        className="text-xs bg-input border-border/50 focus:border-accent h-10 uppercase" />
+                      <Input placeholder="SÉRIE" value={p.serie} onChange={e => updatePneu(p.posicao, "serie", e.target.value)}
+                        className="text-xs bg-input border-border/50 focus:border-accent h-10 uppercase" />
+                      <Input placeholder="DOT (SEM/ANO)" value={p.dot} onChange={e => updatePneu(p.posicao, "dot", e.target.value)}
+                        className="text-xs bg-input border-border/50 focus:border-accent h-10 uppercase" />
+                      <Input placeholder="SULCO (MM)" value={p.sulco} onChange={e => updatePneu(p.posicao, "sulco", e.target.value)}
+                        className="col-span-2 text-xs bg-input border-border/50 focus:border-accent h-10 uppercase" />
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
