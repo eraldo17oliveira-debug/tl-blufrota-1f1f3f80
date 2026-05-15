@@ -37,8 +37,8 @@ export async function toggleConcluidoPatio(id: string) {
 }
 
 // ── Rodízio ──
-export async function salvarRodizio(record: { placa: string; frota: string; posicao: string; num_fogo: string; lacre: string; sulco: string; tipo: string }) {
-  const { error } = await supabase.from("rodizio").insert(record);
+export async function salvarRodizio(record: { placa: string; frota: string; posicao: string; num_fogo: string; lacre: string; sulco: string; tipo: string; marca?: string; serie?: string; dot?: string; modelo?: string }) {
+  const { error } = await supabase.from("rodizio").insert(record as any);
   if (error) console.error(error);
 }
 
@@ -54,8 +54,8 @@ export async function lerRodizio(de: string, ate: string) {
   return data || [];
 }
 
-export async function atualizarRodizio(id: string, dados: { placa?: string; frota?: string; posicao?: string; num_fogo?: string; lacre?: string; tipo?: string }) {
-  const { error } = await supabase.from("rodizio").update(dados).eq("id", id);
+export async function atualizarRodizio(id: string, dados: { placa?: string; frota?: string; posicao?: string; num_fogo?: string; lacre?: string; tipo?: string; marca?: string; serie?: string; dot?: string; modelo?: string; sulco?: string }) {
+  const { error } = await supabase.from("rodizio").update(dados as any).eq("id", id);
   if (error) console.error(error);
 }
 
