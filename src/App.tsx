@@ -19,6 +19,7 @@ import LavacaoPage from "@/pages/LavacaoPage";
 import BloqueadosPage from "@/pages/BloqueadosPage";
 import LavacaoPublicaPage from "@/pages/LavacaoPublicaPage";
 import RelatorioConfigPage from "@/pages/RelatorioConfigPage";
+import PlacasAlertaPage from "@/pages/PlacasAlertaPage";
 import WhatsappAgendador from "@/components/WhatsappAgendador";
 import NotFound from "@/pages/NotFound";
 import { Menu } from "lucide-react";
@@ -55,6 +56,7 @@ function AppLayout({ session, onLogout }: { session: UserSession; onLogout: () =
               {allowed.includes("lavacao") && <Route path="/lavacao" element={<LavacaoPage session={session} />} />}
               {allowed.includes("bloqueados") && <Route path="/bloqueados" element={<BloqueadosPage session={session} />} />}
               <Route path="/relatorio-config" element={<RelatorioConfigPage />} />
+              <Route path="/placas-alerta" element={<PlacasAlertaPage />} />
               {session.perfil === "SUPERVISOR" && <Route path="/usuarios" element={<UsuariosPage />} />}
               <Route path="*" element={<Navigate to={defaultRoute} replace />} />
             </Routes>

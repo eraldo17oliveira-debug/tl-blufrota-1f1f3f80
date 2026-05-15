@@ -1,18 +1,23 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { lerPatio, todayStr } from "@/lib/storage";
 import { UserSession } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Eye, AlertTriangle } from "lucide-react";
+import { Eye, AlertTriangle, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 function removeDash(placa: string): string {
   return placa.replace(/-/g, "");
+}
+function normPlaca(p: string): string {
+  return (p || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
 }
 
 export default function ExpedicaoPage({ session }: { session: UserSession }) {
   const [date, setDate] = useState(todayStr());
   const [records, setRecords] = useState<any[]>([]);
+  const [alertas, setAlertas] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
     const data = await lerPatio(date);
@@ -20,14 +25,31 @@ export default function ExpedicaoPage({ session }: { session: UserSession }) {
   }, [date]);
   useEffect(() => { load(); }, [load]);
 
+  useEffect(() => {
+    const carregarAlertas = async () => {
+      const { data } = await supabase.from("placas_alerta" as any).select("placa, motivo, ativo");
+      const map: Record<string, string> = {};
+      ((data as any) || []).forEach((p: any) => {
+        if (p.ativo) map[normPlaca(p.placa)] = p.motivo || "PLACA EM ALERTA";
+      });
+      setAlertas(map);
+    };
+    carregarAlertas();
+    const ch = supabase.channel("placas_alerta_ch")
+      .on("postgres_changes", { event: "*", schema: "public", table: "placas_alerta" }, carregarAlertas)
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, []);
+
   const ativos = records.filter(r => !r.concluido);
 
-  // Sort: Bloqueio first, then Vazia, then rest
+  // Sort: Bloqueio first, then Alerta, then Vazia, then rest
   const sorted = [...ativos].sort((a, b) => {
     const order = (r: any) => {
       if (r.status === "Bloqueio") return 0;
-      if (r.estado === "Vazia") return 1;
-      return 2;
+      if (alertas[normPlaca(r.placa)]) return 1;
+      if (r.estado === "Vazia") return 2;
+      return 3;
     };
     return order(a) - order(b);
   });
@@ -36,6 +58,7 @@ export default function ExpedicaoPage({ session }: { session: UserSession }) {
   const totalCarregadas = ativos.filter(r => r.estado === "Carga").length;
   const totalVazias = ativos.filter(r => r.estado === "Vazia" && r.status !== "Bloqueio").length;
   const emManutencao = ativos.filter(r => r.status === "Bloqueio").length;
+  const totalAlerta = ativos.filter(r => alertas[normPlaca(r.placa)]).length;
 
   return (
     <div className="space-y-5">
@@ -43,14 +66,15 @@ export default function ExpedicaoPage({ session }: { session: UserSession }) {
         👁️ MONITORAMENTO DE CARRETAS NO PÁTIO
       </h1>
 
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         {[
           { label: "TOTAL PÁTIO", val: totalPatio, cls: "text-primary border-primary/30" },
           { label: "CARREGADAS", val: totalCarregadas, cls: "text-accent border-accent/30" },
           { label: "VAZIAS", val: totalVazias, cls: "text-[hsl(var(--neon-orange))] border-[hsl(var(--neon-orange))]/30" },
           { label: "MANUTENÇÃO", val: emManutencao, cls: "text-destructive border-destructive/30" },
-        ].map(c => (
-          <div key={c.label} className={`glass-card rounded-xl p-4 text-center border ${c.cls}`}>
+          { label: "ALERTA", val: totalAlerta, cls: "border", style: { color: "hsl(48 100% 55%)", borderColor: "hsl(48 100% 50% / 0.4)" } },
+        ].map((c: any) => (
+          <div key={c.label} className={`glass-card rounded-xl p-4 text-center border ${c.cls}`} style={c.style}>
             <p className="text-2xl font-bold font-orbitron">{c.val}</p>
             <p className="text-[0.5rem] font-orbitron uppercase text-muted-foreground">{c.label}</p>
           </div>
@@ -85,9 +109,21 @@ export default function ExpedicaoPage({ session }: { session: UserSession }) {
                     NENHUMA CARRETA NO PÁTIO.
                   </TableCell>
                 </TableRow>
-              ) : sorted.map(r => (
-                <TableRow key={r.id} className={cn("border-border/20 table-row-glow", r.status === "Bloqueio" && "bg-destructive/10")}>
-                  <TableCell className="font-mono-neon text-accent text-sm">{removeDash(r.placa)}</TableCell>
+              ) : sorted.map(r => {
+                const motivoAlerta = alertas[normPlaca(r.placa)];
+                const isAlerta = !!motivoAlerta && r.status !== "Bloqueio";
+                return (
+                <TableRow
+                  key={r.id}
+                  className={cn("border-border/20 table-row-glow", r.status === "Bloqueio" && "bg-destructive/10")}
+                  style={isAlerta ? { background: "hsl(48 100% 50% / 0.18)", boxShadow: "inset 0 0 0 1px hsl(48 100% 50% / 0.5)" } : undefined}
+                >
+                  <TableCell className="font-mono-neon text-sm" style={isAlerta ? { color: "hsl(48 100% 60%)" } : undefined}>
+                    <div className="flex items-center gap-1.5">
+                      {isAlerta && <Bell className="h-3.5 w-3.5" style={{ color: "hsl(48 100% 55%)" }} />}
+                      <span className={isAlerta ? "" : "text-accent"}>{removeDash(r.placa)}</span>
+                    </div>
+                  </TableCell>
                   <TableCell className="text-sm font-orbitron">{r.frota}</TableCell>
                   <TableCell className="text-sm uppercase">{r.estado}</TableCell>
                   <TableCell className="text-sm uppercase">{r.local}</TableCell>
@@ -99,11 +135,14 @@ export default function ExpedicaoPage({ session }: { session: UserSession }) {
                     {r.status === "Bloqueio" && r.motivo_bloqueio && (
                       <p className="text-[0.6rem] text-destructive/80 mt-0.5">{r.motivo_bloqueio}</p>
                     )}
+                    {isAlerta && (
+                      <p className="text-[0.6rem] mt-0.5 font-orbitron uppercase font-bold" style={{ color: "hsl(48 100% 55%)" }}>⚠ {motivoAlerta}</p>
+                    )}
                   </TableCell>
                   <TableCell className="text-sm">{r.eixo}</TableCell>
                   <TableCell className="text-sm">{r.modelo}</TableCell>
                 </TableRow>
-              ))}
+              );})}
             </TableBody>
           </Table>
         </div>

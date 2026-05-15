@@ -38,6 +38,15 @@ export default function PatioForm({ session, onSaved, onFechar }: { session?: Us
     setPlaca(v);
     const clean = v.replace(/[^A-Za-z0-9]/g, "");
     if (clean.length === 7 && isPlacaValid(v)) {
+      const placaUp = v.toUpperCase();
+      const { data: alerta } = await supabase.from("placas_alerta" as any)
+        .select("motivo, ativo").eq("placa", placaUp).eq("ativo", true).maybeSingle();
+      if (alerta) {
+        toast.warning(`⚠ PLACA EM ALERTA! ${(alerta as any).motivo || ""}`, {
+          duration: 8000,
+          style: { background: "hsl(48 100% 50%)", color: "#000", fontWeight: "bold" },
+        });
+      }
       const ultimo = await buscarUltimoPatio(v);
       if (ultimo) {
         setFrota(ultimo.frota || "");

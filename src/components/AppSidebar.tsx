@@ -1,4 +1,4 @@
-import { Truck, RotateCcw, LogOut, Building2, PackageCheck, Users, Wrench, Sun, Moon, Droplets, Ban, Send } from "lucide-react";
+import { Truck, RotateCcw, LogOut, Building2, PackageCheck, Users, Wrench, Sun, Moon, Droplets, Ban, Send, AlertTriangle } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { UserSession, getModuleAccess } from "@/lib/types";
 import {
@@ -49,6 +49,16 @@ export default function AppSidebar({ session, onLogout }: Props) {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <NavLink to="/placas-alerta" end
+                    className="hover:bg-primary/10 rounded-lg px-3 py-2.5 transition-all duration-200 uppercase"
+                    activeClassName="bg-primary/15 text-primary neon-glow-primary">
+                    <AlertTriangle className="mr-2 h-4 w-4" style={{ color: "hsl(48 100% 55%)" }} />
+                    {!collapsed && <span className="text-sm font-medium font-orbitron text-[0.65rem]">PLACAS ALERTA</span>}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <NavLink to="/relatorio-config" end

@@ -257,6 +257,30 @@ export type Database = {
         }
         Relationships: []
       }
+      placas_alerta: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          id: string
+          motivo: string
+          placa: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          motivo?: string
+          placa: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          id?: string
+          motivo?: string
+          placa?: string
+        }
+        Relationships: []
+      }
       pneu_inventario: {
         Row: {
           aro: string
