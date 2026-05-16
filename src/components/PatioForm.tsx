@@ -47,6 +47,33 @@ export default function PatioForm({ session, onSaved, onFechar }: { session?: Us
           style: { background: "hsl(48 100% 50%)", color: "#000", fontWeight: "bold" },
         });
       }
+
+      // Verifica duplicidade no mesmo dia
+      const now = new Date();
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0).toISOString();
+      const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999).toISOString();
+      const { data: hoje } = await supabase.from("patio").select("id")
+        .eq("placa", placaUp).gte("created_at", startOfDay).lte("created_at", endOfDay).limit(1);
+      if (hoje && hoje.length > 0) {
+        toast.error("🚫 VEÍCULO JÁ CADASTRADO HOJE!", {
+          duration: 6000,
+          style: { background: "hsl(var(--destructive))", color: "#fff", fontWeight: "bold" },
+        });
+        return;
+      }
+
+      // Procura primeira entrada anterior para calcular dias na empresa
+      const { data: primeiro } = await supabase.from("patio").select("created_at")
+        .eq("placa", placaUp).lt("created_at", startOfDay)
+        .order("created_at", { ascending: true }).limit(1);
+      if (primeiro && primeiro.length > 0) {
+        const dias = Math.floor((now.getTime() - new Date(primeiro[0].created_at).getTime()) / (1000 * 60 * 60 * 24));
+        toast.info(`🔵 CARRETA HÁ ${dias} DIA${dias !== 1 ? "S" : ""} NA EMPRESA`, {
+          duration: 8000,
+          style: { background: "hsl(210 100% 50%)", color: "#fff", fontWeight: "bold" },
+        });
+      }
+
       const ultimo = await buscarUltimoPatio(v);
       if (ultimo) {
         setFrota(ultimo.frota || "");
@@ -62,10 +89,26 @@ export default function PatioForm({ session, onSaved, onFechar }: { session?: Us
   const handleSave = async () => {
     if (!placa) { toast.error("INFORME A PLACA!"); return; }
     if (status === "Bloqueio" && !motivoBloqueio.trim()) { toast.error("INFORME O MOTIVO DO BLOQUEIO!"); return; }
+
+    const placaCheck = placa.toUpperCase();
+    const nowChk = new Date();
+    const sodChk = new Date(nowChk.getFullYear(), nowChk.getMonth(), nowChk.getDate(), 0, 0, 0, 0).toISOString();
+    const eodChk = new Date(nowChk.getFullYear(), nowChk.getMonth(), nowChk.getDate(), 23, 59, 59, 999).toISOString();
+    const { data: jaHoje } = await supabase.from("patio").select("id")
+      .eq("placa", placaCheck).gte("created_at", sodChk).lte("created_at", eodChk).limit(1);
+    if (jaHoje && jaHoje.length > 0) {
+      toast.error("🚫 VEÍCULO JÁ CADASTRADO HOJE!", {
+        duration: 6000,
+        style: { background: "hsl(var(--destructive))", color: "#fff", fontWeight: "bold" },
+      });
+      return;
+    }
+
     await salvarPatio({
       placa: placa.toUpperCase(), frota: frota.toUpperCase(), modelo, eixo, estado, local, status,
       motivo_bloqueio: status === "Bloqueio" ? motivoBloqueio.toUpperCase() : "",
     });
+
 
     // Se foi cadastrado como BLOQUEIO, registra também em "bloqueados" (se não houver ativo)
     if (status === "Bloqueio") {
