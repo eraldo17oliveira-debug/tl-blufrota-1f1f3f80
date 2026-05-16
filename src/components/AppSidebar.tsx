@@ -11,9 +11,7 @@ import { useTheme } from "@/hooks/useTheme";
 const allModules = [
   { key: "patio", title: "GESTÃO DE PÁTIO", url: "/patio", icon: Truck },
   { key: "rodizio", title: "RODÍZIO DE PNEUS", url: "/rodizio", icon: RotateCcw },
-  { key: "fornecedores", title: "FORNECEDORES", url: "/fornecedores", icon: Building2 },
   { key: "expedicao", title: "MONITORAMENTO", url: "/expedicao", icon: PackageCheck },
-  { key: "os", title: "ORDEM DE SERVIÇO", url: "/os", icon: Wrench },
   { key: "lavacao", title: "LAVAÇÃO", url: "/lavacao", icon: Droplets },
   { key: "bloqueados", title: "BLOQUEADOS", url: "/bloqueados", icon: Ban },
 ];

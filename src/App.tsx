@@ -11,10 +11,8 @@ import LoginScreen from "@/components/LoginScreen";
 import AppSidebar from "@/components/AppSidebar";
 import PatioPage from "@/pages/PatioPage";
 import RodizioPage from "@/pages/RodizioPage";
-import FornecedoresPage from "@/pages/FornecedoresPage";
 import ExpedicaoPage from "@/pages/ExpedicaoPage";
 import UsuariosPage from "@/pages/UsuariosPage";
-import OrdemServicoPage from "@/pages/OrdemServicoPage";
 import LavacaoPage from "@/pages/LavacaoPage";
 import BloqueadosPage from "@/pages/BloqueadosPage";
 import LavacaoPublicaPage from "@/pages/LavacaoPublicaPage";
@@ -50,9 +48,7 @@ function AppLayout({ session, onLogout }: { session: UserSession; onLogout: () =
               <Route path="/" element={<Navigate to={defaultRoute} replace />} />
               {allowed.includes("patio") && <Route path="/patio" element={<PatioPage session={session} />} />}
               {allowed.includes("rodizio") && <Route path="/rodizio" element={<RodizioPage session={session} />} />}
-              {allowed.includes("fornecedores") && <Route path="/fornecedores" element={<FornecedoresPage session={session} />} />}
               {allowed.includes("expedicao") && <Route path="/expedicao" element={<ExpedicaoPage session={session} />} />}
-              {allowed.includes("os") && <Route path="/os" element={<OrdemServicoPage session={session} />} />}
               {allowed.includes("lavacao") && <Route path="/lavacao" element={<LavacaoPage session={session} />} />}
               {allowed.includes("bloqueados") && <Route path="/bloqueados" element={<BloqueadosPage session={session} />} />}
               <Route path="/relatorio-config" element={<RelatorioConfigPage />} />
