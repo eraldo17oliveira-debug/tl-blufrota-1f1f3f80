@@ -27,12 +27,36 @@ export default function ExpedicaoPage({ session }: { session: UserSession }) {
   const [editAlerta, setEditAlerta] = useState<AlertaRow | null>(null);
   const [editPlaca, setEditPlaca] = useState("");
   const [editMotivo, setEditMotivo] = useState("");
+  const [diasMap, setDiasMap] = useState<Record<string, number>>({});
 
   const load = useCallback(async () => {
     const data = await lerPatio(date);
     setRecords(data);
   }, [date]);
   useEffect(() => { load(); }, [load]);
+
+  // Dias na empresa por placa (primeira entrada nos últimos 90 dias)
+  useEffect(() => {
+    (async () => {
+      if (records.length === 0) { setDiasMap({}); return; }
+      const placas = Array.from(new Set(records.map(r => (r.placa || "").toUpperCase())));
+      const since = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+      const { data } = await supabase.from("patio").select("placa, created_at")
+        .in("placa", placas).gte("created_at", since)
+        .order("created_at", { ascending: true });
+      const first: Record<string, string> = {};
+      (data || []).forEach((r: any) => {
+        const p = (r.placa || "").toUpperCase();
+        if (!first[p]) first[p] = r.created_at;
+      });
+      const now = Date.now();
+      const map: Record<string, number> = {};
+      Object.entries(first).forEach(([p, ts]) => {
+        map[p] = Math.floor((now - new Date(ts).getTime()) / (1000 * 60 * 60 * 24));
+      });
+      setDiasMap(map);
+    })();
+  }, [records]);
 
   const carregarAlertas = useCallback(async () => {
     const { data } = await supabase.from("placas_alerta" as any).select("id, placa, motivo, ativo");
