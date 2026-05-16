@@ -231,9 +231,27 @@ export default function ExpedicaoPage({ session }: { session: UserSession }) {
                   style={isAlerta ? { background: "hsl(48 100% 50% / 0.18)", boxShadow: "inset 0 0 0 1px hsl(48 100% 50% / 0.5)" } : undefined}
                 >
                   <TableCell className="font-mono-neon text-sm" style={isAlerta ? { color: "hsl(48 100% 60%)" } : undefined}>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       {isAlerta && <Bell className="h-3.5 w-3.5" style={{ color: "hsl(48 100% 55%)" }} />}
                       <span className={isAlerta ? "" : "text-accent"}>{removeDash(r.placa)}</span>
+                      {(() => {
+                        const dias = diasMap[(r.placa || "").toUpperCase()] ?? 0;
+                        if (dias < 1) return null;
+                        return (
+                          <span
+                            className="text-[0.55rem] font-orbitron font-bold uppercase px-1.5 py-0.5 rounded-md"
+                            style={{
+                              background: "hsl(210 100% 50% / 0.18)",
+                              color: "hsl(210 100% 70%)",
+                              border: "1px solid hsl(210 100% 50% / 0.5)",
+                              boxShadow: "0 0 8px hsl(210 100% 50% / 0.3)",
+                            }}
+                            title="DIAS NA EMPRESA"
+                          >
+                            🔵 {dias}D
+                          </span>
+                        );
+                      })()}
                     </div>
                   </TableCell>
                   <TableCell className="text-sm font-orbitron">{r.frota}</TableCell>
