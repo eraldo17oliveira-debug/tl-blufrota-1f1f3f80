@@ -97,6 +97,19 @@ export default function RelatorioConfigPage() {
         </Button>
       </Card>
 
+      <Card className="glass-card p-5 space-y-3" style={{ background: "linear-gradient(135deg, hsl(200 100% 50% / 0.08), transparent)", borderColor: "hsl(200 100% 50% / 0.4)" }}>
+        <div className="flex items-center gap-2" style={{ color: "hsl(200 100% 65%)" }}>
+          <Building2 className="h-4 w-4" />
+          <span className="font-orbitron text-sm font-bold uppercase">ENVIAR PARA OUTRAS UNIDADES</span>
+        </div>
+        <p className="text-xs text-muted-foreground font-orbitron uppercase">
+          DISPARA O RELATÓRIO DE CARRETAS PARA TODOS OS CONTATOS ATIVOS ABAIXO (CADA UNIDADE EM UMA ABA DO WHATSAPP).
+        </p>
+        <Button onClick={enviarParaTodos} className="w-full font-orbitron uppercase gap-2 h-12" style={{ background: "hsl(200 100% 45%)", color: "hsl(220 50% 8%)" }}>
+          <Building2 className="h-4 w-4" /> ENVIAR PARA TODAS AS UNIDADES ({contatos.filter(c => c.ativo).length})
+        </Button>
+      </Card>
+
       <Card className="glass-card p-5 space-y-4">
         <div className="flex items-center gap-2 text-primary">
           <Clock className="h-4 w-4" />
