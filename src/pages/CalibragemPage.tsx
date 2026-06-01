@@ -206,7 +206,20 @@ export default function CalibragemPage() {
                 const alerta = r.dias >= LIMITE_DIAS;
                 return (
                   <TableRow key={r.placa} className="border-border/20" style={alerta ? { background: "hsl(0 80% 50% / 0.08)" } : undefined}>
-                    <TableCell className="font-mono-neon text-sm font-bold" style={{ color: alerta ? "hsl(0 90% 70%)" : "hsl(190 100% 60%)" }}>{r.placa}</TableCell>
+                    <TableCell className="font-mono-neon text-sm font-bold p-1">
+                      <button
+                        onClick={() => zerar(r.placa)}
+                        className="px-2 py-1 rounded-md border transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                        style={{
+                          background: alerta ? "hsl(0 80% 50% / 0.18)" : "hsl(190 100% 50% / 0.12)",
+                          borderColor: alerta ? "hsl(0 80% 50% / 0.5)" : "hsl(190 100% 50% / 0.4)",
+                          color: alerta ? "hsl(0 90% 70%)" : "hsl(190 100% 60%)",
+                        }}
+                        title="CLIQUE PARA ZERAR A CONTAGEM"
+                      >
+                        {r.placa}
+                      </button>
+                    </TableCell>
                     <TableCell className="text-xs font-orbitron">
                       {r.ultima ? new Date(r.ultima.created_at).toLocaleDateString("pt-BR") : <span className="opacity-50">—</span>}
                     </TableCell>
