@@ -1,4 +1,4 @@
-import { Truck, RotateCcw, LogOut, Building2, PackageCheck, Users, Wrench, Sun, Moon, Droplets, Ban, Send, AlertTriangle } from "lucide-react";
+import { Truck, RotateCcw, LogOut, Building2, PackageCheck, Users, Wrench, Sun, Moon, Droplets, Ban, Send, AlertTriangle, Gauge } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { UserSession, getModuleAccess } from "@/lib/types";
 import {
