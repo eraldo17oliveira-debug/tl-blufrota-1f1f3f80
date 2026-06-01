@@ -18,6 +18,7 @@ import BloqueadosPage from "@/pages/BloqueadosPage";
 import LavacaoPublicaPage from "@/pages/LavacaoPublicaPage";
 import RelatorioConfigPage from "@/pages/RelatorioConfigPage";
 import PlacasAlertaPage from "@/pages/PlacasAlertaPage";
+import CalibragemPage from "@/pages/CalibragemPage";
 import WhatsappAgendador from "@/components/WhatsappAgendador";
 import NotFound from "@/pages/NotFound";
 import { Menu } from "lucide-react";
