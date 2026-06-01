@@ -62,6 +62,18 @@ export default function CalibragemPage() {
     carregar();
   };
 
+  const zerar = async (placaAlvo: string) => {
+    const p = normPlaca(placaAlvo);
+    if (!p) return;
+    if (!confirm(`ZERAR CONTAGEM DA PLACA ${p}?\n(REGISTRA UMA NOVA CALIBRAGEM AGORA)`)) return;
+    const { error } = await supabase.from("calibragem" as any).insert({
+      placa: p, frota: "", observacoes: "ZERADA NO MONITOR", responsavel: "",
+    } as any);
+    if (error) { toast.error("ERRO AO ZERAR!"); return; }
+    toast.success(`✅ ${p} ZERADA — CONTAGEM REINICIADA`);
+    carregar();
+  };
+
   // Última calibragem por placa
   const ultimoPorPlaca = useMemo(() => {
     const map: Record<string, Registro> = {};
