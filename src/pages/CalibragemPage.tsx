@@ -9,6 +9,7 @@ import { Gauge, Plus, Trash2, AlertTriangle, Search, X } from "lucide-react";
 import PlacaInput from "@/components/PlacaInput";
 
 const LIMITE_DIAS = 30; // alerta a partir desse número
+const DATA_INICIO = new Date(2026, 5, 1); // 01/06/2026 — base para placas sem registro
 
 type Registro = { id: string; placa: string; frota: string; observacoes: string; responsavel: string; created_at: string };
 
