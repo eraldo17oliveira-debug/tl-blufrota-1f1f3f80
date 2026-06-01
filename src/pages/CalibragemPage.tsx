@@ -77,7 +77,8 @@ export default function CalibragemPage() {
     const placas = new Set<string>([...placasPatio, ...Object.keys(ultimoPorPlaca)]);
     const arr = Array.from(placas).map(p => {
       const u = ultimoPorPlaca[p];
-      const dias = u ? Math.floor((Date.now() - new Date(u.created_at).getTime()) / 86400000) : 9999;
+      const base = u ? new Date(u.created_at) : DATA_INICIO;
+      const dias = Math.max(0, Math.floor((Date.now() - base.getTime()) / 86400000));
       return { placa: p, ultima: u, dias };
     });
     arr.sort((a, b) => b.dias - a.dias);
