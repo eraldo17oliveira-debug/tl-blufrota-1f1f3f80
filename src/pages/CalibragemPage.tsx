@@ -9,6 +9,7 @@ import { Gauge, Plus, Trash2, AlertTriangle, Search, X } from "lucide-react";
 import PlacaInput from "@/components/PlacaInput";
 
 const LIMITE_DIAS = 30; // alerta a partir desse número
+const DATA_INICIO = new Date(2026, 5, 1); // 01/06/2026 — base para placas sem registro
 
 type Registro = { id: string; placa: string; frota: string; observacoes: string; responsavel: string; created_at: string };
 
@@ -61,6 +62,18 @@ export default function CalibragemPage() {
     carregar();
   };
 
+  const zerar = async (placaAlvo: string) => {
+    const p = normPlaca(placaAlvo);
+    if (!p) return;
+    if (!confirm(`ZERAR CONTAGEM DA PLACA ${p}?\n(REGISTRA UMA NOVA CALIBRAGEM AGORA)`)) return;
+    const { error } = await supabase.from("calibragem" as any).insert({
+      placa: p, frota: "", observacoes: "ZERADA NO MONITOR", responsavel: "",
+    } as any);
+    if (error) { toast.error("ERRO AO ZERAR!"); return; }
+    toast.success(`✅ ${p} ZERADA — CONTAGEM REINICIADA`);
+    carregar();
+  };
+
   // Última calibragem por placa
   const ultimoPorPlaca = useMemo(() => {
     const map: Record<string, Registro> = {};
@@ -76,7 +89,8 @@ export default function CalibragemPage() {
     const placas = new Set<string>([...placasPatio, ...Object.keys(ultimoPorPlaca)]);
     const arr = Array.from(placas).map(p => {
       const u = ultimoPorPlaca[p];
-      const dias = u ? Math.floor((Date.now() - new Date(u.created_at).getTime()) / 86400000) : 9999;
+      const base = u ? new Date(u.created_at) : DATA_INICIO;
+      const dias = Math.max(0, Math.floor((Date.now() - base.getTime()) / 86400000));
       return { placa: p, ultima: u, dias };
     });
     arr.sort((a, b) => b.dias - a.dias);
@@ -137,12 +151,18 @@ export default function CalibragemPage() {
           </div>
           <div className="flex flex-wrap gap-2">
             {alertas.map(a => (
-              <div key={a.placa} className="rounded-xl px-3 py-2 border flex flex-col" style={{ background: "hsl(0 80% 50% / 0.15)", borderColor: "hsl(0 80% 50% / 0.5)" }}>
+              <button
+                key={a.placa}
+                onClick={() => zerar(a.placa)}
+                className="rounded-xl px-3 py-2 border flex flex-col items-start transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                style={{ background: "hsl(0 80% 50% / 0.15)", borderColor: "hsl(0 80% 50% / 0.5)" }}
+                title="CLIQUE PARA ZERAR A CONTAGEM"
+              >
                 <span className="font-mono-neon text-sm font-bold" style={{ color: "hsl(0 90% 70%)" }}>{a.placa}</span>
                 <span className="text-[0.6rem] font-orbitron uppercase" style={{ color: "hsl(0 90% 75%)" }}>
-                  {a.ultima ? `${a.dias}D SEM CALIBRAR` : "NUNCA CALIBRADA"}
+                  {a.dias}D — TOQUE P/ ZERAR
                 </span>
-              </div>
+              </button>
             ))}
           </div>
         </Card>
@@ -186,7 +206,20 @@ export default function CalibragemPage() {
                 const alerta = r.dias >= LIMITE_DIAS;
                 return (
                   <TableRow key={r.placa} className="border-border/20" style={alerta ? { background: "hsl(0 80% 50% / 0.08)" } : undefined}>
-                    <TableCell className="font-mono-neon text-sm font-bold" style={{ color: alerta ? "hsl(0 90% 70%)" : "hsl(190 100% 60%)" }}>{r.placa}</TableCell>
+                    <TableCell className="font-mono-neon text-sm font-bold p-1">
+                      <button
+                        onClick={() => zerar(r.placa)}
+                        className="px-2 py-1 rounded-md border transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                        style={{
+                          background: alerta ? "hsl(0 80% 50% / 0.18)" : "hsl(190 100% 50% / 0.12)",
+                          borderColor: alerta ? "hsl(0 80% 50% / 0.5)" : "hsl(190 100% 50% / 0.4)",
+                          color: alerta ? "hsl(0 90% 70%)" : "hsl(190 100% 60%)",
+                        }}
+                        title="CLIQUE PARA ZERAR A CONTAGEM"
+                      >
+                        {r.placa}
+                      </button>
+                    </TableCell>
                     <TableCell className="text-xs font-orbitron">
                       {r.ultima ? new Date(r.ultima.created_at).toLocaleDateString("pt-BR") : <span className="opacity-50">—</span>}
                     </TableCell>
