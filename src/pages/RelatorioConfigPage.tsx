@@ -51,6 +51,35 @@ export default function RelatorioConfigPage() {
   const delContato = async (id: string) => { await supabase.from("whatsapp_contatos" as any).delete().eq("id", id); carregar(); };
   const delHorario = async (id: string) => { await supabase.from("whatsapp_horarios" as any).delete().eq("id", id); carregar(); };
 
+  const enviarParaTodos = async () => {
+    const ativos = contatos.filter(c => c.ativo);
+    if (ativos.length === 0) { toast.error("NENHUMA UNIDADE/CONTATO ATIVO!"); return; }
+    try {
+      const blob = await gerarImagemMonitoramento();
+      const texto = await montarTextoResumo();
+      const file = new File([blob], `monitoramento_${Date.now()}.png`, { type: "image/png" });
+
+      // Baixa a imagem (1x) para o usuário anexar manualmente
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a"); a.href = url; a.download = file.name; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 8000);
+
+      const msg = encodeURIComponent(texto + "\n\n📎 IMAGEM BAIXADA — ANEXE NO WHATSAPP");
+
+      toast.success(`📤 ABRINDO WHATSAPP PARA ${ativos.length} UNIDADE(S)...`);
+      // Abre uma janela por contato em sequência (com pequeno delay)
+      ativos.forEach((c, i) => {
+        const fone = (c.telefone || "").replace(/\D/g, "");
+        setTimeout(() => {
+          window.open(`https://wa.me/${fone}?text=${msg}`, "_blank");
+        }, i * 700);
+      });
+    } catch (e: any) {
+      toast.error("ERRO: " + e.message);
+    }
+  };
+
+
   return (
     <div className="space-y-5">
       <h1 className="font-orbitron text-lg font-bold text-primary neon-text">📲 RELATÓRIO WHATSAPP</h1>
