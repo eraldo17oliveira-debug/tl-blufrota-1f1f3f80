@@ -28,6 +28,7 @@ export default function ExpedicaoPage({ session }: { session: UserSession }) {
   const [editPlaca, setEditPlaca] = useState("");
   const [editMotivo, setEditMotivo] = useState("");
   const [diasMap, setDiasMap] = useState<Record<string, number>>({});
+  const [busca, setBusca] = useState("");
 
   const load = useCallback(async () => {
     const data = await lerPatio(date);
