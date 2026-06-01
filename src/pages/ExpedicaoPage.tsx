@@ -205,7 +205,27 @@ export default function ExpedicaoPage({ session }: { session: UserSession }) {
             <Eye className="h-4 w-4 text-accent" />
             <h2 className="font-orbitron text-sm font-bold text-accent uppercase">VISUALIZAÇÃO DO PÁTIO</h2>
           </div>
-          <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-auto text-sm bg-input border-border/50 font-orbitron text-xs" />
+          <div className="flex items-center gap-2 flex-1 sm:flex-none sm:w-auto min-w-[220px]">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-accent pointer-events-none" />
+              <Input
+                value={busca}
+                onChange={e => setBusca(e.target.value)}
+                placeholder="BUSCAR PLACA / FROTA..."
+                className="pl-8 uppercase font-mono-neon text-sm bg-input border-accent/40 focus:border-accent h-10"
+              />
+              {busca && (
+                <button
+                  onClick={() => setBusca("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-5 w-5 rounded-full bg-accent/20 text-accent flex items-center justify-center hover:bg-accent/40"
+                  title="LIMPAR"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+            </div>
+            <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-auto text-sm bg-input border-border/50 font-orbitron text-xs" />
+          </div>
         </div>
         <div className="overflow-x-auto p-2">
           <Table>
