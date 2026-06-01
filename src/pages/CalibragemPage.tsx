@@ -151,12 +151,18 @@ export default function CalibragemPage() {
           </div>
           <div className="flex flex-wrap gap-2">
             {alertas.map(a => (
-              <div key={a.placa} className="rounded-xl px-3 py-2 border flex flex-col" style={{ background: "hsl(0 80% 50% / 0.15)", borderColor: "hsl(0 80% 50% / 0.5)" }}>
+              <button
+                key={a.placa}
+                onClick={() => zerar(a.placa)}
+                className="rounded-xl px-3 py-2 border flex flex-col items-start transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                style={{ background: "hsl(0 80% 50% / 0.15)", borderColor: "hsl(0 80% 50% / 0.5)" }}
+                title="CLIQUE PARA ZERAR A CONTAGEM"
+              >
                 <span className="font-mono-neon text-sm font-bold" style={{ color: "hsl(0 90% 70%)" }}>{a.placa}</span>
                 <span className="text-[0.6rem] font-orbitron uppercase" style={{ color: "hsl(0 90% 75%)" }}>
-                  {a.ultima ? `${a.dias}D SEM CALIBRAR` : "NUNCA CALIBRADA"}
+                  {a.dias}D — TOQUE P/ ZERAR
                 </span>
-              </div>
+              </button>
             ))}
           </div>
         </Card>
