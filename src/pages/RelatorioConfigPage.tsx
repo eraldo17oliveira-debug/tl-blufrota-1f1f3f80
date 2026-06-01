@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Plus, Trash2, Clock, Users, Send } from "lucide-react";
+import { Plus, Trash2, Clock, Users, Send, Building2 } from "lucide-react";
 import { compartilharRelatorio } from "@/components/WhatsappAgendador";
+import { gerarImagemMonitoramento, montarTextoResumo } from "@/lib/whatsappReport";
 
 export default function RelatorioConfigPage() {
   const [contatos, setContatos] = useState<any[]>([]);
