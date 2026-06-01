@@ -102,8 +102,13 @@ export default function ExpedicaoPage({ session }: { session: UserSession }) {
 
   const ativos = records.filter(r => !r.concluido);
 
+  const buscaNorm = normPlaca(busca);
+  const ativosFiltrados = buscaNorm
+    ? ativos.filter(r => normPlaca(r.placa).includes(buscaNorm) || (r.frota || "").toUpperCase().includes(busca.toUpperCase()))
+    : ativos;
+
   // Sort: Bloqueio first, then Alerta, then Vazia, then rest
-  const sorted = [...ativos].sort((a, b) => {
+  const sorted = [...ativosFiltrados].sort((a, b) => {
     const order = (r: any) => {
       if (r.status === "Bloqueio") return 0;
       if (alertas[normPlaca(r.placa)]) return 1;
