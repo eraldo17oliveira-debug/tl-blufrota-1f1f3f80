@@ -62,6 +62,33 @@ export type Database = {
         }
         Relationships: []
       }
+      calibragem: {
+        Row: {
+          created_at: string
+          frota: string
+          id: string
+          observacoes: string
+          placa: string
+          responsavel: string
+        }
+        Insert: {
+          created_at?: string
+          frota?: string
+          id?: string
+          observacoes?: string
+          placa: string
+          responsavel?: string
+        }
+        Update: {
+          created_at?: string
+          frota?: string
+          id?: string
+          observacoes?: string
+          placa?: string
+          responsavel?: string
+        }
+        Relationships: []
+      }
       combustivel_carga: {
         Row: {
           created_at: string

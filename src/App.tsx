@@ -18,6 +18,7 @@ import BloqueadosPage from "@/pages/BloqueadosPage";
 import LavacaoPublicaPage from "@/pages/LavacaoPublicaPage";
 import RelatorioConfigPage from "@/pages/RelatorioConfigPage";
 import PlacasAlertaPage from "@/pages/PlacasAlertaPage";
+import CalibragemPage from "@/pages/CalibragemPage";
 import WhatsappAgendador from "@/components/WhatsappAgendador";
 import NotFound from "@/pages/NotFound";
 import { Menu } from "lucide-react";
@@ -53,6 +54,7 @@ function AppLayout({ session, onLogout }: { session: UserSession; onLogout: () =
               {allowed.includes("bloqueados") && <Route path="/bloqueados" element={<BloqueadosPage session={session} />} />}
               <Route path="/relatorio-config" element={<RelatorioConfigPage />} />
               <Route path="/placas-alerta" element={<PlacasAlertaPage />} />
+              <Route path="/calibragem" element={<CalibragemPage />} />
               {session.perfil === "SUPERVISOR" && <Route path="/usuarios" element={<UsuariosPage />} />}
               <Route path="*" element={<Navigate to={defaultRoute} replace />} />
             </Routes>

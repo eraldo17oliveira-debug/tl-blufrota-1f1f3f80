@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { Plus, Trash2, Clock, Users, Send } from "lucide-react";
+import { Plus, Trash2, Clock, Users, Send, Building2 } from "lucide-react";
 import { compartilharRelatorio } from "@/components/WhatsappAgendador";
+import { gerarImagemMonitoramento, montarTextoResumo } from "@/lib/whatsappReport";
 
 export default function RelatorioConfigPage() {
   const [contatos, setContatos] = useState<any[]>([]);
@@ -50,6 +51,35 @@ export default function RelatorioConfigPage() {
   const delContato = async (id: string) => { await supabase.from("whatsapp_contatos" as any).delete().eq("id", id); carregar(); };
   const delHorario = async (id: string) => { await supabase.from("whatsapp_horarios" as any).delete().eq("id", id); carregar(); };
 
+  const enviarParaTodos = async () => {
+    const ativos = contatos.filter(c => c.ativo);
+    if (ativos.length === 0) { toast.error("NENHUMA UNIDADE/CONTATO ATIVO!"); return; }
+    try {
+      const blob = await gerarImagemMonitoramento();
+      const texto = await montarTextoResumo();
+      const file = new File([blob], `monitoramento_${Date.now()}.png`, { type: "image/png" });
+
+      // Baixa a imagem (1x) para o usuário anexar manualmente
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a"); a.href = url; a.download = file.name; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 8000);
+
+      const msg = encodeURIComponent(texto + "\n\n📎 IMAGEM BAIXADA — ANEXE NO WHATSAPP");
+
+      toast.success(`📤 ABRINDO WHATSAPP PARA ${ativos.length} UNIDADE(S)...`);
+      // Abre uma janela por contato em sequência (com pequeno delay)
+      ativos.forEach((c, i) => {
+        const fone = (c.telefone || "").replace(/\D/g, "");
+        setTimeout(() => {
+          window.open(`https://wa.me/${fone}?text=${msg}`, "_blank");
+        }, i * 700);
+      });
+    } catch (e: any) {
+      toast.error("ERRO: " + e.message);
+    }
+  };
+
+
   return (
     <div className="space-y-5">
       <h1 className="font-orbitron text-lg font-bold text-primary neon-text">📲 RELATÓRIO WHATSAPP</h1>
@@ -64,6 +94,19 @@ export default function RelatorioConfigPage() {
         </p>
         <Button onClick={compartilharRelatorio} className="w-full font-orbitron uppercase gap-2 neon-glow-green bg-accent text-accent-foreground hover:bg-accent/80 h-12">
           <Send className="h-4 w-4" /> ENVIAR RELATÓRIO AGORA
+        </Button>
+      </Card>
+
+      <Card className="glass-card p-5 space-y-3" style={{ background: "linear-gradient(135deg, hsl(200 100% 50% / 0.08), transparent)", borderColor: "hsl(200 100% 50% / 0.4)" }}>
+        <div className="flex items-center gap-2" style={{ color: "hsl(200 100% 65%)" }}>
+          <Building2 className="h-4 w-4" />
+          <span className="font-orbitron text-sm font-bold uppercase">ENVIAR PARA OUTRAS UNIDADES</span>
+        </div>
+        <p className="text-xs text-muted-foreground font-orbitron uppercase">
+          DISPARA O RELATÓRIO DE CARRETAS PARA TODOS OS CONTATOS ATIVOS ABAIXO (CADA UNIDADE EM UMA ABA DO WHATSAPP).
+        </p>
+        <Button onClick={enviarParaTodos} className="w-full font-orbitron uppercase gap-2 h-12" style={{ background: "hsl(200 100% 45%)", color: "hsl(220 50% 8%)" }}>
+          <Building2 className="h-4 w-4" /> ENVIAR PARA TODAS AS UNIDADES ({contatos.filter(c => c.ativo).length})
         </Button>
       </Card>
 
