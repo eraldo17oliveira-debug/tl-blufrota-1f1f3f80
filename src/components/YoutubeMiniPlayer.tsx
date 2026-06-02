@@ -1,16 +1,36 @@
-import { useState } from "react";
-import { Search, Minus, Plus, Youtube, Loader2 } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Search, X, Minus, Youtube, Loader2, Move } from "lucide-react";
 
 const YT_API_KEY = "AIzaSyBNOzPdtU7i2DNFogYGibJ6p7GKJE-bGCc";
 
 type Video = { id: string; title: string; thumb: string; channel: string };
 
 export default function YoutubeMiniPlayer() {
+  const [open, setOpen] = useState(false);
   const [minimized, setMinimized] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<Video[]>([]);
   const [loading, setLoading] = useState(false);
   const [current, setCurrent] = useState<Video | null>(null);
+  const [pos, setPos] = useState({ x: 16, y: 64 });
+  const dragRef = useRef<{ dx: number; dy: number } | null>(null);
+
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      if (!dragRef.current) return;
+      setPos({
+        x: Math.max(0, Math.min(window.innerWidth - 360, e.clientX - dragRef.current.dx)),
+        y: Math.max(0, Math.min(window.innerHeight - 100, e.clientY - dragRef.current.dy)),
+      });
+    };
+    const onUp = () => (dragRef.current = null);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+  }, []);
 
   const buscar = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -34,16 +54,37 @@ export default function YoutubeMiniPlayer() {
     }
   };
 
+  if (!open) {
+    return (
+      <button
+        onClick={() => setOpen(true)}
+        className="fixed top-16 left-3 z-50 glass-card border border-primary/40 rounded-full p-2.5 shadow-[0_0_20px_hsl(var(--primary)/0.4)] hover:scale-110 transition-transform"
+        title="YOUTUBE"
+      >
+        <Youtube className="h-5 w-5 text-red-500" />
+      </button>
+    );
+  }
+
   return (
     <div
-      className="fixed top-14 left-2 z-50 glass-card border border-primary/40 rounded-xl shadow-[0_0_30px_hsl(var(--primary)/0.5)] overflow-hidden flex flex-col"
-      style={{ width: minimized ? 200 : 340 }}
+      className="fixed z-50 glass-card border border-primary/40 rounded-xl shadow-[0_0_30px_hsl(var(--primary)/0.5)] overflow-hidden flex flex-col"
+      style={{ left: pos.x, top: pos.y, width: minimized ? 240 : 360 }}
     >
-      <div className="flex items-center gap-2 px-2 py-1.5 bg-gradient-to-r from-red-600/30 to-red-900/30 border-b border-primary/30 select-none">
+      <div
+        className="flex items-center gap-2 px-2 py-1.5 bg-gradient-to-r from-red-600/30 to-red-900/30 border-b border-primary/30 cursor-move select-none"
+        onMouseDown={(e) => {
+          dragRef.current = { dx: e.clientX - pos.x, dy: e.clientY - pos.y };
+        }}
+      >
+        <Move className="h-3 w-3 text-muted-foreground" />
         <Youtube className="h-4 w-4 text-red-500" />
         <span className="font-orbitron text-[0.65rem] text-primary uppercase tracking-wider flex-1">YOUTUBE</span>
-        <button onClick={() => setMinimized(!minimized)} className="text-muted-foreground hover:text-primary" title={minimized ? "EXPANDIR" : "MINIMIZAR"}>
-          {minimized ? <Plus className="h-3.5 w-3.5" /> : <Minus className="h-3.5 w-3.5" />}
+        <button onClick={() => setMinimized(!minimized)} className="text-muted-foreground hover:text-primary">
+          <Minus className="h-3.5 w-3.5" />
+        </button>
+        <button onClick={() => { setOpen(false); setCurrent(null); }} className="text-muted-foreground hover:text-destructive">
+          <X className="h-3.5 w-3.5" />
         </button>
       </div>
 
@@ -82,10 +123,10 @@ export default function YoutubeMiniPlayer() {
             </div>
           )}
 
-          <div className="max-h-56 overflow-y-auto">
+          <div className="max-h-64 overflow-y-auto">
             {results.length === 0 && !loading && (
-              <div className="p-3 text-center text-[0.65rem] text-muted-foreground font-orbitron uppercase">
-                {current ? "BUSQUE OUTRO VIDEO" : "DIGITE E BUSQUE UM VIDEO"}
+              <div className="p-4 text-center text-[0.65rem] text-muted-foreground font-orbitron uppercase">
+                {current ? "Busque outro video" : "Digite e busque um video"}
               </div>
             )}
             {results.map((v) => (
