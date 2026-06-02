@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from "react";
-import { Search, X, Minus, Youtube, Loader2, Move } from "lucide-react";
+import { useState } from "react";
+import { Search, X, Minus, Youtube, Loader2 } from "lucide-react";
 
 const YT_API_KEY = "AIzaSyBNOzPdtU7i2DNFogYGibJ6p7GKJE-bGCc";
 
@@ -12,25 +12,6 @@ export default function YoutubeMiniPlayer() {
   const [results, setResults] = useState<Video[]>([]);
   const [loading, setLoading] = useState(false);
   const [current, setCurrent] = useState<Video | null>(null);
-  const [pos, setPos] = useState({ x: 16, y: 64 });
-  const dragRef = useRef<{ dx: number; dy: number } | null>(null);
-
-  useEffect(() => {
-    const onMove = (e: MouseEvent) => {
-      if (!dragRef.current) return;
-      setPos({
-        x: Math.max(0, Math.min(window.innerWidth - 360, e.clientX - dragRef.current.dx)),
-        y: Math.max(0, Math.min(window.innerHeight - 100, e.clientY - dragRef.current.dy)),
-      });
-    };
-    const onUp = () => (dragRef.current = null);
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-    return () => {
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-    };
-  }, []);
 
   const buscar = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -68,16 +49,10 @@ export default function YoutubeMiniPlayer() {
 
   return (
     <div
-      className="fixed z-50 glass-card border border-primary/40 rounded-xl shadow-[0_0_30px_hsl(var(--primary)/0.5)] overflow-hidden flex flex-col"
-      style={{ left: pos.x, top: pos.y, width: minimized ? 240 : 360 }}
+      className="fixed top-16 left-3 z-50 glass-card border border-primary/40 rounded-xl shadow-[0_0_30px_hsl(var(--primary)/0.5)] overflow-hidden flex flex-col"
+      style={{ width: minimized ? 240 : 360 }}
     >
-      <div
-        className="flex items-center gap-2 px-2 py-1.5 bg-gradient-to-r from-red-600/30 to-red-900/30 border-b border-primary/30 cursor-move select-none"
-        onMouseDown={(e) => {
-          dragRef.current = { dx: e.clientX - pos.x, dy: e.clientY - pos.y };
-        }}
-      >
-        <Move className="h-3 w-3 text-muted-foreground" />
+      <div className="flex items-center gap-2 px-2 py-1.5 bg-gradient-to-r from-red-600/30 to-red-900/30 border-b border-primary/30 select-none">
         <Youtube className="h-4 w-4 text-red-500" />
         <span className="font-orbitron text-[0.65rem] text-primary uppercase tracking-wider flex-1">YOUTUBE</span>
         <button onClick={() => setMinimized(!minimized)} className="text-muted-foreground hover:text-primary">
