@@ -20,6 +20,7 @@ import RelatorioConfigPage from "@/pages/RelatorioConfigPage";
 import PlacasAlertaPage from "@/pages/PlacasAlertaPage";
 import CalibragemPage from "@/pages/CalibragemPage";
 import WhatsappAgendador from "@/components/WhatsappAgendador";
+import YoutubeMiniPlayer from "@/components/YoutubeMiniPlayer";
 import NotFound from "@/pages/NotFound";
 import { Menu } from "lucide-react";
 
@@ -32,6 +33,7 @@ function AppLayout({ session, onLogout }: { session: UserSession; onLogout: () =
   return (
     <SidebarProvider>
       <WhatsappAgendador />
+      <YoutubeMiniPlayer />
       <div className="min-h-screen flex w-full">
         <AppSidebar session={session} onLogout={onLogout} />
         <div className="flex-1 flex flex-col min-w-0">
