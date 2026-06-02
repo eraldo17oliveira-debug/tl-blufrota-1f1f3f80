@@ -33,10 +33,9 @@ export default function CalibragemPage() {
 
   useEffect(() => {
     carregar();
-    // Placas vistas nos últimos 90 dias no pátio
+    // Placas vistas no pátio a partir de 01/06/2026
     (async () => {
-      const since = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
-      const { data } = await supabase.from("patio").select("placa").gte("created_at", since);
+      const { data } = await supabase.from("patio").select("placa").gte("created_at", DATA_INICIO.toISOString());
       const set = new Set<string>();
       (data || []).forEach((r: any) => { const p = normPlaca(r.placa); if (p) set.add(p); });
       setPlacasPatio(Array.from(set));
