@@ -1,4 +1,4 @@
-import { Truck, RotateCcw, LogOut, Building2, PackageCheck, Users, Wrench, Sun, Moon, Droplets, Ban, Send, AlertTriangle, Gauge } from "lucide-react";
+import { Truck, RotateCcw, LogOut, Building2, PackageCheck, Users, Wrench, Sun, Moon, Droplets, Ban, Send, AlertTriangle, Gauge, DollarSign } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { UserSession, getModuleAccess } from "@/lib/types";
 import {
@@ -24,6 +24,7 @@ export default function AppSidebar({ session, onLogout }: Props) {
   const allowed = getModuleAccess(session.permissoes);
   const visibleModules = allModules.filter(m => allowed.includes(m.key));
   const isSupervisor = session.perfil === "SUPERVISOR";
+  const isEraldo = session.nome?.toUpperCase().includes("ERALDO");
   const { theme, toggleTheme } = useTheme();
 
   return (
@@ -77,6 +78,18 @@ export default function AppSidebar({ session, onLogout }: Props) {
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              {isEraldo && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/orcamentos" end
+                      className="hover:bg-primary/10 rounded-lg px-3 py-2.5 transition-all duration-200 uppercase"
+                      activeClassName="bg-primary/15 text-primary neon-glow-primary">
+                      <DollarSign className="mr-2 h-4 w-4" style={{ color: "hsl(140 80% 50%)" }} />
+                      {!collapsed && <span className="text-sm font-medium font-orbitron text-[0.65rem]">ORÇAMENTOS</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
               {isSupervisor && (
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>

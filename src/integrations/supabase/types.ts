@@ -242,6 +242,45 @@ export type Database = {
         }
         Relationships: []
       }
+      orcamentos: {
+        Row: {
+          created_at: string
+          data: string
+          frota: string | null
+          id: string
+          pago: boolean
+          placa: string
+          realizado_por: string | null
+          servicos: string | null
+          tipo: string
+          valor: number
+        }
+        Insert: {
+          created_at?: string
+          data?: string
+          frota?: string | null
+          id?: string
+          pago?: boolean
+          placa: string
+          realizado_por?: string | null
+          servicos?: string | null
+          tipo: string
+          valor?: number
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          frota?: string | null
+          id?: string
+          pago?: boolean
+          placa?: string
+          realizado_por?: string | null
+          servicos?: string | null
+          tipo?: string
+          valor?: number
+        }
+        Relationships: []
+      }
       patio: {
         Row: {
           concluido: boolean
