@@ -253,6 +253,195 @@ function Painel({ tipo }: { tipo: "15" | "70" }) {
   );
 }
 
+function Resumo() {
+  const [lista, setLista] = useState<Orcamento[]>([]);
+  const [filtroPlaca, setFiltroPlaca] = useState("");
+  const [filtroStatus, setFiltroStatus] = useState<"TODOS" | "PAGO" | "PENDENTE">("TODOS");
+
+  const carregar = async () => {
+    const { data } = await supabase
+      .from("orcamentos" as any)
+      .select("*")
+      .order("data", { ascending: false });
+    setLista((data as any) || []);
+  };
+  useEffect(() => { carregar(); }, []);
+
+  const togglePago = async (o: Orcamento) => {
+    await supabase.from("orcamentos" as any).update({ pago: !o.pago }).eq("id", o.id);
+    carregar();
+  };
+
+  const filtrada = useMemo(() => {
+    return lista.filter(o => {
+      if (filtroPlaca && !o.placa.includes(filtroPlaca.toUpperCase())) return false;
+      if (filtroStatus === "PAGO" && !o.pago) return false;
+      if (filtroStatus === "PENDENTE" && o.pago) return false;
+      return true;
+    });
+  }, [lista, filtroPlaca, filtroStatus]);
+
+  const comissao = (o: Orcamento) => Number(o.valor) * (o.tipo === "15" ? 0.15 : 0.70);
+  const tot15 = filtrada.filter(o => o.tipo === "15").reduce((s, o) => s + comissao(o), 0);
+  const tot70 = filtrada.filter(o => o.tipo === "70").reduce((s, o) => s + comissao(o), 0);
+  const totGeral = tot15 + tot70;
+  const totPago = filtrada.filter(o => o.pago).reduce((s, o) => s + comissao(o), 0);
+  const totPend = totGeral - totPago;
+
+  const porPlaca = useMemo(() => {
+    const map = new Map<string, Orcamento[]>();
+    for (const o of filtrada) {
+      if (!map.has(o.placa)) map.set(o.placa, []);
+      map.get(o.placa)!.push(o);
+    }
+    return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+  }, [filtrada]);
+
+  const exportPDFResumo = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(14);
+    doc.text("RESUMO COMISSÕES — ORÇAMENTOS", 14, 14);
+    doc.setFontSize(9);
+    doc.text(`GERADO EM: ${new Date().toLocaleString("pt-BR")}`, 14, 20);
+    autoTable(doc, {
+      startY: 26,
+      head: [["DATA", "PLACA", "FROTA", "TIPO", "SERVIÇOS", "VALOR", "COMISSÃO", "PAGO"]],
+      body: filtrada.map(o => [
+        new Date(o.data + "T00:00:00").toLocaleDateString("pt-BR"),
+        o.placa, o.frota || "-", `${o.tipo}%`, o.servicos || "-",
+        fmtBRL(Number(o.valor)), fmtBRL(comissao(o)), o.pago ? "SIM" : "NÃO",
+      ]),
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [80, 80, 200] },
+    });
+    const finalY = (doc as any).lastAutoTable.finalY + 8;
+    doc.setFontSize(10);
+    doc.text(`COMISSÃO 15%: ${fmtBRL(tot15)}`, 14, finalY);
+    doc.text(`COMISSÃO 70%: ${fmtBRL(tot70)}`, 14, finalY + 6);
+    doc.text(`TOTAL COMISSÃO: ${fmtBRL(totGeral)}`, 14, finalY + 12);
+    doc.text(`PAGO: ${fmtBRL(totPago)}   |   PENDENTE: ${fmtBRL(totPend)}`, 14, finalY + 18);
+    doc.save(`resumo_comissoes_${new Date().toISOString().slice(0,10)}.pdf`);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="glass-card rounded-2xl p-3 border border-red-500/30">
+          <div className="text-[0.6rem] font-orbitron uppercase text-muted-foreground">COMISSÃO 15%</div>
+          <div className="font-orbitron text-lg font-bold text-red-400" style={{ textShadow: "0 0 8px hsl(0 90% 60% / 0.6)" }}>{fmtBRL(tot15)}</div>
+        </div>
+        <div className="glass-card rounded-2xl p-3 border border-green-500/30">
+          <div className="text-[0.6rem] font-orbitron uppercase text-muted-foreground">COMISSÃO 70%</div>
+          <div className="font-orbitron text-lg font-bold text-green-400" style={{ textShadow: "0 0 8px hsl(140 80% 50% / 0.6)" }}>{fmtBRL(tot70)}</div>
+        </div>
+        <div className="glass-card rounded-2xl p-3 border border-primary/30">
+          <div className="text-[0.6rem] font-orbitron uppercase text-muted-foreground">TOTAL COMISSÃO</div>
+          <div className="font-orbitron text-lg font-bold text-primary neon-text">{fmtBRL(totGeral)}</div>
+        </div>
+        <div className="glass-card rounded-2xl p-3 border border-yellow-500/30">
+          <div className="text-[0.6rem] font-orbitron uppercase text-muted-foreground">PAGO / PENDENTE</div>
+          <div className="font-orbitron text-sm font-bold">
+            <span className="text-green-400">{fmtBRL(totPago)}</span>
+            <span className="text-muted-foreground"> / </span>
+            <span className="text-yellow-400">{fmtBRL(totPend)}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="glass-card rounded-2xl p-3 flex flex-wrap items-center gap-2">
+        <Input placeholder="FILTRAR POR PLACA" value={filtroPlaca}
+          onChange={e => setFiltroPlaca(e.target.value.toUpperCase())}
+          className="uppercase font-orbitron h-10 bg-input border-border/50 max-w-[200px]" />
+        <div className="flex gap-1">
+          {(["TODOS", "PAGO", "PENDENTE"] as const).map(s => (
+            <Button key={s} size="sm" variant={filtroStatus === s ? "default" : "outline"}
+              onClick={() => setFiltroStatus(s)}
+              className="font-orbitron text-[0.65rem] uppercase">
+              {s}
+            </Button>
+          ))}
+        </div>
+        <Button size="sm" onClick={exportPDFResumo} className="ml-auto gap-1 font-orbitron text-xs uppercase">
+          <FileDown className="h-4 w-4" /> PDF RESUMO
+        </Button>
+      </div>
+
+      {porPlaca.length === 0 && (
+        <div className="text-center py-10 text-muted-foreground font-orbitron text-xs uppercase">
+          NENHUM ORÇAMENTO ENCONTRADO
+        </div>
+      )}
+
+      {porPlaca.map(([placa, itens]) => {
+        const subTotal = itens.reduce((s, o) => s + Number(o.valor), 0);
+        const subComissao = itens.reduce((s, o) => s + comissao(o), 0);
+        const subPago = itens.filter(o => o.pago).reduce((s, o) => s + comissao(o), 0);
+        return (
+          <div key={placa} className="glass-card rounded-2xl overflow-hidden border border-border/30">
+            <div className="p-3 border-b border-border/30 flex flex-wrap items-center justify-between gap-2 bg-card/30">
+              <div className="flex items-center gap-3">
+                <span className="font-mono-neon text-lg neon-text">{placa}</span>
+                <span className="text-[0.65rem] font-orbitron uppercase text-muted-foreground">{itens.length} SERVIÇO(S)</span>
+              </div>
+              <div className="text-[0.7rem] font-orbitron uppercase">
+                <span className="text-muted-foreground">TOTAL: </span>{fmtBRL(subTotal)}
+                <span className="text-muted-foreground"> • COMISSÃO: </span>
+                <span className="text-primary font-bold">{fmtBRL(subComissao)}</span>
+                <span className="text-muted-foreground"> • PAGO: </span>
+                <span className="text-green-400 font-bold">{fmtBRL(subPago)}</span>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-border/30 hover:bg-transparent">
+                    <TableHead className="font-orbitron text-[0.6rem] uppercase w-16 text-center">PAGO</TableHead>
+                    <TableHead className="font-orbitron text-[0.6rem] uppercase">DATA</TableHead>
+                    <TableHead className="font-orbitron text-[0.6rem] uppercase">TIPO</TableHead>
+                    <TableHead className="font-orbitron text-[0.6rem] uppercase">SERVIÇOS</TableHead>
+                    <TableHead className="font-orbitron text-[0.6rem] uppercase">POR</TableHead>
+                    <TableHead className="font-orbitron text-[0.6rem] uppercase text-right">VALOR</TableHead>
+                    <TableHead className="font-orbitron text-[0.6rem] uppercase text-right">COMISSÃO</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {itens.map(o => {
+                    const cor = o.tipo === "15" ? "hsl(0 90% 60%)" : "hsl(140 80% 50%)";
+                    return (
+                      <TableRow key={o.id} className={`border-border/20 ${o.pago ? "opacity-60" : ""}`}>
+                        <TableCell className="text-center">
+                          <input type="checkbox" checked={o.pago} onChange={() => togglePago(o)}
+                            className="h-5 w-5 accent-green-500 cursor-pointer" />
+                        </TableCell>
+                        <TableCell className="text-[0.7rem] font-orbitron">
+                          {new Date(o.data + "T00:00:00").toLocaleDateString("pt-BR")}
+                        </TableCell>
+                        <TableCell>
+                          <span className="px-2 py-0.5 rounded font-orbitron text-[0.65rem] font-bold"
+                            style={{ background: `${cor.replace(")", " / 0.15)")}`, color: cor, border: `1px solid ${cor.replace(")", " / 0.4)")}` }}>
+                            {o.tipo}%
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-[0.7rem] max-w-[280px] truncate" title={o.servicos || ""}>{o.servicos || "-"}</TableCell>
+                        <TableCell className="text-[0.7rem]">{o.realizado_por || "-"}</TableCell>
+                        <TableCell className="text-right font-orbitron text-xs">{fmtBRL(Number(o.valor))}</TableCell>
+                        <TableCell className="text-right font-orbitron text-sm font-bold"
+                          style={{ color: cor, textShadow: `0 0 6px ${cor.replace(")", " / 0.6)")}` }}>
+                          {fmtBRL(comissao(o))}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function OrcamentosPage() {
   return (
     <div className="space-y-5">
@@ -260,16 +449,20 @@ export default function OrcamentosPage() {
         <DollarSign className="h-5 w-5" /> ORÇAMENTOS
       </h1>
       <Tabs defaultValue="15" className="w-full">
-        <TabsList className="grid grid-cols-2 w-full bg-card/50">
+        <TabsList className="grid grid-cols-3 w-full bg-card/50">
           <TabsTrigger value="15" className="font-orbitron uppercase data-[state=active]:bg-red-500/20 data-[state=active]:text-red-400">
             15%
           </TabsTrigger>
           <TabsTrigger value="70" className="font-orbitron uppercase data-[state=active]:bg-green-500/20 data-[state=active]:text-green-400">
             70%
           </TabsTrigger>
+          <TabsTrigger value="resumo" className="font-orbitron uppercase data-[state=active]:bg-primary/20 data-[state=active]:text-primary">
+            RESUMO
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="15" className="mt-4"><Painel tipo="15" /></TabsContent>
         <TabsContent value="70" className="mt-4"><Painel tipo="70" /></TabsContent>
+        <TabsContent value="resumo" className="mt-4"><Resumo /></TabsContent>
       </Tabs>
     </div>
   );
