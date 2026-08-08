@@ -285,6 +285,7 @@ export type Database = {
         Row: {
           concluido: boolean
           created_at: string
+          doca: string
           eixo: string
           estado: string
           frota: string
@@ -298,6 +299,7 @@ export type Database = {
         Insert: {
           concluido?: boolean
           created_at?: string
+          doca?: string
           eixo?: string
           estado?: string
           frota?: string
@@ -311,6 +313,7 @@ export type Database = {
         Update: {
           concluido?: boolean
           created_at?: string
+          doca?: string
           eixo?: string
           estado?: string
           frota?: string

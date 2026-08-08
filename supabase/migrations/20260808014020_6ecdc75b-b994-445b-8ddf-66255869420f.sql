@@ -1,0 +1,1 @@
+ALTER TABLE public.patio ADD COLUMN IF NOT EXISTS doca text NOT NULL DEFAULT '';
