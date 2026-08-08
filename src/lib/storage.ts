@@ -7,13 +7,13 @@ export function todayStr() {
 }
 
 // ── Pátio ──
-export async function salvarPatio(record: { placa: string; frota: string; modelo: string; eixo: string; estado: string; local: string; status: string; motivo_bloqueio?: string }) {
-  const { error } = await supabase.from("patio").insert(record);
+export async function salvarPatio(record: { placa: string; frota: string; modelo: string; eixo: string; estado: string; local: string; status: string; motivo_bloqueio?: string; doca?: string }) {
+  const { error } = await supabase.from("patio").insert(record as any);
   if (error) console.error(error);
 }
 
-export async function atualizarPatio(id: string, dados: { placa?: string; frota?: string; modelo?: string; eixo?: string; estado?: string; local?: string; status?: string; motivo_bloqueio?: string }) {
-  const { error } = await supabase.from("patio").update(dados).eq("id", id);
+export async function atualizarPatio(id: string, dados: { placa?: string; frota?: string; modelo?: string; eixo?: string; estado?: string; local?: string; status?: string; motivo_bloqueio?: string; doca?: string }) {
+  const { error } = await supabase.from("patio").update(dados as any).eq("id", id);
   if (error) console.error(error);
 }
 
