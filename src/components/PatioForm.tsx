@@ -108,7 +108,7 @@ export default function PatioForm({ session, onSaved, onFechar }: { session?: Us
     await salvarPatio({
       placa: placa.toUpperCase(), frota: frota.toUpperCase(), modelo, eixo, estado, local, status,
       motivo_bloqueio: status === "Bloqueio" ? motivoBloqueio.toUpperCase() : "",
-      doca: local === "Doca" ? doca : "",
+      doca: doca || "",
     });
 
 
@@ -169,7 +169,7 @@ export default function PatioForm({ session, onSaved, onFechar }: { session?: Us
         <OptionGroup label="CARGA" value={estado} onChange={setEstado}
           colorClass="bg-[hsl(var(--neon-orange))] text-primary-foreground" glowClass="shadow-[0_0_12px_hsl(var(--neon-orange)/0.5)]"
           options={[{ label: "VAZIA", value: "Vazia" }, { label: "CARGA", value: "Carga" }]} />
-        <OptionGroup label="LOCAL" value={local} onChange={(v) => { setLocal(v); if (v !== "Doca") setDoca(""); }}
+        <OptionGroup label="LOCAL" value={local} onChange={(v) => { setLocal(v); setDoca(""); }}
           colorClass="bg-accent text-accent-foreground" glowClass="neon-glow-green"
           options={[
             { label: "PÁTIO", value: "Pátio", icon: <MapPin className="h-4 w-4" /> },
@@ -204,6 +204,51 @@ export default function PatioForm({ session, onSaved, onFechar }: { session?: Us
           </div>
         </div>
       )}
+
+      {local === "Pátio" && (
+        <div className="space-y-3">
+          {[
+            { titulo: "VAGAS DA FRENTE (P1 A P12)", inicio: 1 },
+            { titulo: "VAGAS DA LATERAL (P13 A P24)", inicio: 13 },
+          ].map(bloco => (
+            <div key={bloco.titulo} className="space-y-2">
+              <p className="font-orbitron text-[0.65rem] uppercase tracking-widest" style={{ color: "hsl(var(--neon-orange))" }}>
+                {bloco.titulo}
+              </p>
+              <div className="grid grid-cols-6 sm:grid-cols-12 gap-1.5">
+                {Array.from({ length: 12 }, (_, i) => `P${bloco.inicio + i}`).map(c => {
+                  const ativo = doca === c;
+                  return (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setDoca(ativo ? "" : c)}
+                      className="h-9 rounded-lg border font-orbitron text-[0.65rem] font-bold transition-all"
+                      style={
+                        ativo
+                          ? {
+                              background: "hsl(var(--neon-orange))",
+                              borderColor: "transparent",
+                              color: "hsl(var(--primary-foreground))",
+                              boxShadow: "0 0 12px hsl(var(--neon-orange) / 0.5)",
+                            }
+                          : {
+                              borderColor: "hsl(var(--neon-orange) / 0.35)",
+                              background: "hsl(var(--neon-orange) / 0.08)",
+                              color: "hsl(var(--neon-orange))",
+                            }
+                      }
+                    >
+                      {c}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
 
 
 

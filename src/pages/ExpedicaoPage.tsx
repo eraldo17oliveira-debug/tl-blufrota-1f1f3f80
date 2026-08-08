@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import DocasMap from "@/components/DocasMap";
 
 function removeDash(placa: string): string {
   return placa.replace(/-/g, "");
@@ -144,6 +145,14 @@ export default function ExpedicaoPage({ session }: { session: UserSession }) {
           </div>
         ))}
       </div>
+
+      <div className="glass-card rounded-2xl overflow-hidden border-accent/20">
+        <DocasMap ocupacoes={ativos.filter(r => r.doca).map(r => ({
+          doca: String(r.doca), placa: removeDash(r.placa), frota: r.frota, estado: r.estado, status: r.status,
+        }))} />
+      </div>
+
+
 
       {alertasList.filter(a => a.ativo).length > 0 && (
         <div
