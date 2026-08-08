@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import DocasMap from "@/components/DocasMap";
 
 function removeDash(placa: string): string {
   return placa.replace(/-/g, "");
