@@ -97,7 +97,7 @@ export default function PatioTable({ refreshKey, session }: Props) {
       local: editData.local,
       status: editData.status,
       motivo_bloqueio: editData.status === "Bloqueio" ? editData.motivo_bloqueio : "",
-      doca: editData.local === "Doca" ? (editData.doca || "") : "",
+      doca: editData.doca || "",
     });
     if (editData.status === "Bloqueio") {
       const placaUp = (editData.placa || "").toUpperCase();
