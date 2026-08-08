@@ -253,13 +253,13 @@ export default function PatioTable({ refreshKey, session }: Props) {
                     <TableCell>{editSelect("estado", editData.estado, ["Vazia", "Carga"])}</TableCell>
                     <TableCell>{editSelect("local", editData.local, ["Pátio", "Doca"])}</TableCell>
                     <TableCell>
-                      {editData.local === "Doca" ? (
-                        <select value={editData.doca || ""} onChange={e => setEditData({ ...editData, doca: e.target.value })}
-                          className="bg-input border border-border rounded px-2 py-1.5 text-xs font-orbitron w-full">
-                          <option value="">—</option>
-                          {Array.from({ length: 45 }, (_, i) => i + 1).map(n => <option key={n} value={n}>{n}</option>)}
-                        </select>
-                      ) : <span className="text-xs text-muted-foreground">—</span>}
+                      <select value={editData.doca || ""} onChange={e => setEditData({ ...editData, doca: e.target.value })}
+                        className="bg-input border border-border rounded px-2 py-1.5 text-xs font-orbitron w-full">
+                        <option value="">—</option>
+                        {editData.local === "Doca"
+                          ? Array.from({ length: 45 }, (_, i) => i + 1).map(n => <option key={n} value={n}>DOCA {n}</option>)
+                          : Array.from({ length: 24 }, (_, i) => `P${i + 1}`).map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1">
