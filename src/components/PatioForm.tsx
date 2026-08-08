@@ -19,6 +19,7 @@ export default function PatioForm({ session, onSaved, onFechar }: { session?: Us
   const [estado, setEstado] = useState("");
   const [local, setLocal] = useState("");
   const [status, setStatus] = useState("");
+  const [doca, setDoca] = useState("");
   const [motivoBloqueio, setMotivoBloqueio] = useState("");
   const [fotoFile, setFotoFile] = useState<File | null>(null);
   const [fotoPreview, setFotoPreview] = useState<string>("");
