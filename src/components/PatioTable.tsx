@@ -290,8 +290,15 @@ export default function PatioTable({ refreshKey, session }: Props) {
                     <TableCell className="text-sm uppercase">{r.estado}</TableCell>
                     <TableCell className="text-sm uppercase">{r.local}</TableCell>
                     <TableCell className="text-sm">
-                      {r.local === "Doca" && r.doca ? (
-                        <span className="px-2 py-0.5 rounded font-orbitron text-[0.65rem] font-bold bg-accent/20 text-accent border border-accent/40">DOCA {r.doca}</span>
+                      {r.doca ? (
+                        String(r.doca).toUpperCase().startsWith("P") ? (
+                          <span className="px-2 py-0.5 rounded font-orbitron text-[0.65rem] font-bold border"
+                            style={{ background: "hsl(var(--neon-orange) / 0.18)", color: "hsl(var(--neon-orange))", borderColor: "hsl(var(--neon-orange) / 0.5)" }}>
+                            PÁTIO {String(r.doca).toUpperCase()}
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded font-orbitron text-[0.65rem] font-bold bg-accent/20 text-accent border border-accent/40">DOCA {r.doca}</span>
+                        )
                       ) : <span className="text-muted-foreground">—</span>}
                     </TableCell>
 
