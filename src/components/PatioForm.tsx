@@ -183,6 +183,30 @@ export default function PatioForm({ session, onSaved, onFechar }: { session?: Us
           ]} />
       </div>
 
+      {local === "Doca" && (
+        <div className="space-y-2">
+          <p className="font-orbitron text-[0.65rem] text-muted-foreground uppercase tracking-widest">NÚMERO DA DOCA (1 A 45)</p>
+          <div className="grid grid-cols-8 sm:grid-cols-12 gap-1.5">
+            {Array.from({ length: 45 }, (_, i) => i + 1).map(n => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => setDoca(String(n))}
+                className={`h-9 rounded-lg border font-orbitron text-[0.65rem] font-bold transition-all ${
+                  doca === String(n)
+                    ? "bg-accent text-accent-foreground border-transparent neon-glow-green"
+                    : "border-border/50 bg-secondary/50 text-muted-foreground hover:text-foreground hover:bg-secondary"
+                }`}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+
+
       {status === "Bloqueio" && (
         <div className="space-y-3">
           <Textarea
