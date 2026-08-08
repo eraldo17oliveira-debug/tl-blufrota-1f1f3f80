@@ -141,7 +141,7 @@ export default function PatioForm({ session, onSaved, onFechar }: { session?: Us
     }
 
     toast.success("MOVIMENTAÇÃO REGISTRADA!");
-    setPlaca(""); setFrota(""); setModelo(""); setEixo(""); setEstado(""); setLocal(""); setStatus(""); setMotivoBloqueio("");
+    setPlaca(""); setFrota(""); setModelo(""); setEixo(""); setEstado(""); setLocal(""); setStatus(""); setMotivoBloqueio(""); setDoca("");
     setFotoFile(null); setFotoPreview("");
     onSaved();
   };
