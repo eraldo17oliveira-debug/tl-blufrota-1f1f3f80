@@ -108,7 +108,7 @@ export default function PatioForm({ session, onSaved, onFechar }: { session?: Us
     await salvarPatio({
       placa: placa.toUpperCase(), frota: frota.toUpperCase(), modelo, eixo, estado, local, status,
       motivo_bloqueio: status === "Bloqueio" ? motivoBloqueio.toUpperCase() : "",
-      doca: local === "Doca" ? doca : "",
+      doca: doca || "",
     });
 
 
