@@ -233,6 +233,7 @@ export default function PatioTable({ refreshKey, session }: Props) {
               <TableHead className="font-orbitron text-[0.65rem] uppercase font-bold">FROTA</TableHead>
               <TableHead className="font-orbitron text-[0.65rem] uppercase font-bold">CARGA</TableHead>
               <TableHead className="font-orbitron text-[0.65rem] uppercase font-bold">LOCAL</TableHead>
+              <TableHead className="font-orbitron text-[0.65rem] uppercase font-bold">DOCA</TableHead>
               <TableHead className="font-orbitron text-[0.65rem] uppercase font-bold">SEGURANÇA</TableHead>
               <TableHead className="font-orbitron text-[0.65rem] uppercase font-bold">EIXO</TableHead>
               <TableHead className="font-orbitron text-[0.65rem] uppercase font-bold">MODELO</TableHead>
@@ -241,7 +242,8 @@ export default function PatioTable({ refreshKey, session }: Props) {
           </TableHeader>
           <TableBody>
             {records.length === 0 ? (
-              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-10 font-orbitron text-xs uppercase">NENHUM REGISTRO PARA ESTA DATA.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-10 font-orbitron text-xs uppercase">NENHUM REGISTRO PARA ESTA DATA.</TableCell></TableRow>
+
             ) : records.map(r => (
               <TableRow key={r.id} className={cn("border-border/20 transition-all duration-300 table-row-glow", r.status === "Bloqueio" && "bg-destructive/10")}>
                 {editingId === r.id ? (
