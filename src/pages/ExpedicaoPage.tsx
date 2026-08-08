@@ -145,6 +145,14 @@ export default function ExpedicaoPage({ session }: { session: UserSession }) {
         ))}
       </div>
 
+      <div className="glass-card rounded-2xl overflow-hidden border-accent/20">
+        <DocasMap ocupacoes={ativos.filter(r => r.doca).map(r => ({
+          doca: String(r.doca), placa: removeDash(r.placa), frota: r.frota, estado: r.estado, status: r.status,
+        }))} />
+      </div>
+
+
+
       {alertasList.filter(a => a.ativo).length > 0 && (
         <div
           className="glass-card rounded-2xl p-4 sm:p-5 space-y-3"
