@@ -76,7 +76,8 @@ export default function PatioTable({ refreshKey, session }: Props) {
     setEditingId(r.id);
     setEditData({
       placa: r.placa, frota: r.frota, modelo: r.modelo, eixo: r.eixo,
-      estado: r.estado, local: r.local, status: r.status, motivo_bloqueio: r.motivo_bloqueio || ""
+      estado: r.estado, local: r.local, status: r.status, motivo_bloqueio: r.motivo_bloqueio || "",
+      doca: r.doca || ""
     });
   };
 
