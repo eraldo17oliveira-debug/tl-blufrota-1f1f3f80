@@ -169,7 +169,7 @@ export default function PatioForm({ session, onSaved, onFechar }: { session?: Us
         <OptionGroup label="CARGA" value={estado} onChange={setEstado}
           colorClass="bg-[hsl(var(--neon-orange))] text-primary-foreground" glowClass="shadow-[0_0_12px_hsl(var(--neon-orange)/0.5)]"
           options={[{ label: "VAZIA", value: "Vazia" }, { label: "CARGA", value: "Carga" }]} />
-        <OptionGroup label="LOCAL" value={local} onChange={setLocal}
+        <OptionGroup label="LOCAL" value={local} onChange={(v) => { setLocal(v); if (v !== "Doca") setDoca(""); }}
           colorClass="bg-accent text-accent-foreground" glowClass="neon-glow-green"
           options={[
             { label: "PÁTIO", value: "Pátio", icon: <MapPin className="h-4 w-4" /> },
