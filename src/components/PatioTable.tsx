@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FileText, FileSpreadsheet, Monitor, Pencil, Save, X, AlertTriangle, Trash2 } from "lucide-react";
+import DocasMap from "@/components/DocasMap";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import jsPDF from "jspdf";
@@ -75,7 +76,8 @@ export default function PatioTable({ refreshKey, session }: Props) {
     setEditingId(r.id);
     setEditData({
       placa: r.placa, frota: r.frota, modelo: r.modelo, eixo: r.eixo,
-      estado: r.estado, local: r.local, status: r.status, motivo_bloqueio: r.motivo_bloqueio || ""
+      estado: r.estado, local: r.local, status: r.status, motivo_bloqueio: r.motivo_bloqueio || "",
+      doca: r.doca || ""
     });
   };
 
@@ -95,6 +97,7 @@ export default function PatioTable({ refreshKey, session }: Props) {
       local: editData.local,
       status: editData.status,
       motivo_bloqueio: editData.status === "Bloqueio" ? editData.motivo_bloqueio : "",
+      doca: editData.local === "Doca" ? (editData.doca || "") : "",
     });
     if (editData.status === "Bloqueio") {
       const placaUp = (editData.placa || "").toUpperCase();
@@ -216,6 +219,12 @@ export default function PatioTable({ refreshKey, session }: Props) {
         ))}
       </div>
 
+      <DocasMap ocupacoes={ativos.filter(r => r.local === "Doca" && r.doca).map(r => ({
+        doca: String(r.doca), placa: r.placa, frota: r.frota, estado: r.estado, status: r.status,
+      }))} />
+
+
+
       <div className="overflow-x-auto p-2">
         <Table>
           <TableHeader>
@@ -224,6 +233,7 @@ export default function PatioTable({ refreshKey, session }: Props) {
               <TableHead className="font-orbitron text-[0.65rem] uppercase font-bold">FROTA</TableHead>
               <TableHead className="font-orbitron text-[0.65rem] uppercase font-bold">CARGA</TableHead>
               <TableHead className="font-orbitron text-[0.65rem] uppercase font-bold">LOCAL</TableHead>
+              <TableHead className="font-orbitron text-[0.65rem] uppercase font-bold">DOCA</TableHead>
               <TableHead className="font-orbitron text-[0.65rem] uppercase font-bold">SEGURANÇA</TableHead>
               <TableHead className="font-orbitron text-[0.65rem] uppercase font-bold">EIXO</TableHead>
               <TableHead className="font-orbitron text-[0.65rem] uppercase font-bold">MODELO</TableHead>
@@ -232,7 +242,8 @@ export default function PatioTable({ refreshKey, session }: Props) {
           </TableHeader>
           <TableBody>
             {records.length === 0 ? (
-              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-10 font-orbitron text-xs uppercase">NENHUM REGISTRO PARA ESTA DATA.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground py-10 font-orbitron text-xs uppercase">NENHUM REGISTRO PARA ESTA DATA.</TableCell></TableRow>
+
             ) : records.map(r => (
               <TableRow key={r.id} className={cn("border-border/20 transition-all duration-300 table-row-glow", r.status === "Bloqueio" && "bg-destructive/10")}>
                 {editingId === r.id ? (
@@ -241,6 +252,15 @@ export default function PatioTable({ refreshKey, session }: Props) {
                     <TableCell>{editInput("frota", editData.frota, "FROTA")}</TableCell>
                     <TableCell>{editSelect("estado", editData.estado, ["Vazia", "Carga"])}</TableCell>
                     <TableCell>{editSelect("local", editData.local, ["Pátio", "Doca"])}</TableCell>
+                    <TableCell>
+                      {editData.local === "Doca" ? (
+                        <select value={editData.doca || ""} onChange={e => setEditData({ ...editData, doca: e.target.value })}
+                          className="bg-input border border-border rounded px-2 py-1.5 text-xs font-orbitron w-full">
+                          <option value="">—</option>
+                          {Array.from({ length: 45 }, (_, i) => i + 1).map(n => <option key={n} value={n}>{n}</option>)}
+                        </select>
+                      ) : <span className="text-xs text-muted-foreground">—</span>}
+                    </TableCell>
                     <TableCell>
                       <div className="space-y-1">
                         {editSelect("status", editData.status, ["Livre", "Bloqueio"])}
@@ -269,6 +289,12 @@ export default function PatioTable({ refreshKey, session }: Props) {
                     <TableCell className="text-sm font-orbitron">{r.frota}</TableCell>
                     <TableCell className="text-sm uppercase">{r.estado}</TableCell>
                     <TableCell className="text-sm uppercase">{r.local}</TableCell>
+                    <TableCell className="text-sm">
+                      {r.local === "Doca" && r.doca ? (
+                        <span className="px-2 py-0.5 rounded font-orbitron text-[0.65rem] font-bold bg-accent/20 text-accent border border-accent/40">DOCA {r.doca}</span>
+                      ) : <span className="text-muted-foreground">—</span>}
+                    </TableCell>
+
                     <TableCell className="text-sm uppercase">
                       <div className="flex items-center gap-1">
                         {r.status === "Bloqueio" && <AlertTriangle className="h-3.5 w-3.5 text-destructive" />}

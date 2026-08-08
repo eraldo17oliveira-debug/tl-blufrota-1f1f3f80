@@ -19,6 +19,7 @@ export default function PatioForm({ session, onSaved, onFechar }: { session?: Us
   const [estado, setEstado] = useState("");
   const [local, setLocal] = useState("");
   const [status, setStatus] = useState("");
+  const [doca, setDoca] = useState("");
   const [motivoBloqueio, setMotivoBloqueio] = useState("");
   const [fotoFile, setFotoFile] = useState<File | null>(null);
   const [fotoPreview, setFotoPreview] = useState<string>("");
@@ -107,6 +108,7 @@ export default function PatioForm({ session, onSaved, onFechar }: { session?: Us
     await salvarPatio({
       placa: placa.toUpperCase(), frota: frota.toUpperCase(), modelo, eixo, estado, local, status,
       motivo_bloqueio: status === "Bloqueio" ? motivoBloqueio.toUpperCase() : "",
+      doca: local === "Doca" ? doca : "",
     });
 
 
@@ -139,7 +141,7 @@ export default function PatioForm({ session, onSaved, onFechar }: { session?: Us
     }
 
     toast.success("MOVIMENTAÇÃO REGISTRADA!");
-    setPlaca(""); setFrota(""); setModelo(""); setEixo(""); setEstado(""); setLocal(""); setStatus(""); setMotivoBloqueio("");
+    setPlaca(""); setFrota(""); setModelo(""); setEixo(""); setEstado(""); setLocal(""); setStatus(""); setMotivoBloqueio(""); setDoca("");
     setFotoFile(null); setFotoPreview("");
     onSaved();
   };
@@ -167,7 +169,7 @@ export default function PatioForm({ session, onSaved, onFechar }: { session?: Us
         <OptionGroup label="CARGA" value={estado} onChange={setEstado}
           colorClass="bg-[hsl(var(--neon-orange))] text-primary-foreground" glowClass="shadow-[0_0_12px_hsl(var(--neon-orange)/0.5)]"
           options={[{ label: "VAZIA", value: "Vazia" }, { label: "CARGA", value: "Carga" }]} />
-        <OptionGroup label="LOCAL" value={local} onChange={setLocal}
+        <OptionGroup label="LOCAL" value={local} onChange={(v) => { setLocal(v); if (v !== "Doca") setDoca(""); }}
           colorClass="bg-accent text-accent-foreground" glowClass="neon-glow-green"
           options={[
             { label: "PÁTIO", value: "Pátio", icon: <MapPin className="h-4 w-4" /> },
@@ -180,6 +182,30 @@ export default function PatioForm({ session, onSaved, onFechar }: { session?: Us
             { label: "BLOQUEIO", value: "Bloqueio", icon: <Lock className="h-4 w-4" /> },
           ]} />
       </div>
+
+      {local === "Doca" && (
+        <div className="space-y-2">
+          <p className="font-orbitron text-[0.65rem] text-muted-foreground uppercase tracking-widest">NÚMERO DA DOCA (1 A 45)</p>
+          <div className="grid grid-cols-8 sm:grid-cols-12 gap-1.5">
+            {Array.from({ length: 45 }, (_, i) => i + 1).map(n => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => setDoca(String(n))}
+                className={`h-9 rounded-lg border font-orbitron text-[0.65rem] font-bold transition-all ${
+                  doca === String(n)
+                    ? "bg-accent text-accent-foreground border-transparent neon-glow-green"
+                    : "border-border/50 bg-secondary/50 text-muted-foreground hover:text-foreground hover:bg-secondary"
+                }`}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+
 
       {status === "Bloqueio" && (
         <div className="space-y-3">
