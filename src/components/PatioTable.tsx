@@ -289,6 +289,12 @@ export default function PatioTable({ refreshKey, session }: Props) {
                     <TableCell className="text-sm font-orbitron">{r.frota}</TableCell>
                     <TableCell className="text-sm uppercase">{r.estado}</TableCell>
                     <TableCell className="text-sm uppercase">{r.local}</TableCell>
+                    <TableCell className="text-sm">
+                      {r.local === "Doca" && r.doca ? (
+                        <span className="px-2 py-0.5 rounded font-orbitron text-[0.65rem] font-bold bg-accent/20 text-accent border border-accent/40">DOCA {r.doca}</span>
+                      ) : <span className="text-muted-foreground">—</span>}
+                    </TableCell>
+
                     <TableCell className="text-sm uppercase">
                       <div className="flex items-center gap-1">
                         {r.status === "Bloqueio" && <AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
