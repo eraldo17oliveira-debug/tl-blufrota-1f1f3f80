@@ -219,6 +219,12 @@ export default function PatioTable({ refreshKey, session }: Props) {
         ))}
       </div>
 
+      <DocasMap ocupacoes={ativos.filter(r => r.local === "Doca" && r.doca).map(r => ({
+        doca: String(r.doca), placa: r.placa, frota: r.frota, estado: r.estado, status: r.status,
+      }))} />
+
+
+
       <div className="overflow-x-auto p-2">
         <Table>
           <TableHeader>
