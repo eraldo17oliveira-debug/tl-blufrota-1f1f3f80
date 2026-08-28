@@ -389,6 +389,84 @@ export type Database = {
         }
         Relationships: []
       }
+      portaria: {
+        Row: {
+          coleta: string | null
+          cpf: string | null
+          created_at: string
+          data: string
+          destino: string | null
+          divergencia: string | null
+          empresa: string | null
+          hora: string | null
+          hora_entrada: string | null
+          hora_saida: string | null
+          id: string
+          lacre: string | null
+          nome: string | null
+          observacao: string | null
+          origem: string | null
+          pessoa_visitada: string | null
+          placa: string | null
+          placa_carreta: string | null
+          placa_cavalo: string | null
+          sentido: string | null
+          smp: string | null
+          tipo: string
+          veiculo_pedestre: string | null
+        }
+        Insert: {
+          coleta?: string | null
+          cpf?: string | null
+          created_at?: string
+          data?: string
+          destino?: string | null
+          divergencia?: string | null
+          empresa?: string | null
+          hora?: string | null
+          hora_entrada?: string | null
+          hora_saida?: string | null
+          id?: string
+          lacre?: string | null
+          nome?: string | null
+          observacao?: string | null
+          origem?: string | null
+          pessoa_visitada?: string | null
+          placa?: string | null
+          placa_carreta?: string | null
+          placa_cavalo?: string | null
+          sentido?: string | null
+          smp?: string | null
+          tipo: string
+          veiculo_pedestre?: string | null
+        }
+        Update: {
+          coleta?: string | null
+          cpf?: string | null
+          created_at?: string
+          data?: string
+          destino?: string | null
+          divergencia?: string | null
+          empresa?: string | null
+          hora?: string | null
+          hora_entrada?: string | null
+          hora_saida?: string | null
+          id?: string
+          lacre?: string | null
+          nome?: string | null
+          observacao?: string | null
+          origem?: string | null
+          pessoa_visitada?: string | null
+          placa?: string | null
+          placa_carreta?: string | null
+          placa_cavalo?: string | null
+          sentido?: string | null
+          smp?: string | null
+          tipo?: string
+          veiculo_pedestre?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           ativo: boolean
